@@ -1,2 +1,6 @@
 (library
- (name minicaml))
+ (name minicaml)
+ (public_name minicaml))
+
+(ocamllex lexer)
+(menhir (modules parser))

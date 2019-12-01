@@ -1,6 +1,5 @@
 open Minicaml;;
 
-print_endline "Hello world!";;
-
 let env = Env.empty_env();;
 
+Repl.repl (Env.empty_env());;
