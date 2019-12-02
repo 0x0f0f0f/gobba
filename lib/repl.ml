@@ -47,7 +47,7 @@ let repl env =
     while true do
         try
         let command = read_toplevel (wrap_syntax_errors parser) () in
-        print_message ~loc:(Nowhere) "AST equivalent" "\n't%s"
+        print_message ~loc:(Nowhere) "AST equivalent" "\n\t%s"
           (show_expr command);
         let evaluated = eval command env 0 in
         print_message ~loc:(Nowhere) "Result" "\t%s" (show_evt evaluated);
