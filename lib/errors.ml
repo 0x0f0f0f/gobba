@@ -1,3 +1,4 @@
+module T = ANSITerminal
 
 type location =
   | Location of Lexing.position * Lexing.position (** delimited location *)
@@ -36,17 +37,17 @@ let print_location loc ppf =
         Format.fprintf ppf "line %d, characters %d-%d" (begin_line - 1) begin_char end_char
 
 (** Print a message at a given location [loc] of message type [msg_type]. *)
-let print_message ?(loc=Nowhere) msg_type =
+let print_message ?color:(color=T.Default) ?(loc=Nowhere) msg_type =
   match loc with
   | Location _ ->
-     Format.eprintf "%s at %t:@\n" msg_type (print_location loc) ;
+     T.eprintf [T.Foreground color] "%s" (Format.asprintf "%s at %t:@\n" msg_type (print_location loc));
      Format.kfprintf (fun ppf -> Format.fprintf ppf "@.") Format.err_formatter
   | Nowhere ->
-     Format.eprintf "%s: " msg_type ;
+     T.eprintf [T.Foreground color] "%s: " msg_type ;
      Format.kfprintf (fun ppf -> Format.fprintf ppf "@.") Format.err_formatter
 
 (** Print the caught error *)
-let print_error (loc, err_type, msg) = print_message ~loc err_type "%s" msg
+let print_error (loc, err_type, msg) = print_message ~color:T.Red ~loc err_type "%s" msg
 
 (** A fatal error reported by the toplevel. *)
 let fatal_error msg = error ~kind:"Fatal error" msg

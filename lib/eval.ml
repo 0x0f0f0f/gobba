@@ -1,6 +1,7 @@
 open Types
 open Env
 open Errors
+module T = ANSITerminal
 
 (** Numerical Primitives *)
 
@@ -81,6 +82,6 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
             eval body application_env n
         | _ -> failwith "Not a function!")
     in
-    print_message ~loc:(Nowhere)
+    print_message ~color:T.Blue ~loc:(Nowhere)
         "Reduction at depth" "%d\nExpression:\t%s\nEvaluates to:\t%s\n" n (show_expr e) (show_evt evaluated);
     evaluated;

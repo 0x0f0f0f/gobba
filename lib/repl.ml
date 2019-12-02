@@ -50,7 +50,7 @@ let repl env =
         print_message ~loc:(Nowhere) "AST equivalent" "\n%s"
           (show_expr command);
         let evaluated = eval command env 0 in
-        print_message ~loc:(Nowhere) "Result" "\t%s" (show_evt evaluated);
+        print_message ~color:T.Green ~loc:(Nowhere) "Result" "\t%s" (show_evt evaluated);
         with
             | End_of_file -> raise End_of_file
             | Error err -> print_error err
