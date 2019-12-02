@@ -11,30 +11,36 @@
       }
 }
 
-let symbol = ['a'-'Z' 'A'-'Z']+
-let int = ['0'-'9'] ['0'-'9']*
+let digit = ['0'-'9']
+let alpha = ['a'-'z' 'A'-'Z']
+let symbol = alpha (alpha|digit)*
+let int = '-'? ['0'-'9'] ['0'-'9']*
 let white = [' ' '\t' '\r']
 
 rule token = parse
   | white     {token lexbuf}
+  | '\n'      { Lexing.new_line lexbuf; token lexbuf }
   | int       { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
   | "true"    { TRUE }
   | "false"   { FALSE }
   | "fun"     { LAMBDA }
-  | "lambda"  { LAMBDA }
   | "if"      { IF }
   | "then"    { THEN }
   | "else"    { ELSE }
   | "let"     { LET }
-  | "in"      { IN }
+  | "lambda"  { LAMBDA }
   | "->"      { LARROW }
+  | "in"      { IN }
   | "("       { LPAREN }
   | ")"       { RPAREN }
   | "+"       { PLUS }
   | "-"       { MINUS }
   | "*"       { TIMES }
   | "="       { EQUAL }
+  | ">"       { GREATER }
+  | "<"       { LESS }
   | "not"     { NOT }
   | ";;"      { SEMISEMI }
   | symbol    { SYMBOL (Lexing.lexeme lexbuf) }
+  | eof       { EOF }
   | _         { raise (SyntaxError ("Unexpected " ^ Lexing.lexeme lexbuf))}

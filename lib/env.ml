@@ -8,7 +8,7 @@ let empty_env : unit -> env_type =
 let rec lookup (env : env_type) (ident : ide) : evt =
     if ident = "" then failwith "invalid identifier" else
     match env with
-    | [] -> raise UnboundVariable
+    | [] -> raise (UnboundVariable ident)
     | (i, e) :: env_rest -> if ident = i then e else lookup env_rest ident
 
 (** Bind a value to an identifier, returning an environment *)
