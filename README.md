@@ -15,8 +15,8 @@ I have also added a simple REPL that show each reduction step that is done in
 evaluating an expression. I'd like to implement a simple compiler and abstract
 machine for this project.
 
-**minicaml** only implement basic data types (integers and booleans) and will
-never be a fully programming language for real world usage. **minicaml's only
+**minicaml** only implements basic data types (integers and booleans) and will
+never be a full programming language intended for real world usage. **minicaml's only
 purpose is to help students get a grasp of how interpreters and programming
 languages work**.
 
