@@ -18,6 +18,7 @@ depends: [
     "ocaml"
     "ocamlfind"
     "menhir"
+    "ANSITerminal"
 ]
 build: [
     [make]
