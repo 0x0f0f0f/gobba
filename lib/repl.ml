@@ -2,6 +2,7 @@ open Types
 open Eval
 open Printf
 open Lexing
+open Errors
 
 let read_toplevel parser () =
     let prompt = "> "
@@ -46,15 +47,17 @@ let repl env =
     while true do
         try
         let command = read_toplevel (wrap_syntax_errors parser) () in
-        print_endline (show_expr command);
+        print_message ~loc:(Nowhere) "AST equivalent" "\n't%s"
+          (show_expr command);
         let evaluated = eval command env 0 in
-        print_endline (show_evt evaluated);
+        print_message ~loc:(Nowhere) "Result" "\t%s" (show_evt evaluated);
         with
             | End_of_file -> raise End_of_file
             | Error err -> print_error err
             | Sys.Break -> prerr_endline "Interrupted."
-            | e -> Printf.fprintf stderr "Semantic error: %s\n"
-            (Printexc.to_string e)
+            | e ->
+            print_error (Nowhere, "Semantic Error", (Printexc.to_string e));
+
     done
     with
       | End_of_file -> prerr_endline "Goodbye!"

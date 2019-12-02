@@ -1,5 +1,6 @@
 open Types
 open Env
+open Errors
 
 (** Numerical Primitives *)
 
@@ -80,7 +81,6 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
             eval body application_env n
         | _ -> failwith "Not a function!")
     in
-    Printf.printf
-        "Reduction at level %d:\nExpression:\t%s\nReduces to:\t%s\n\n" n
-            (show_expr e) (show_evt evaluated);
+    print_message ~loc:(Nowhere)
+        "Reduction at depth" "%d\nExpression:\t%s\nEvaluates to:\t%s\n" n (show_expr e) (show_evt evaluated);
     evaluated;
