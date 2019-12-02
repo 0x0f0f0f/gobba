@@ -24,6 +24,8 @@ funzionano gli interpreti e i linguaggi di programmazione**
 Rilascerò un file binario (non è necessario compilarlo) nel prossimo futuro. Per
 installare, devi avere `opam` (gestore dei pacchetti di OCaml) e una
 distribuzione di OCaml recente installata sul tuo sistema.
+[rlwrap](https://github.com/hanslub42/rlwrap) è suggerito per un'esperienza con
+scorciatoie da tastiera come su bash.
 
 ```bash
 # clona il repository
@@ -33,14 +35,16 @@ cd minicaml
 # installa le dipendenze
 opam install dune menhir ANSITerminal
 # compila
-rendere
+make
 # esegui
-correre
+make run
+# rlwrap è suggerito
+rlwrap make run
 ```
 
 ## Utilizzo
 
 Esegui `make run` per eseguire un REPL. Il REPL mostra l'AST equivalente ad ogni
 espressione inserita, e viene mostrato ogni passaggio di riduzione nella
-valutazione delle espressioni. Segnala anche errori semantici e di sentassi.
+valutazione delle espressioni. Segnala anche errori semantici e di sintassi.
 

@@ -24,6 +24,8 @@ languages work**.
 I will release a binary file (no need to compile) in the near future. To
 install, you need to have `opam` (OCaml's package manager) and a recent OCaml
 distribution installed on your system.
+[rlwrap](https://github.com/hanslub42/rlwrap) is suggested for a readline-like
+(bash-like) keyboard interface.
 
 ```bash
 # clone the repository
@@ -36,6 +38,8 @@ opam install dune menhir ANSITerminal
 make
 # run
 make run
+# rlwrap is suggested
+rlwrap make run
 ```
 
 ## Usage
