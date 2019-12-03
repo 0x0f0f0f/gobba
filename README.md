@@ -20,6 +20,16 @@ never be a full programming language intended for real world usage. **minicaml's
 purpose is to help students get a grasp of how interpreters and programming
 languages work**.
 
+## Features
+
+* Show the AST of each expression
+* Only boolean and integer types
+* Pretty color REPL showing every step made in evaluating a program
+* Only local declaration statements
+* Recursive functions and closures
+* ocamllex and menhir lexer and parser
+* Extendable with ease
+
 ## Installation
 I will release a binary file (no need to compile) in the near future. To
 install, you need to have `opam` (OCaml's package manager) and a recent OCaml
