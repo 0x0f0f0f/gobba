@@ -1,4 +1,4 @@
-(lang dune 1.10)
+(lang dune 2.0)
 (name minicaml)
 (using menhir 2.0)
 (source (github 0x0f0f0f/minicaml))
