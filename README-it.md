@@ -40,6 +40,10 @@ make
 make run
 # rlwrap è suggerito
 rlwrap make run
+# puoi installare minicaml eseguendo
+make install
+# esegui minicaml installato
+rlwrap minicaml
 ```
 
 ## Utilizzo

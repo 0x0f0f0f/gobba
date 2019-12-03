@@ -1,0 +1,7 @@
+(executable
+    (name main)
+    (libraries minicaml))
+
+(install
+    (section bin)
+    (files (main.exe as minicaml)))

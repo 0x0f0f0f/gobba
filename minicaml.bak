@@ -12,9 +12,9 @@ authors: "0x0f0f0f <sudo-woodo3@protonmail.com>"
 license: "MIT"
 homepage: "https://github.com/0x0f0f0f/minicaml"
 bug-reports: "https://github.com/0x0f0f0f/minicaml/issues"
-dev-repo: "https://github.com/0x0f0f0f/minicaml"
+dev-repo: "git+https://github.com/0x0f0f0f/minicaml"
 depends: [
-    "dune" build
+    "dune" 
     "ocaml"
     "ocamlfind"
     "menhir"
