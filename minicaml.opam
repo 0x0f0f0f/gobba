@@ -16,4 +16,5 @@ depends: [
     "dune"
     "ocaml"
     "ANSITerminal"
+    "menhir"
 ]
