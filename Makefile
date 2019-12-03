@@ -9,7 +9,7 @@ test:
 	dune runtest -f
 
 run:
-	dune exec ./main.exe
+	dune exec ./bin/minicaml.exe
 
 install:
 	dune install
