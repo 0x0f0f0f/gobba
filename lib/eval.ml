@@ -72,15 +72,27 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
         | _ -> failwith "Nonboolean guard!")
     | Let (ident, value, body) ->
         eval body (bind env ident (eval value env n)) n
+    | Letrec (ident, value, body) ->
+        (match value with
+            | Lambda (params, fbody) -> 
+                let rec_env = (bind env ident 
+                    (RecClosure(ident, params, fbody, env))) 
+                in eval body rec_env n
+            | _ -> failwith "Cannot define recursion on non-functional values")
     | Lambda (params,body) -> Closure(params, body, env)
     | Apply(f, params) ->
         let closure = eval f env n in
-        match closure with
+        (match closure with
         | Closure(args, body, decenv) -> (* Use static scoping *)
             let evaluated_params = List.map (fun x -> eval x env n) params in
             let application_env = bindlist decenv args evaluated_params in
             eval body application_env n
-        | _ -> failwith "Not a function!")
+        | RecClosure(name, args, body, decenv) ->
+            let evaluated_params = List.map (fun x -> eval x env n) params in
+            let rec_env = (bind decenv name closure) in
+            let application_env = bindlist rec_env args evaluated_params in
+            eval body application_env n
+        | _ -> failwith "Not a function!"))
     in
     print_message ~color:T.Blue ~loc:(Nowhere)
         "Reduction at depth" "%d\nExpression:\t%s\nEvaluates to:\t%s\n" n (show_expr e) (show_evt evaluated);

@@ -19,6 +19,7 @@
 %token LAMBDA
 %token LARROW
 %token LET
+%token REC
 %token IN
 %token SEMISEMI
 %token EOF
@@ -78,6 +79,8 @@ ast_expr:
     { IfThenElse (g, b, e)}
   | LET name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
     { Let (name, value, body) }
+  | LET REC name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
+    { Letrec (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
     { Lambda (params, body) }
   | f = SYMBOL params = ast_expr+

@@ -28,6 +28,7 @@ rule token = parse
   | "then"    { THEN }
   | "else"    { ELSE }
   | "let"     { LET }
+  | "rec"     { REC }
   | "lambda"  { LAMBDA }
   | "->"      { LARROW }
   | "in"      { IN }

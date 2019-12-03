@@ -21,6 +21,7 @@ type expr =
     (* Control flow and functions *)
     | IfThenElse of expr * expr * expr
     | Let of ide * expr * expr
+    | Letrec of ide * expr * expr
     | Lambda of ide list * expr
     | Apply of expr * expr list
 
@@ -46,6 +47,8 @@ let rec show_expr (obj: expr) : string = match obj with
         (show_expr alt)
     | Let (name, value, block) -> sprintf "Let (%s, %s, %s)" (name)
         (show_expr value) (show_expr block)
+    | Letrec (name, value, block) -> sprintf "Letrec (%s, %s, %s)" (name)
+        (show_expr value) (show_expr block)
     | Lambda (params, body) ->
         sprintf "Lambda (%s, [%s])"
             (String.concat "; " params)
@@ -65,13 +68,18 @@ type evt =
     | Int of int
     | Bool of bool
     | Closure of ide list * expr * (evt env_t)
+    (** RecClosure keeps the function name in the environment for recursion *)
+    | RecClosure of ide * ide list * expr * (evt env_t) 
 
 (** Function to get a string representation of an evaluated type *)
 let show_evt (obj: evt) : string = match obj with
     | Int i -> string_of_int i
     | Bool b -> string_of_bool b
     | Closure (params, _, _) ->
-        String.concat " " (["fun"] @ params @ ["-> ..."])
+        String.concat " " (["<fun"] @ params @ ["-> ...>"])
+    | RecClosure (name, params, _, _) ->
+        String.concat " " (["<" ^ name] @ params @ ["-> ...>"])
+
 
 (** An environment type with  *)
 type env_type = evt env_t
