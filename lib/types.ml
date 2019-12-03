@@ -50,12 +50,12 @@ let rec show_expr (obj: expr) : string = match obj with
     | Letrec (name, value, block) -> sprintf "Letrec (%s, %s, %s)" (name)
         (show_expr value) (show_expr block)
     | Lambda (params, body) ->
-        sprintf "Lambda (%s, [%s])"
+        sprintf "Lambda ([%s], %s)"
             (String.concat "; " params)
             (show_expr body)
     | Apply (func, params) ->
         sprintf "Apply (%s, [%s])" (show_expr func)
-            (String.concat ";" (List.map show_expr params))
+            (String.concat "; " (List.map show_expr params))
 
 (* A non purely functional environment *)
 (* type env_type = (ide, expr) Hashtbl.t *)
