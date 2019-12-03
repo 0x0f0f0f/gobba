@@ -4,12 +4,13 @@ default: build
 
 build:
 	dune build
+	dune build @install
 
 test:
 	dune runtest -f
 
 run:
-	dune exec ./bin/minicaml.exe
+	dune exec ./bin/main.exe
 
 install:
 	dune install
