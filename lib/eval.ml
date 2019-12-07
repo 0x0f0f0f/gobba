@@ -6,54 +6,63 @@ module T = ANSITerminal
 (** Numerical Primitives *)
 
 let integer_sum (x, y) = match (x, y) with
-    | Int(a), Int(b) -> Int(a + b)
+    | EvtInt(a), EvtInt(b) -> EvtInt(a + b)
     | _, _ -> failwith "wrong type in arithmetical operation"
 
 let integer_sub (x, y) = match (x, y) with
-    | Int(a), Int(b) -> Int(a - b)
+    | EvtInt(a), EvtInt(b) -> EvtInt(a - b)
     | _, _ -> failwith "wrong type in arithmetical operation"
 
 let integer_mult (x, y) = match (x, y) with
-    | Int(a), Int(b) -> Int(a * b)
+    | EvtInt(a), EvtInt(b) -> EvtInt(a * b)
     | _, _ -> failwith "wrong type in arithmetical operation"
 
 let equals (x, y) = match (x, y) with
-    | Int(a), Int(b) -> Bool(a = b)
-    | Bool(a), Bool(b) -> Bool(a = b)
+    | EvtInt(a), EvtInt(b) -> EvtBool(a = b)
+    | EvtBool(a), EvtBool(b) -> EvtBool(a = b)
     | _, _ -> failwith "type mismatch in comparison"
 
 let greater (x, y) = match (x, y) with
-    | Int(a), Int(b) -> Bool(a > b)
-    | Bool(a), Bool(b) -> Bool(a > b)
+    | EvtInt(a), EvtInt(b) -> EvtBool(a > b)
+    | EvtBool(a), EvtBool(b) -> EvtBool(a > b)
     | _, _ -> failwith "type mismatch in comparison"
 
 let less (x, y) = match (x, y) with
-    | Int(a), Int(b) -> Bool(a < b)
-    | Bool(a), Bool(b) -> Bool(a < b)
+    | EvtInt(a), EvtInt(b) -> EvtBool(a < b)
+    | EvtBool(a), EvtBool(b) -> EvtBool(a < b)
     | _, _ -> failwith "type mismatch in comparison"
 
 
 (** Boolean primitives *)
 
 let bool_and (x, y) = match (x, y) with
-    | Bool(a), Bool(b) -> Bool(a && b)
+    | EvtBool(a), EvtBool(b) -> EvtBool(a && b)
     | _, _ -> failwith "wrong type in boolean operation"
 
 let bool_or (x, y) = match (x, y) with
-    | Bool(a), Bool(b) -> Bool(a && b)
+    | EvtBool(a), EvtBool(b) -> EvtBool(a && b)
     | _, _ -> failwith "wrong type in boolean operation"
 
 let bool_not x = match x with
-    | Bool(a) -> Bool(not a)
+    | EvtBool(a) -> EvtBool(not a)
     | _ -> failwith "wrong type in boolean operation"
 
 (** Evaluate an expression in an environment *)
 let rec eval (e: expr) (env: env_type) (n: int): evt =
     let n = n+1 in
     let evaluated = (match e with
-    | Integer n -> Int n
-    | Boolean b -> Bool b
+    | Unit -> EvtUnit
+    | Integer n -> EvtInt n
+    | Boolean b -> EvtBool b
     | Symbol x -> lookup env x
+    | List x -> EvtList (eval_list x env n)
+    | Tail l -> (match (eval l env n) with
+        | EvtList(ls) -> (match ls with
+            | [] -> raise (ListError "empty list")
+            | _::r -> EvtList r)
+        | _ -> raise (ListError "not a list"))
+    | Head _ -> raise (ListError "NOT IMPLEMENTED YET")
+    | Cons(_, _) -> raise (ListError "NOT IMPLEMENTED YET")
     | Sum (x,y) -> integer_sum (eval x env n, eval y env n)
     | Sub (x,y) -> integer_sub (eval x env n, eval y env n)
     | Mult (x,y) -> integer_mult (eval x env n, eval y env n)
@@ -67,8 +76,8 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
     | IfThenElse (guard, first, alt) ->
         let g = eval guard env n in
         (match g with
-        | Bool true -> eval first env n
-        | Bool false -> eval alt env n
+        | EvtBool true -> eval first env n
+        | EvtBool false -> eval alt env n
         | _ -> failwith "Nonboolean guard!")
     | Let (ident, value, body) ->
         eval body (bind env ident (eval value env n)) n
@@ -97,3 +106,7 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
     print_message ~color:T.Blue ~loc:(Nowhere)
         "Reduction at depth" "%d\nExpression:\t%s\nEvaluates to:\t%s\n" n (show_expr e) (show_evt evaluated);
     evaluated;
+and eval_list (l: list_pattern) (env: env_type) (n: int) : evt list =
+    match l with
+        | EmptyList -> []
+        | ListValue(x, xs) -> (eval x env n)::(eval_list xs env n)

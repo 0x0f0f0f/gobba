@@ -3,10 +3,17 @@ open Printf
 (** An identifier*)
 type ide = string
 
+
 type expr =
+    | Unit
     | Integer of int
     | Boolean of bool
     | Symbol of ide
+    | List of list_pattern
+    (* List operations *)
+    | Head of expr
+    | Tail of expr
+    | Cons of expr * expr
     (* Numerical Operations *)
     | Sum of expr * expr
     | Sub of expr * expr
@@ -24,12 +31,23 @@ type expr =
     | Letrec of ide * expr * expr
     | Lambda of ide list * expr
     | Apply of expr * expr list
+and list_pattern = EmptyList | ListValue of expr * list_pattern
+
+let rec expand_list (l: expr list) : list_pattern = match l with
+    | [] -> EmptyList
+    | x::xs -> ListValue (x, expand_list xs)
 
 (* Show an AST of type expr as a string *)
 let rec show_expr (obj: expr) : string = match obj with
+    | Unit -> "Unit"
     | Integer i -> sprintf "Integer %d" i
     | Boolean b -> sprintf "Boolean %B" b
     | Symbol s -> sprintf "Symbol %s" s
+    | List l -> sprintf "[%s]" (show_list l)
+    (* List operations *)
+    | Head e -> sprintf "Head (%s)" (show_expr e)
+    | Tail e -> sprintf "Tail (%s)" (show_expr e)
+    | Cons (e, ls) -> sprintf "Cons (%s, %s)" (show_expr e) (show_expr ls)
     (* Numerical Operations *)
     | Sum (a, b) -> sprintf "Sum (%s, %s)" (show_expr a) (show_expr b)
     | Sub (a, b) -> sprintf "Sub (%s, %s)" (show_expr a) (show_expr b)
@@ -56,6 +74,10 @@ let rec show_expr (obj: expr) : string = match obj with
     | Apply (func, params) ->
         sprintf "Apply (%s, [%s])" (show_expr func)
             (String.concat "; " (List.map show_expr params))
+    and show_list (l: list_pattern) : string = match l with
+    | EmptyList -> ""
+    | ListValue(x, xs) -> (show_expr x) ^ "; " ^ (show_list xs)
+
 
 (* A non purely functional environment *)
 (* type env_type = (ide, expr) Hashtbl.t *)
@@ -65,16 +87,20 @@ type 'a env_t = (string * 'a) list
 
 (** A type that represents an evaluated (reduced) value *)
 type evt =
-    | Int of int
-    | Bool of bool
+    | EvtUnit
+    | EvtInt of int
+    | EvtBool of bool
+    | EvtList of evt list
     | Closure of ide list * expr * (evt env_t)
     (** RecClosure keeps the function name in the environment for recursion *)
-    | RecClosure of ide * ide list * expr * (evt env_t) 
+    | RecClosure of ide * ide list * expr * (evt env_t)
 
 (** Function to get a string representation of an evaluated type *)
-let show_evt (obj: evt) : string = match obj with
-    | Int i -> string_of_int i
-    | Bool b -> string_of_bool b
+let rec show_evt (obj: evt) : string = match obj with
+    | EvtUnit -> "()"
+    | EvtInt i -> string_of_int i
+    | EvtBool b -> string_of_bool b
+    | EvtList l -> "[" ^ (String.concat "; " (List.map show_evt l)) ^ "]"
     | Closure (params, _, _) ->
         String.concat " " (["<fun"] @ params @ ["-> ...>"])
     | RecClosure (name, params, _, _) ->
@@ -89,6 +115,8 @@ exception UnboundVariable of string
 
 (** Exception that indicates an erroneous usage of bindlist *)
 exception WrongBindList
+
+exception ListError of string
 
 (** Exception to represent a syntax error*)
 exception SyntaxError of string

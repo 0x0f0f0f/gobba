@@ -4,6 +4,7 @@
 
 %token <string> SYMBOL
 %token <int> INTEGER
+%token UNIT
 %token TRUE FALSE
 %token NOT
 %token AND
@@ -16,6 +17,9 @@
 %token LESS
 %token LPAREN RPAREN
 %token IF THEN ELSE
+%token SEMI
+%token LSQUARE RSQUARE
+%token HEAD TAIL CONS
 %token LAMBDA
 %token LARROW
 %token LET
@@ -49,8 +53,18 @@ toplevel:
 ast_expr:
   | var = SYMBOL
     { Symbol var }
+  | UNIT
+    { Unit }
   | LPAREN e = ast_expr RPAREN
     { e }
+  | l = delimited(LSQUARE, separated_list(SEMI, ast_expr) ,RSQUARE)
+    { List (expand_list l) }
+  | HEAD e = ast_expr
+    { Head e }
+  | TAIL e = ast_expr
+    { Tail e }
+  | CONS e = ast_expr ls = ast_expr
+    { Cons (e, ls) }
   | TRUE
     { Boolean true }
   | FALSE

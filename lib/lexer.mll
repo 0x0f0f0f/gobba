@@ -21,19 +21,26 @@ rule token = parse
   | white     {token lexbuf}
   | '\n'      { Lexing.new_line lexbuf; token lexbuf }
   | int       { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
+  | "()"      { UNIT }
   | "true"    { TRUE }
   | "false"   { FALSE }
   | "fun"     { LAMBDA }
   | "if"      { IF }
   | "then"    { THEN }
   | "else"    { ELSE }
+  | ";"       { SEMI }
   | "let"     { LET }
   | "rec"     { REC }
   | "lambda"  { LAMBDA }
   | "->"      { LARROW }
   | "in"      { IN }
+  | "["       { LSQUARE }
+  | "]"       { RSQUARE }
   | "("       { LPAREN }
   | ")"       { RPAREN }
+  | "head"    { HEAD }
+  | "tail"    { TAIL }
+  | "::"      { CONS }
   | "+"       { PLUS }
   | "-"       { MINUS }
   | "*"       { TIMES }
