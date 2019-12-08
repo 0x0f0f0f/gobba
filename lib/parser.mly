@@ -63,7 +63,7 @@ ast_expr:
     { Head e }
   | TAIL e = ast_expr
     { Tail e }
-  | CONS e = ast_expr ls = ast_expr
+  | e = ast_expr CONS ls = ast_expr
     { Cons (e, ls) }
   | TRUE
     { Boolean true }

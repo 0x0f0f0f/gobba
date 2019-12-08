@@ -7,45 +7,45 @@ module T = ANSITerminal
 
 let integer_sum (x, y) = match (x, y) with
     | EvtInt(a), EvtInt(b) -> EvtInt(a + b)
-    | _, _ -> failwith "wrong type in arithmetical operation"
+    | _, _ -> raise (TypeError "type mismatch in arithmetical operation")
 
 let integer_sub (x, y) = match (x, y) with
     | EvtInt(a), EvtInt(b) -> EvtInt(a - b)
-    | _, _ -> failwith "wrong type in arithmetical operation"
+    | _, _ -> raise (TypeError "type mismatch in arithmetical operation")
 
 let integer_mult (x, y) = match (x, y) with
     | EvtInt(a), EvtInt(b) -> EvtInt(a * b)
-    | _, _ -> failwith "wrong type in arithmetical operation"
+    | _, _ -> raise (TypeError "type mismatch in arithmetical operation")
 
 let equals (x, y) = match (x, y) with
     | EvtInt(a), EvtInt(b) -> EvtBool(a = b)
     | EvtBool(a), EvtBool(b) -> EvtBool(a = b)
-    | _, _ -> failwith "type mismatch in comparison"
+    | _, _ -> raise (TypeError "type mismatch in comparison")
 
 let greater (x, y) = match (x, y) with
     | EvtInt(a), EvtInt(b) -> EvtBool(a > b)
     | EvtBool(a), EvtBool(b) -> EvtBool(a > b)
-    | _, _ -> failwith "type mismatch in comparison"
+    | _, _ -> raise (TypeError "type mismatch in comparison")
 
 let less (x, y) = match (x, y) with
     | EvtInt(a), EvtInt(b) -> EvtBool(a < b)
     | EvtBool(a), EvtBool(b) -> EvtBool(a < b)
-    | _, _ -> failwith "type mismatch in comparison"
+    | _, _ -> raise (TypeError "type mismatch in comparison")
 
 
 (** Boolean primitives *)
 
 let bool_and (x, y) = match (x, y) with
     | EvtBool(a), EvtBool(b) -> EvtBool(a && b)
-    | _, _ -> failwith "wrong type in boolean operation"
+    | _, _ -> raise (TypeError "type mismatch in boolean operation")
 
 let bool_or (x, y) = match (x, y) with
     | EvtBool(a), EvtBool(b) -> EvtBool(a && b)
-    | _, _ -> failwith "wrong type in boolean operation"
+    | _, _ -> raise (TypeError "type mismatch in boolean operation")
 
 let bool_not x = match x with
     | EvtBool(a) -> EvtBool(not a)
-    | _ -> failwith "wrong type in boolean operation"
+    | _ -> raise (TypeError "type mismatch in boolean operation")
 
 (** Evaluate an expression in an environment *)
 let rec eval (e: expr) (env: env_type) (n: int): evt =
@@ -61,8 +61,16 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
             | [] -> raise (ListError "empty list")
             | _::r -> EvtList r)
         | _ -> raise (ListError "not a list"))
-    | Head _ -> raise (ListError "NOT IMPLEMENTED YET")
-    | Cons(_, _) -> raise (ListError "NOT IMPLEMENTED YET")
+    | Head l -> (match (eval l env n) with
+        | EvtList(ls) -> (match ls with
+            | [] -> raise (ListError "empty list")
+            | v::_ -> v )
+        | _ -> raise (ListError "not a list"))
+    | Cons(x, xs) -> (match (eval xs env n) with
+        | EvtList(ls) -> (match ls with
+            | [] -> EvtList([(eval x env n)])
+            | lss -> EvtList((eval x env n)::lss))
+        | _ -> raise (ListError "not a list"))
     | Sum (x,y) -> integer_sum (eval x env n, eval y env n)
     | Sub (x,y) -> integer_sub (eval x env n, eval y env n)
     | Mult (x,y) -> integer_mult (eval x env n, eval y env n)
@@ -78,7 +86,7 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
         (match g with
         | EvtBool true -> eval first env n
         | EvtBool false -> eval alt env n
-        | _ -> failwith "Nonboolean guard!")
+        | _ -> raise (TypeError "conditional statement guard is not boolean"))
     | Let (ident, value, body) ->
         eval body (bind env ident (eval value env n)) n
     | Letrec (ident, value, body) ->
@@ -87,7 +95,7 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
                 let rec_env = (bind env ident 
                     (RecClosure(ident, params, fbody, env))) 
                 in eval body rec_env n
-            | _ -> failwith "Cannot define recursion on non-functional values")
+            | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
     | Lambda (params,body) -> Closure(params, body, env)
     | Apply(f, params) ->
         let closure = eval f env n in
@@ -101,7 +109,7 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
             let rec_env = (bind decenv name closure) in
             let application_env = bindlist rec_env args evaluated_params in
             eval body application_env n
-        | _ -> failwith "Not a function!"))
+        | _ -> raise (TypeError "Cannot apply a non functional value")))
     in
     print_message ~color:T.Blue ~loc:(Nowhere)
         "Reduction at depth" "%d\nExpression:\t%s\nEvaluates to:\t%s\n" n (show_expr e) (show_evt evaluated);

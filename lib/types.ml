@@ -116,6 +116,10 @@ exception UnboundVariable of string
 (** Exception that indicates an erroneous usage of bindlist *)
 exception WrongBindList
 
+(** Typing exception *)
+exception TypeError of string
+
+(** List exceptions **)
 exception ListError of string
 
 (** Exception to represent a syntax error*)
