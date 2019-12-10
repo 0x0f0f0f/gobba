@@ -3,7 +3,6 @@ open Printf
 (** An identifier*)
 type ide = string
 
-
 type expr =
     | Unit
     | Integer of int
@@ -109,6 +108,23 @@ let rec show_evt (obj: evt) : string = match obj with
 
 (** An environment type with  *)
 type env_type = evt env_t
+
+type stackframe =
+    | StackValue of int * expr * stackframe
+    | EmptyStack
+
+let rec show_stackframe (s: stackframe) = match s with
+    | StackValue(d, e, ss) -> sprintf "Frame at depth %d:Expression %s in\n%s" d (show_expr e) (show_stackframe ss)
+    | EmptyStack -> ".\n"
+
+let push_stack (s: stackframe) (e: expr) = match s with
+    | StackValue(d, ee, ss) -> StackValue(d+1, e, StackValue(d, ee, ss))
+    | EmptyStack -> StackValue(1, e, EmptyStack)
+
+let pop_stack (s: stackframe) = match s with
+    | StackValue(_, _, ss) -> ss
+    | EmptyStack -> failwith "STACK UNDERFLOW"
+
 
 (** Exception to specify an unbound value *)
 exception UnboundVariable of string

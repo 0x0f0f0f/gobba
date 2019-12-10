@@ -48,39 +48,39 @@ let bool_not x = match x with
     | _ -> raise (TypeError "type mismatch in boolean operation")
 
 (** Evaluate an expression in an environment *)
-let rec eval (e: expr) (env: env_type) (n: int): evt =
-    let n = n+1 in
+let rec eval (e: expr) (env: env_type) (n: stackframe): evt =
+    let n = push_stack n e in
     let evaluated = (match e with
     | Unit -> EvtUnit
     | Integer n -> EvtInt n
     | Boolean b -> EvtBool b
     | Symbol x -> lookup env x
     | List x -> EvtList (eval_list x env n)
-    | Tail l -> (match (eval l env n) with
+    | Tail l -> (match (eval l env n ) with
         | EvtList(ls) -> (match ls with
             | [] -> raise (ListError "empty list")
             | _::r -> EvtList r)
         | _ -> raise (ListError "not a list"))
-    | Head l -> (match (eval l env n) with
+    | Head l -> (match (eval l env n ) with
         | EvtList(ls) -> (match ls with
             | [] -> raise (ListError "empty list")
             | v::_ -> v )
         | _ -> raise (ListError "not a list"))
-    | Cons(x, xs) -> (match (eval xs env n) with
+    | Cons(x, xs) -> (match (eval xs env n ) with
         | EvtList(ls) -> (match ls with
-            | [] -> EvtList([(eval x env n)])
-            | lss -> EvtList((eval x env n)::lss))
+            | [] -> EvtList([(eval x env n )])
+            | lss -> EvtList((eval x env n )::lss))
         | _ -> raise (ListError "not a list"))
-    | Sum (x,y) -> integer_sum (eval x env n, eval y env n)
-    | Sub (x,y) -> integer_sub (eval x env n, eval y env n)
-    | Mult (x,y) -> integer_mult (eval x env n, eval y env n)
-    | Eq (x, y) -> equals (eval x env n, eval y env n)
-    | Gt (x, y) -> greater (eval x env n, eval y env n)
-    | Lt (x, y) -> less (eval x env n, eval y env n)
+    | Sum (x,y) -> integer_sum (eval x env n , eval y env n )
+    | Sub (x,y) -> integer_sub (eval x env n , eval y env n )
+    | Mult (x,y) -> integer_mult (eval x env n , eval y env n )
+    | Eq (x, y) -> equals (eval x env n , eval y env n )
+    | Gt (x, y) -> greater (eval x env n , eval y env n )
+    | Lt (x, y) -> less (eval x env n , eval y env n )
     (* Boolean operations *)
-    | And (x, y) -> bool_and (eval x env n, eval y env n)
-    | Or (x, y) -> bool_or (eval x env n, eval y env n)
-    | Not x -> bool_not (eval x env n)
+    | And (x, y) -> bool_and (eval x env n , eval y env n )
+    | Or (x, y) -> bool_or (eval x env n , eval y env n )
+    | Not x -> bool_not (eval x env n )
     | IfThenElse (guard, first, alt) ->
         let g = eval guard env n in
         (match g with
@@ -110,11 +110,14 @@ let rec eval (e: expr) (env: env_type) (n: int): evt =
             let application_env = bindlist rec_env args evaluated_params in
             eval body application_env n
         | _ -> raise (TypeError "Cannot apply a non functional value")))
+    in let depth = (match n with
+        | StackValue(d, _, _) -> d
+        | EmptyStack -> 0)
     in
     print_message ~color:T.Blue ~loc:(Nowhere)
-        "Reduction at depth" "%d\nExpression:\t%s\nEvaluates to:\t%s\n" n (show_expr e) (show_evt evaluated);
+        "Reduction at depth" "%d\nExpression:\t%s\nEvaluates to:\t%s\n" depth (show_expr e) (show_evt evaluated);
     evaluated;
-and eval_list (l: list_pattern) (env: env_type) (n: int) : evt list =
+and eval_list (l: list_pattern) (env: env_type) (n: stackframe) : evt list =
     match l with
         | EmptyList -> []
         | ListValue(x, xs) -> (eval x env n)::(eval_list xs env n)

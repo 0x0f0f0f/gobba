@@ -49,7 +49,7 @@ let repl env =
         let command = read_toplevel (wrap_syntax_errors parser) () in
         print_message ~loc:(Nowhere) "AST equivalent" "\n%s"
           (show_expr command);
-        let evaluated = eval command env 0 in
+        let evaluated = eval command env EmptyStack in
         print_message ~color:T.Green ~loc:(Nowhere) "Result" "\t%s" (show_evt evaluated);
         with
             | End_of_file -> raise End_of_file
