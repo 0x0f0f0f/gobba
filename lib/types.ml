@@ -29,6 +29,7 @@ type expr =
     | Let of ide * expr * expr
     | Letrec of ide * expr * expr
     | Lambda of ide list * expr
+    | LazyLambda of ide list * expr
     | Apply of expr * expr list
 and list_pattern = EmptyList | ListValue of expr * list_pattern
 
@@ -70,6 +71,10 @@ let rec show_expr (obj: expr) : string = match obj with
         sprintf "Lambda ([%s], %s)"
             (String.concat "; " params)
             (show_expr body)
+    | LazyLambda (params, body) ->
+        sprintf "LazyLambda ([%s], %s)"
+            (String.concat "; " params)
+            (show_expr body)
     | Apply (func, params) ->
         sprintf "Apply (%s, [%s])" (show_expr func)
             (String.concat "; " (List.map show_expr params))
@@ -90,9 +95,16 @@ type evt =
     | EvtInt of int
     | EvtBool of bool
     | EvtList of evt list
-    | Closure of ide list * expr * (evt env_t)
+    | Closure of ide list * expr * (type_wrapper env_t)
+    | LazyClosure of ide list * expr * (type_wrapper env_t)
     (** RecClosure keeps the function name in the environment for recursion *)
-    | RecClosure of ide * ide list * expr * (evt env_t)
+    | RecClosure of ide * ide list * expr * (type_wrapper env_t)
+(** Wrapper type that allows both AST expressions and
+evaluated expression for lazy evaluation *)
+and type_wrapper =
+    | LazyExpression of expr
+    | AlreadyEvaluated of evt
+
 
 (** Function to get a string representation of an evaluated type *)
 let rec show_evt (obj: evt) : string = match obj with
@@ -102,12 +114,14 @@ let rec show_evt (obj: evt) : string = match obj with
     | EvtList l -> "[" ^ (String.concat "; " (List.map show_evt l)) ^ "]"
     | Closure (params, _, _) ->
         String.concat " " (["<fun"] @ params @ ["-> ...>"])
+    | LazyClosure (params, _, _) ->
+        String.concat " " (["<lazyfun"] @ params @ ["-> ...>"])
     | RecClosure (name, params, _, _) ->
         String.concat " " (["<" ^ name] @ params @ ["-> ...>"])
 
 
-(** An environment type with  *)
-type env_type = evt env_t
+(** An environment of already evaluated values  *)
+type env_type = type_wrapper env_t
 
 type stackframe =
     | StackValue of int * expr * stackframe

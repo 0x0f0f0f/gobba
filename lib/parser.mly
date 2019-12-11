@@ -20,7 +20,7 @@
 %token SEMI
 %token LSQUARE RSQUARE
 %token HEAD TAIL CONS
-%token LAMBDA
+%token LAMBDA LAZYLAMBDA
 %token LARROW
 %token LET
 %token REC
@@ -30,7 +30,7 @@
 
 /* Associativity of operators */
 %nonassoc EQUAL
-%nonassoc LAMBDA
+%nonassoc LAMBDA LAZYLAMBDA
 %nonassoc LARROW
 %nonassoc ELSE
 %nonassoc THEN
@@ -97,6 +97,8 @@ ast_expr:
     { Letrec (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
     { Lambda (params, body) }
+  | LAZYLAMBDA params = SYMBOL+ LARROW body = ast_expr
+    { LazyLambda (params, body) }
   | f = SYMBOL params = ast_expr+
     { Apply (Symbol f, params)}
   | f = delimited(LPAREN, ast_expr, RPAREN) params = ast_expr+

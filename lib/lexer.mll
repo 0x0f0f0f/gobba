@@ -25,13 +25,15 @@ rule token = parse
   | "true"    { TRUE }
   | "false"   { FALSE }
   | "fun"     { LAMBDA }
+  | "lambda"  { LAMBDA }
   | "if"      { IF }
   | "then"    { THEN }
   | "else"    { ELSE }
   | ";"       { SEMI }
   | "let"     { LET }
   | "rec"     { REC }
-  | "lambda"  { LAMBDA }
+  | "lazyfun" {LAZYLAMBDA}
+  | "lazylambda"  { LAZYLAMBDA }
   | "->"      { LARROW }
   | "in"      { IN }
   | "["       { LSQUARE }
