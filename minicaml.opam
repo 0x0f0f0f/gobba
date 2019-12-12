@@ -17,4 +17,5 @@ depends: [
     "ocaml"
     "ANSITerminal"
     "menhir"
+    "ppx_deriving"
 ]
