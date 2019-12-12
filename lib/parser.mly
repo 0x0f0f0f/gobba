@@ -15,16 +15,14 @@
 %token EQUAL
 %token GREATER
 %token LESS
-%token LPAREN RPAREN
 %token IF THEN ELSE
 %token SEMI
 %token LSQUARE RSQUARE
 %token HEAD TAIL CONS
 %token LAMBDA LAZYLAMBDA
 %token LARROW
-%token LET
-%token REC
-%token IN
+%token LPAREN RPAREN
+%token LET LAZY REC IN 
 %token SEMISEMI
 %token EOF
 
@@ -95,13 +93,12 @@ ast_expr:
     { Let (name, value, body) }
   | LET REC name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
     { Letrec (name, value, body) }
+  | LET LAZY name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
+    { Letlazy (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
     { Lambda (params, body) }
   | LAZYLAMBDA params = SYMBOL+ LARROW body = ast_expr
     { LazyLambda (params, body) }
   | f = SYMBOL params = ast_expr+
     { Apply (Symbol f, params)}
-  | f = delimited(LPAREN, ast_expr, RPAREN) params = ast_expr+
-    { Apply (f, params)}
-
 %%

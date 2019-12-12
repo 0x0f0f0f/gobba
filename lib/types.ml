@@ -1,8 +1,8 @@
-open Printf
-
-(** An identifier*)
+(** A value identifier*)
 type ide = string
+[@@deriving show]
 
+(** The type representing Abstract Syntax Tree expressions *)
 type expr =
     | Unit
     | Integer of int
@@ -27,67 +27,17 @@ type expr =
     (* Control flow and functions *)
     | IfThenElse of expr * expr * expr
     | Let of ide * expr * expr
+    | Letlazy of ide * expr * expr
     | Letrec of ide * expr * expr
     | Lambda of ide list * expr
     | LazyLambda of ide list * expr
     | Apply of expr * expr list
-and list_pattern = EmptyList | ListValue of expr * list_pattern
-
-let rec expand_list (l: expr list) : list_pattern = match l with
-    | [] -> EmptyList
-    | x::xs -> ListValue (x, expand_list xs)
-
-(* Show an AST of type expr as a string *)
-let rec show_expr (obj: expr) : string = match obj with
-    | Unit -> "Unit"
-    | Integer i -> sprintf "Integer %d" i
-    | Boolean b -> sprintf "Boolean %B" b
-    | Symbol s -> sprintf "Symbol %s" s
-    | List l -> sprintf "[%s]" (show_list l)
-    (* List operations *)
-    | Head e -> sprintf "Head (%s)" (show_expr e)
-    | Tail e -> sprintf "Tail (%s)" (show_expr e)
-    | Cons (e, ls) -> sprintf "Cons (%s, %s)" (show_expr e) (show_expr ls)
-    (* Numerical Operations *)
-    | Sum (a, b) -> sprintf "Sum (%s, %s)" (show_expr a) (show_expr b)
-    | Sub (a, b) -> sprintf "Sub (%s, %s)" (show_expr a) (show_expr b)
-    | Mult (a, b) -> sprintf "Mult (%s, %s)" (show_expr a) (show_expr b)
-    | Eq (a, b) -> sprintf "Eq (%s, %s)" (show_expr a) (show_expr b)
-    | Gt (a, b) -> sprintf "Gt (%s, %s)" (show_expr a) (show_expr b)
-    | Lt (a, b) -> sprintf "Lt (%s, %s)" (show_expr a) (show_expr b)
-    (* Boolean operations *)
-    | And (a, b) -> sprintf "And (%s, %s)" (show_expr a) (show_expr b)
-    | Or (a, b) -> sprintf "Or (%s, %s)" (show_expr a) (show_expr b)
-    | Not a -> sprintf "Not %s" (show_expr a)
-    (* Control flow and functions *)
-    | IfThenElse (guard, first, alt) ->
-        sprintf "IfThenElse (%s, %s, %s)" (show_expr guard) (show_expr first)
-        (show_expr alt)
-    | Let (name, value, block) -> sprintf "Let (%s, %s, %s)" (name)
-        (show_expr value) (show_expr block)
-    | Letrec (name, value, block) -> sprintf "Letrec (%s, %s, %s)" (name)
-        (show_expr value) (show_expr block)
-    | Lambda (params, body) ->
-        sprintf "Lambda ([%s], %s)"
-            (String.concat "; " params)
-            (show_expr body)
-    | LazyLambda (params, body) ->
-        sprintf "LazyLambda ([%s], %s)"
-            (String.concat "; " params)
-            (show_expr body)
-    | Apply (func, params) ->
-        sprintf "Apply (%s, [%s])" (show_expr func)
-            (String.concat "; " (List.map show_expr params))
-    and show_list (l: list_pattern) : string = match l with
-    | EmptyList -> ""
-    | ListValue(x, xs) -> (show_expr x) ^ "; " ^ (show_list xs)
-
-
-(* A non purely functional environment *)
-(* type env_type = (ide, expr) Hashtbl.t *)
+    [@@deriving show { with_path = false }]
+and list_pattern = EmptyList | ListValue of expr * list_pattern [@@deriving show { with_path = false }]
+(** A type to build lists, mutually recursive with `expr` *)
 
 (** A purely functional environment type, parametrized *)
-type 'a env_t = (string * 'a) list
+type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }]
 
 (** A type that represents an evaluated (reduced) value *)
 type evt =
@@ -99,58 +49,41 @@ type evt =
     | LazyClosure of ide list * expr * (type_wrapper env_t)
     (** RecClosure keeps the function name in the environment for recursion *)
     | RecClosure of ide * ide list * expr * (type_wrapper env_t)
-(** Wrapper type that allows both AST expressions and
-evaluated expression for lazy evaluation *)
+    | RecLazyClosure of ide * ide list * expr * (type_wrapper env_t)
+    [@@deriving show { with_path = false }]
 and type_wrapper =
     | LazyExpression of expr
     | AlreadyEvaluated of evt
-
-
-(** Function to get a string representation of an evaluated type *)
-let rec show_evt (obj: evt) : string = match obj with
-    | EvtUnit -> "()"
-    | EvtInt i -> string_of_int i
-    | EvtBool b -> string_of_bool b
-    | EvtList l -> "[" ^ (String.concat "; " (List.map show_evt l)) ^ "]"
-    | Closure (params, _, _) ->
-        String.concat " " (["<fun"] @ params @ ["-> ...>"])
-    | LazyClosure (params, _, _) ->
-        String.concat " " (["<lazyfun"] @ params @ ["-> ...>"])
-    | RecClosure (name, params, _, _) ->
-        String.concat " " (["<" ^ name] @ params @ ["-> ...>"])
-
+    [@@deriving show]
+(** Wrapper type that allows both AST expressions and
+evaluated expression for lazy evaluation *)
 
 (** An environment of already evaluated values  *)
-type env_type = type_wrapper env_t
+type env_type = type_wrapper env_t 
 
+(** A recursive type representing a stacktrace frame *)
 type stackframe =
     | StackValue of int * expr * stackframe
     | EmptyStack
+    [@@deriving show { with_path = false }]
 
-let rec show_stackframe (s: stackframe) = match s with
-    | StackValue(d, e, ss) -> sprintf "Frame at depth %d:Expression %s in\n%s" d (show_expr e) (show_stackframe ss)
-    | EmptyStack -> ".\n"
+(** Convert a native list to an AST list *)
+let rec expand_list l = match l with
+    | [] -> EmptyList
+    | x::xs -> ListValue (x, expand_list xs)
 
+(** Push an AST expression into a stack *)
 let push_stack (s: stackframe) (e: expr) = match s with
     | StackValue(d, ee, ss) -> StackValue(d+1, e, StackValue(d, ee, ss))
     | EmptyStack -> StackValue(1, e, EmptyStack)
 
+(** Pop an AST expression from a stack *)
 let pop_stack (s: stackframe) = match s with
     | StackValue(_, _, ss) -> ss
     | EmptyStack -> failwith "STACK UNDERFLOW"
 
-
-(** Exception to specify an unbound value *)
 exception UnboundVariable of string
-
-(** Exception that indicates an erroneous usage of bindlist *)
 exception WrongBindList
-
-(** Typing exception *)
 exception TypeError of string
-
-(** List exceptions **)
 exception ListError of string
-
-(** Exception to represent a syntax error*)
 exception SyntaxError of string

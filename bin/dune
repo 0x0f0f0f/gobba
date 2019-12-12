@@ -1,6 +1,7 @@
 (executable
     (name main)
-    (libraries minicaml))
+    (libraries minicaml)
+    (preprocess (pps ppx_deriving.show)))
 
 (install
     (section bin)

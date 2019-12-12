@@ -31,6 +31,7 @@ rule token = parse
   | "else"    { ELSE }
   | ";"       { SEMI }
   | "let"     { LET }
+  | "lazy"    { LAZY }
   | "rec"     { REC }
   | "lazyfun" {LAZYLAMBDA}
   | "lazylambda"  { LAZYLAMBDA }
