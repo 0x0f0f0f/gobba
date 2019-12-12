@@ -1,0 +1,62 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{floatflt}
+\usepackage{blindtext}
+\usepackage{enumitem}
+\usepackage{amsthm}
+\usepackage{subfig}
+\usepackage{listings}
+\usepackage{listingsutf8}
+\usepackage{amsmath}
+\usepackage{framed}
+\usepackage{titling}
+\usepackage{minibox}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{longtable}
+\usepackage[strict]{changepage}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+\pgfplotsset{width=11cm,compat=1.9}
+\usepgfplotslibrary{external}
+\tikzexternalize
+
+\definecolor{vgreen}{RGB}{104,180,104}
+\definecolor{vblue}{RGB}{49,49,255}
+\definecolor{vorange}{RGB}{255,143,102}
+\lstdefinestyle{bash} {language=bash, basicstyle=\ttfamily,
+	keywordstyle=\color{vblue}, identifierstyle=\color{black},
+	commentstyle=\color{vgreen}, tabsize=4,
+%	moredelim=*[s][\colorIndex]{[}{]},
+	literate=*{:}{:}1}
+
+\lstdefinestyle{caml} {language=caml, basicstyle=\ttfamily, columns=[c]fixed,
+ keywordstyle=\color{vblue}, identifierstyle=\color{black},
+ commentstyle=\color{vgreen}, upquote=true, commentstyle=, breaklines=true,
+ showstringspaces=false, stringstyle=\color{blue},
+ literate={'"'}{\textquotesingle "\textquotesingle}3}
+
+\title{Minicaml, a purely functional, didactical programming language with an
+interactive REPL.}
+\author{Alessandro Cheli\\Course taught by Prof. Gianluigi Ferrari and Prof. Francesca Levi}
+\begin{document}
+\begin{titlingpage}
+\maketitle
+
+\begin{abstract}
+\textbf{minicaml} is a small, purely functional interpreted programming language
+with a didactical purpose. It is based on the Prof. Gianluigi Ferrari and
+Prof. Francesca Levi's minicaml, an evaluation example to show students
+attending the Programming 2 course at the University of Pisa how interpreters
+work. It is an interpreted language with a Caml-like syntax, featuring
+interchangeable eager and lazy evaluation, a didactical REPL
+that shows each AST expression and each evaluation step.
+\end{abstract}
+\end{titlingpage}
+
+
+Test
+\end{document}
