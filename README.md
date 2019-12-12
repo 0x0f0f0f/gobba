@@ -23,7 +23,8 @@ languages work**.
 ## Features
 
 * Show the AST of each expression
-* Only boolean and integer types
+* Easily choose between eager or lazy evaluation in your local definitions and functions by specifying lazyness using the `let lazy` and `lazyfun` statements.
+* Only boolean, unit and integer types
 * Pretty color REPL showing every step made in evaluating a program
 * Only local declaration statements
 * Recursive functions and closures
