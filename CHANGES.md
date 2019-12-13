@@ -1,3 +1,15 @@
+## 0.2.2 2019-12-13
+### Added
+- `let lazy rec` (or `let rec lazy`) to define recursive lazy functions
+- Command line option parser and man page
+- Command line option `-v` (`--verbose`) to tell the REPL to show the AST and
+  reduction steps.
+- Evaluation step printing is now done in correct order and nesting. 
+### Bugfixes
+- Fixed boolean primitives.
+### Removed
+- `lazyfun` and `lazylambda` statements.
+
 ## 0.2.1 2019-12-12
 ### Added
 - Optional `lazy` evaluation! You can use `let lazy` to define values that will
