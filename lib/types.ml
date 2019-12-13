@@ -47,7 +47,7 @@ type evt =
     | EvtList of evt list
     | Closure of ide list * expr * (type_wrapper env_t)
     | LazyClosure of ide list * expr * (type_wrapper env_t)
-    (** RecClosure keeps the function name in the environment for recursion *)
+    (** RecClosure keeps the function name in the constructor for recursion *)
     | RecClosure of ide * ide list * expr * (type_wrapper env_t)
     | RecLazyClosure of ide * ide list * expr * (type_wrapper env_t)
     [@@deriving show { with_path = false }]
@@ -57,6 +57,16 @@ and type_wrapper =
     [@@deriving show]
 (** Wrapper type that allows both AST expressions and
 evaluated expression for lazy evaluation *)
+
+let rec show_unpacked_evt e = match e with
+    | EvtInt v -> string_of_int v
+    | EvtBool v -> string_of_bool v
+    | EvtList l -> "[" ^ (String.concat "; " (List.map show_unpacked_evt l)) ^ "]"
+    | Closure (params, _, _) -> "(fun " ^ (String.concat " " params) ^ " -> ... )"
+    | LazyClosure (params, _, _) -> "(lazyfun " ^ (String.concat " " params) ^ " -> ... )"
+    | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"
+    | RecLazyClosure (name, params, _, _) -> name ^ " = (rec lazyfun " ^ (String.concat " " params) ^ " -> ... )"
+    | _ -> show_evt e
 
 (** An environment of already evaluated values  *)
 type env_type = type_wrapper env_t 

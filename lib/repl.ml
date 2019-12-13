@@ -41,16 +41,18 @@ let rec read_lines_until ic del =
         then line
         else line ^ (read_lines_until ic del)
 
-let repl env =
+let repl env verbose =
     Sys.catch_break true;
     try
     while true do
         try
         let command = read_toplevel (wrap_syntax_errors parser) () in
-        print_message ~loc:(Nowhere) "AST equivalent" "\n%s"
-          (show_expr command);
-        let evaluated = eval command env EmptyStack in
-        print_message ~color:T.Green ~loc:(Nowhere) "Result" "\t%s" (show_evt evaluated);
+        if verbose then print_message ~loc:(Nowhere) "AST equivalent" "\n%s"
+          (show_expr command) else ();
+        let evaluated = eval command env EmptyStack verbose in
+        if verbose then print_message ~color:T.Green ~loc:(Nowhere) "Result"
+        "\t%s" (show_evt evaluated) else ();
+        print_endline (show_unpacked_evt evaluated);
         with
             | End_of_file -> raise End_of_file
             | Error err -> print_error err
