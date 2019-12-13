@@ -47,6 +47,20 @@ let bool_not x = match x with
     | EvtBool(a) -> EvtBool(not a)
     | _ -> raise (TypeError "type mismatch in boolean operation")
 
+(** Helper function to take the first elements of a list *)
+let rec take k xs = match k with
+    | 0 -> []
+    | k -> match xs with
+           | [] -> failwith "take"
+           | y::ys -> y :: (take (k - 1) ys)
+
+(** Helper function to drop the first elements of a list *)
+let rec drop k xs = match k with
+    | 0 -> xs
+    | k -> match xs with
+           | [] -> failwith "drop"
+           | _::ys -> (drop (k - 1) ys)
+
 (** Evaluate an expression in an environment *)
 let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     let n = push_stack n e in
@@ -116,13 +130,25 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
         (match closure with
         | Closure(args, body, decenv) -> (* Use static scoping *)
             let evaluated_params = List.map (fun x -> AlreadyEvaluated (eval x env n vb)) params in
-            let application_env = bindlist decenv args evaluated_params in
-            eval body application_env n vb
+            if (List.compare_lengths args params) > 0 then (* curry *)
+                let p_length = List.length params in
+                let applied_env = bindlist decenv (take p_length args) evaluated_params in
+                Closure((drop p_length args), body, applied_env)
+            else  (* apply the function *)
+                let application_env = bindlist decenv args evaluated_params in
+                eval body application_env n vb
+
         | RecClosure(name, args, body, decenv) ->
             let evaluated_params = List.map (fun x -> AlreadyEvaluated (eval x env n vb)) params in
-            let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
-            let application_env = bindlist rec_env args evaluated_params in
-            eval body application_env n vb
+            if (List.compare_lengths args params) > 0 then (* curry *)
+                let p_length = List.length params in
+                let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
+                let applied_env = bindlist rec_env (take p_length args) evaluated_params in
+                Closure((drop p_length args), body, applied_env)
+            else  (* apply the function *)
+                let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
+                let application_env = bindlist rec_env args evaluated_params in
+                eval body application_env n vb
         | _ -> raise (TypeError "Cannot apply a non functional value")))
     in
     if vb then print_message ~color:T.Cyan ~loc:(Nowhere)
