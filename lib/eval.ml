@@ -50,6 +50,12 @@ let bool_not x = match x with
 (** Evaluate an expression in an environment *)
 let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     let n = push_stack n e in
+    let depth = (match n with
+        | StackValue(d, _, _) -> d
+        | EmptyStack -> 0) in
+    if vb then print_message ~color:T.Blue ~loc:(Nowhere)
+        "Reduction at depth" "%d\nExpression:\n%s" depth (show_expr e)
+    else ();
     let evaluated = (match e with
     | Unit -> EvtUnit
     | Integer n -> EvtInt n
@@ -98,8 +104,8 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
                     (AlreadyEvaluated (RecClosure(ident, params, fbody, env))))
                 in eval body rec_env n vb
             | LazyLambda (params, fbody) ->
-                let rec_env = (bind env ident
-                    (AlreadyEvaluated (RecLazyClosure(ident, params, fbody, env))))
+                let rec_env = bind env ident
+                    (AlreadyEvaluated (RecLazyClosure(ident, params, fbody, env)))
                 in eval body rec_env n vb
             | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
     | Lambda (params,body) -> Closure(params, body, env)
@@ -126,20 +132,16 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
                 (List.map (fun x -> LazyExpression x) params) in
             eval body application_env n vb
         | _ -> raise (TypeError "Cannot apply a non functional value")))
-    in let depth = (match n with
-        | StackValue(d, _, _) -> d
-        | EmptyStack -> 0)
     in
-    if vb then print_message ~color:T.Blue ~loc:(Nowhere)
-        "Reduction at depth" "%d\nExpression:\t%s\nEvaluates to:\t%s\n" depth
-        (show_expr e) (show_evt evaluated)
+    if vb then print_message ~color:T.Cyan ~loc:(Nowhere)
+        "Evaluates to at depth" "%d\n%s\n" depth (show_evt evaluated)
     else ();
     evaluated;
 and eval_list (l: list_pattern) (env: env_type) (n: stackframe) vb: evt list =
     match l with
         | EmptyList -> []
         | ListValue(x, xs) -> (eval x env n vb)::(eval_list xs env n vb)
-(* Search for a key in an environment (a (string, value) pair) *)
+(* Search for a value in an environment *)
 and lookup (env: env_type) (ident: ide) (n: stackframe) vb : evt =
     if ident = "" then failwith "invalid identifier" else
     match env with

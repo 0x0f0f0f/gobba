@@ -84,13 +84,13 @@ let rec expand_list l = match l with
 
 (** Push an AST expression into a stack *)
 let push_stack (s: stackframe) (e: expr) = match s with
-    | StackValue(d, ee, ss) -> (* if d = 25 then failwith "Stack overflow" else *) StackValue(d+1, e, StackValue(d, ee, ss))
+    | StackValue(d, ee, ss) -> if d = 25 then failwith "Stack overflow" else  StackValue(d+1, e, StackValue(d, ee, ss))
     | EmptyStack -> StackValue(1, e, EmptyStack)
 
 (** Pop an AST expression from a stack *)
 let pop_stack (s: stackframe) = match s with
     | StackValue(_, _, ss) -> ss
-    | EmptyStack -> failwith "STACK UNDERFLOW"
+    | EmptyStack -> failwith "Stack underflow"
 
 exception UnboundVariable of string
 exception WrongBindList
