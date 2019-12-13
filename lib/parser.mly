@@ -86,7 +86,7 @@ ast_expr:
   | e1 = ast_expr AND e2 = ast_expr
     { And (e1, e2)}
   | e1 = ast_expr OR e2 = ast_expr
-    { And (e1, e2)}
+    { Or (e1, e2)}
   | IF g = ast_expr THEN b = ast_expr ELSE e = ast_expr
     { IfThenElse (g, b, e)}
   | LET name = SYMBOL EQUAL value = ast_expr IN body = ast_expr

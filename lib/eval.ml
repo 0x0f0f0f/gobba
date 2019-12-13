@@ -40,7 +40,7 @@ let bool_and (x, y) = match (x, y) with
     | _, _ -> raise (TypeError "type mismatch in boolean operation")
 
 let bool_or (x, y) = match (x, y) with
-    | EvtBool(a), EvtBool(b) -> EvtBool(a && b)
+    | EvtBool(a), EvtBool(b) -> EvtBool(a || b)
     | _, _ -> raise (TypeError "type mismatch in boolean operation")
 
 let bool_not x = match x with

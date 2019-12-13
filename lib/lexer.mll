@@ -44,6 +44,8 @@ rule token = parse
   | "head"    { HEAD }
   | "tail"    { TAIL }
   | "::"      { CONS }
+  | "&&"      { AND }
+  | "||"      { OR }
   | "+"       { PLUS }
   | "-"       { MINUS }
   | "*"       { TIMES }
