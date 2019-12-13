@@ -84,7 +84,7 @@ let rec expand_list l = match l with
 
 (** Push an AST expression into a stack *)
 let push_stack (s: stackframe) (e: expr) = match s with
-    | StackValue(d, ee, ss) -> StackValue(d+1, e, StackValue(d, ee, ss))
+    | StackValue(d, ee, ss) -> (* if d = 25 then failwith "Stack overflow" else *) StackValue(d+1, e, StackValue(d, ee, ss))
     | EmptyStack -> StackValue(1, e, EmptyStack)
 
 (** Pop an AST expression from a stack *)

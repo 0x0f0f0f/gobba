@@ -108,15 +108,13 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
         let closure = eval f env n vb in
         (match closure with
         | Closure(args, body, decenv) -> (* Use static scoping *)
-            let evaluated_params = List.map (fun x -> eval x env n vb) params in
-            let application_env = bindlist decenv args (List.map (fun x ->
-                 AlreadyEvaluated x) evaluated_params)  in
+            let evaluated_params = List.map (fun x -> AlreadyEvaluated (eval x env n vb)) params in
+            let application_env = bindlist decenv args evaluated_params in
             eval body application_env n vb
         | RecClosure(name, args, body, decenv) ->
-            let evaluated_params = List.map (fun x -> eval x env n vb) params in
+            let evaluated_params = List.map (fun x -> AlreadyEvaluated (eval x env n vb)) params in
             let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
-            let application_env = bindlist rec_env args
-                (List.map (fun x -> AlreadyEvaluated x) evaluated_params) in
+            let application_env = bindlist rec_env args evaluated_params in
             eval body application_env n vb
         | LazyClosure(args, body, decenv) ->
             let application_env = bindlist decenv args
