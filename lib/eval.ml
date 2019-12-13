@@ -103,13 +103,14 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
                 let rec_env = (bind env ident
                     (AlreadyEvaluated (RecClosure(ident, params, fbody, env))))
                 in eval body rec_env n vb
-            | LazyLambda (params, fbody) ->
-                let rec_env = bind env ident
-                    (AlreadyEvaluated (RecLazyClosure(ident, params, fbody, env)))
+            | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
+    | Letreclazy (ident, value, body) ->
+        (match value with
+            | Lambda (_, _) ->
+                let rec_env = (bind env ident (LazyExpression value))
                 in eval body rec_env n vb
             | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
     | Lambda (params,body) -> Closure(params, body, env)
-    | LazyLambda (params,body) -> LazyClosure(params, body, env)
     | Apply(f, params) ->
         let closure = eval f env n vb in
         (match closure with
@@ -121,15 +122,6 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
             let evaluated_params = List.map (fun x -> AlreadyEvaluated (eval x env n vb)) params in
             let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
             let application_env = bindlist rec_env args evaluated_params in
-            eval body application_env n vb
-        | LazyClosure(args, body, decenv) ->
-            let application_env = bindlist decenv args
-                (List.map (fun x -> LazyExpression x) params) in
-            eval body application_env n vb
-        | RecLazyClosure(name, args, body, decenv) ->
-            let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
-            let application_env = bindlist rec_env args
-                (List.map (fun x -> LazyExpression x) params) in
             eval body application_env n vb
         | _ -> raise (TypeError "Cannot apply a non functional value")))
     in

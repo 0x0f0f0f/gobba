@@ -19,7 +19,7 @@
 %token SEMI
 %token LSQUARE RSQUARE
 %token HEAD TAIL CONS
-%token LAMBDA LAZYLAMBDA
+%token LAMBDA
 %token LARROW
 %token LPAREN RPAREN
 %token LET LAZY REC IN 
@@ -95,10 +95,12 @@ ast_expr:
     { Letrec (name, value, body) }
   | LET LAZY name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
     { Letlazy (name, value, body) }
+  | LET LAZY REC name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
+    { Letreclazy (name, value, body) }
+  | LET REC LAZY name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
+    { Letreclazy (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
     { Lambda (params, body) }
-  | LAZYLAMBDA params = SYMBOL+ LARROW body = ast_expr
-    { LazyLambda (params, body) }
   | f = SYMBOL params = ast_expr+
     { Apply (Symbol f, params)}
 %%

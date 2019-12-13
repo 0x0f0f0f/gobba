@@ -29,8 +29,8 @@ type expr =
     | Let of ide * expr * expr
     | Letlazy of ide * expr * expr
     | Letrec of ide * expr * expr
+    | Letreclazy of ide * expr * expr
     | Lambda of ide list * expr
-    | LazyLambda of ide list * expr
     | Apply of expr * expr list
     [@@deriving show { with_path = false }]
 and list_pattern = EmptyList | ListValue of expr * list_pattern [@@deriving show { with_path = false }]
@@ -46,10 +46,8 @@ type evt =
     | EvtBool of bool
     | EvtList of evt list
     | Closure of ide list * expr * (type_wrapper env_t)
-    | LazyClosure of ide list * expr * (type_wrapper env_t)
     (** RecClosure keeps the function name in the constructor for recursion *)
     | RecClosure of ide * ide list * expr * (type_wrapper env_t)
-    | RecLazyClosure of ide * ide list * expr * (type_wrapper env_t)
     [@@deriving show { with_path = false }]
 and type_wrapper =
     | LazyExpression of expr
@@ -63,9 +61,7 @@ let rec show_unpacked_evt e = match e with
     | EvtBool v -> string_of_bool v
     | EvtList l -> "[" ^ (String.concat "; " (List.map show_unpacked_evt l)) ^ "]"
     | Closure (params, _, _) -> "(fun " ^ (String.concat " " params) ^ " -> ... )"
-    | LazyClosure (params, _, _) -> "(lazyfun " ^ (String.concat " " params) ^ " -> ... )"
     | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"
-    | RecLazyClosure (name, params, _, _) -> name ^ " = (rec lazyfun " ^ (String.concat " " params) ^ " -> ... )"
     | _ -> show_evt e
 
 (** An environment of already evaluated values  *)
@@ -82,9 +78,12 @@ let rec expand_list l = match l with
     | [] -> EmptyList
     | x::xs -> ListValue (x, expand_list xs)
 
-(** Push an AST expression into a stack *)
+(** Push an AST expression into a stack
+    @param s The stack where to push the expression
+    @param e The expression to push
+*)
 let push_stack (s: stackframe) (e: expr) = match s with
-    | StackValue(d, ee, ss) -> if d = 25 then failwith "Stack overflow" else  StackValue(d+1, e, StackValue(d, ee, ss))
+    | StackValue(d, ee, ss) -> StackValue(d+1, e, StackValue(d, ee, ss))
     | EmptyStack -> StackValue(1, e, EmptyStack)
 
 (** Pop an AST expression from a stack *)
