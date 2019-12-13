@@ -28,7 +28,7 @@
 
 /* Associativity of operators */
 %nonassoc EQUAL
-%nonassoc LAMBDA LAZYLAMBDA
+%nonassoc LAMBDA
 %nonassoc LARROW
 %nonassoc ELSE
 %nonassoc THEN
