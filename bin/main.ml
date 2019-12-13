@@ -3,7 +3,7 @@ open Cmdliner
 
 let run_repl () = Repl.repl (Env.empty_env())
 
-let run_repl_t = Term.(const run_repl)
+let run_repl_t = Term.(const run_repl $ const ())
 
 let info =
   let doc = "a small, purely functional interpreted programming language" ^
