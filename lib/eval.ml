@@ -137,7 +137,6 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
             else  (* apply the function *)
                 let application_env = bindlist decenv args evaluated_params in
                 eval body application_env n vb
-
         | RecClosure(name, args, body, decenv) ->
             let evaluated_params = List.map (fun x -> AlreadyEvaluated (eval x env n vb)) params in
             if (List.compare_lengths args params) > 0 then (* curry *)
