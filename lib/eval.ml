@@ -107,10 +107,18 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
         | EvtBool true -> eval first env n vb
         | EvtBool false -> eval alt env n vb
         | _ -> raise (TypeError "conditional statement guard is not boolean"))
-    | Let (ident, value, body) ->
-        eval body (bind env ident (AlreadyEvaluated (eval value env n vb))) n vb
-    | Letlazy (ident, value, body) ->
-        eval body (bind env ident (LazyExpression value)) n vb
+    | Let (assignments, body) ->
+        let evaluated_assignments = List.map
+            (fun (_, value) -> AlreadyEvaluated (eval value env n vb))
+            assignments
+        and identifiers = List.map (fun (ident, _) -> ident) assignments in
+        let new_env = bindlist env identifiers evaluated_assignments in
+        eval body new_env n vb
+    | Letlazy (assignments, body) ->
+        let identifiers = List.map (fun (ident, _) -> ident) assignments in
+        let new_env = bindlist env identifiers
+            (List.map (fun (_, value) -> LazyExpression value) assignments) in
+        eval body new_env n vb
     | Letrec (ident, value, body) ->
         (match value with
             | Lambda (params, fbody) ->

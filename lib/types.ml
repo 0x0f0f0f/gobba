@@ -26,8 +26,8 @@ type expr =
     | Not of expr
     (* Control flow and functions *)
     | IfThenElse of expr * expr * expr
-    | Let of ide * expr * expr
-    | Letlazy of ide * expr * expr
+    | Let of (ide * expr) list * expr
+    | Letlazy of (ide * expr) list * expr
     | Letrec of ide * expr * expr
     | Letreclazy of ide * expr * expr
     | Lambda of ide list * expr

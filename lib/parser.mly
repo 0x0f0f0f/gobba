@@ -7,7 +7,7 @@
 %token UNIT
 %token TRUE FALSE
 %token NOT
-%token AND
+%token LAND
 %token OR
 %token PLUS
 %token MINUS
@@ -22,7 +22,8 @@
 %token LAMBDA
 %token LARROW
 %token LPAREN RPAREN
-%token LET LAZY REC IN 
+%token AND
+%token LET LAZY REC IN
 %token SEMISEMI
 %token EOF
 
@@ -47,6 +48,10 @@ toplevel:
     { d }
   | d = ast_expr EOF
     { d }
+
+assignment:
+  | name = SYMBOL EQUAL value = ast_expr
+    { (name, value) }
 
 ast_expr:
   | var = SYMBOL
@@ -83,18 +88,18 @@ ast_expr:
     { Gt (e1, e2) }
   | e1 = ast_expr LESS e2 = ast_expr
     { Lt (e1, e2) }
-  | e1 = ast_expr AND e2 = ast_expr
+  | e1 = ast_expr LAND e2 = ast_expr
     { And (e1, e2)}
   | e1 = ast_expr OR e2 = ast_expr
     { Or (e1, e2)}
   | IF g = ast_expr THEN b = ast_expr ELSE e = ast_expr
     { IfThenElse (g, b, e)}
-  | LET name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
-    { Let (name, value, body) }
+  | LET a = separated_list(AND, assignment) IN body = ast_expr
+    { Let (a, body) }
   | LET REC name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
     { Letrec (name, value, body) }
-  | LET LAZY name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
-    { Letlazy (name, value, body) }
+  | LET LAZY a = separated_list(AND, assignment) IN body = ast_expr
+    { Letlazy (a, body) }
   | LET LAZY REC name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
     { Letreclazy (name, value, body) }
   | LET REC LAZY name = SYMBOL EQUAL value = ast_expr IN body = ast_expr

@@ -31,6 +31,7 @@ rule token = parse
   | "else"      { ELSE }
   | ";"         { SEMI }
   | "let"       { LET }
+  | "and"       { AND }
   | "lazy"      { LAZY }
   | "rec"       { REC }
   | "->"        { LARROW }
@@ -42,7 +43,7 @@ rule token = parse
   | "head"      { HEAD }
   | "tail"      { TAIL }
   | "::"        { CONS }
-  | "&&"        { AND }
+  | "&&"        { LAND }
   | "||"        { OR }
   | "+"         { PLUS }
   | "-"         { MINUS }
