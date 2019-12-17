@@ -3,6 +3,7 @@ open Eval
 open Printf
 open Lexing
 open Errors
+open Optimizer
 
 let read_toplevel parser () =
     let prompt = "> "
@@ -49,7 +50,11 @@ let repl env verbose =
         let command = read_toplevel (wrap_syntax_errors parser) () in
         if verbose then print_message ~loc:(Nowhere) "AST equivalent" "\n%s"
           (show_expr command) else ();
-        let evaluated = eval command env EmptyStack verbose in
+        let optimized_ast = optimize command in
+        if optimized_ast = command then () else
+          if verbose then print_message ~loc:(Nowhere) "After AST optimization" "\n%s"
+          (show_expr optimized_ast) else ();
+        let evaluated = eval optimized_ast env EmptyStack verbose in
         if verbose then print_message ~color:T.Green ~loc:(Nowhere) "Result"
         "\t%s" (show_evt evaluated) else ();
         print_endline (show_unpacked_evt evaluated);
