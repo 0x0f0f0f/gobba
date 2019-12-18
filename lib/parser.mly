@@ -54,11 +54,7 @@ assignment:
     { (name, value) }
 
 ast_expr:
-  | var = SYMBOL
-    { Symbol var }
-  | UNIT
-    { Unit }
-  | LPAREN e = ast_expr RPAREN
+  | e = ast_app_expr
     { e }
   | l = delimited(LSQUARE, separated_list(SEMI, ast_expr) ,RSQUARE)
     { List (expand_list l) }
@@ -68,12 +64,6 @@ ast_expr:
     { Tail e }
   | e = ast_expr CONS ls = ast_expr
     { Cons (e, ls) }
-  | TRUE
-    { Boolean true }
-  | FALSE
-    { Boolean false }
-  | n = INTEGER
-    { Integer n }
   | NOT e1 = ast_expr
     { Not e1}
   | e1 = ast_expr PLUS e2 = ast_expr
@@ -106,6 +96,26 @@ ast_expr:
     { Letreclazy (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
     { Lambda (params, body) }
-  | f = SYMBOL params = ast_expr+
-    { Apply (Symbol f, params)}
+
+
+ast_app_expr:
+  | e = ast_simple_expr
+    { e }
+  | e1 = ast_app_expr args = ast_simple_expr+
+    { Apply (e1, args)}
+
+ast_simple_expr:
+  | var = SYMBOL
+    { Symbol var }
+  | UNIT
+    { Unit }
+  | LPAREN e = ast_expr RPAREN
+    { e }
+  | TRUE
+    { Boolean true }
+  | FALSE
+    { Boolean false }
+  | n = INTEGER
+    { Integer n }
+
 %%
