@@ -1,6 +1,6 @@
 (** A value identifier*)
 type ide = string
-[@@deriving show]
+[@@deriving show, eq, ord]
 
 (** The type representing Abstract Syntax Tree expressions *)
 type expr =
@@ -32,27 +32,27 @@ type expr =
     | Letreclazy of ide * expr * expr
     | Lambda of ide list * expr
     | Apply of expr * expr list
-    [@@deriving show { with_path = false }]
-and list_pattern = EmptyList | ListValue of expr * list_pattern [@@deriving show { with_path = false }]
+    [@@deriving show { with_path = false }, eq, ord]
+and list_pattern = EmptyList | ListValue of expr * list_pattern [@@deriving show { with_path = false } ]
 (** A type to build lists, mutually recursive with `expr` *)
 
 (** A purely functional environment type, parametrized *)
-type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }]
+type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }, eq, ord]
 
 (** A type that represents an evaluated (reduced) value *)
 type evt =
     | EvtUnit
-    | EvtInt of int
-    | EvtBool of bool
-    | EvtList of evt list
-    | Closure of ide list * expr * (type_wrapper env_t)
+    | EvtInt of int     [@compare fun a b -> compare a b]
+    | EvtBool of bool   [@equal fun a b -> a = b]
+    | EvtList of evt list  [@equal fun a b -> a = b]
+    | Closure of ide list * expr * (type_wrapper env_t) [@equal fun a b -> a = b]
     (** RecClosure keeps the function name in the constructor for recursion *)
-    | RecClosure of ide * ide list * expr * (type_wrapper env_t)
-    [@@deriving show { with_path = false }]
+    | RecClosure of ide * ide list * expr * (type_wrapper env_t) [@equal fun a b -> a = b]
+    [@@deriving show { with_path = false }, eq, ord]
 and type_wrapper =
     | LazyExpression of expr
     | AlreadyEvaluated of evt
-    [@@deriving show]
+    [@@deriving show { with_path = false }]
 (** Wrapper type that allows both AST expressions and
 evaluated expression for lazy evaluation *)
 

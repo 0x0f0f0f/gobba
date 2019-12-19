@@ -1,65 +1,24 @@
 open Types
 open Env
 open Errors
+open Util
+
 module T = ANSITerminal
 
 (** Numerical Primitives *)
 
-let integer_sum (x, y) = match (x, y) with
-    | EvtInt(a), EvtInt(b) -> EvtInt(a + b)
+let int_binop (x, y) (op: int -> int -> int) = match (x, y) with
+    | EvtInt(a), EvtInt(b) -> EvtInt(op a b)
     | _, _ -> raise (TypeError "type mismatch in arithmetical operation")
 
-let integer_sub (x, y) = match (x, y) with
-    | EvtInt(a), EvtInt(b) -> EvtInt(a - b)
-    | _, _ -> raise (TypeError "type mismatch in arithmetical operation")
-
-let integer_mult (x, y) = match (x, y) with
-    | EvtInt(a), EvtInt(b) -> EvtInt(a * b)
-    | _, _ -> raise (TypeError "type mismatch in arithmetical operation")
-
-let equals (x, y) = match (x, y) with
-    | EvtInt(a), EvtInt(b) -> EvtBool(a = b)
-    | EvtBool(a), EvtBool(b) -> EvtBool(a = b)
-    | _, _ -> raise (TypeError "type mismatch in comparison")
-
-let greater (x, y) = match (x, y) with
-    | EvtInt(a), EvtInt(b) -> EvtBool(a > b)
-    | EvtBool(a), EvtBool(b) -> EvtBool(a > b)
-    | _, _ -> raise (TypeError "type mismatch in comparison")
-
-let less (x, y) = match (x, y) with
-    | EvtInt(a), EvtInt(b) -> EvtBool(a < b)
-    | EvtBool(a), EvtBool(b) -> EvtBool(a < b)
-    | _, _ -> raise (TypeError "type mismatch in comparison")
-
-
-(** Boolean primitives *)
-
-let bool_and (x, y) = match (x, y) with
-    | EvtBool(a), EvtBool(b) -> EvtBool(a && b)
+let bool_binop (x, y) (op: bool -> bool -> bool) = match (x, y) with
+    | EvtBool(a), EvtBool(b) -> EvtBool(op a b)
     | _, _ -> raise (TypeError "type mismatch in boolean operation")
 
-let bool_or (x, y) = match (x, y) with
-    | EvtBool(a), EvtBool(b) -> EvtBool(a || b)
-    | _, _ -> raise (TypeError "type mismatch in boolean operation")
-
-let bool_not x = match x with
-    | EvtBool(a) -> EvtBool(not a)
+let bool_unop x (op: bool -> bool) = match x with
+    | EvtBool(a) -> EvtBool(op a)
     | _ -> raise (TypeError "type mismatch in boolean operation")
 
-(** Helper function to take the first elements of a list *)
-let rec take k xs = match k with
-    | 0 -> []
-    | k -> match xs with
-           | [] -> failwith "take"
-           | y::ys -> y :: (take (k - 1) ys)
-
-(** Helper function to drop the first elements of a list *)
-let rec drop k xs = match k with
-    | 0 -> xs
-    | k -> match xs with
-           | [] -> failwith "drop"
-           | _::ys -> (drop (k - 1) ys)
 
 (** Evaluate an expression in an environment *)
 let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
@@ -67,6 +26,8 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     let depth = (match n with
         | StackValue(d, _, _) -> d
         | EmptyStack -> 0) in
+    (* Partially apply eval to the current stackframe, verbosity and environment *)
+    let ieval = fun x -> eval x env n vb in
     if vb then print_message ~color:T.Blue ~loc:(Nowhere)
         "Reduction at depth" "%d\nExpression:\n%s" depth (show_expr e)
     else ();
@@ -74,56 +35,54 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     | Unit -> EvtUnit
     | Integer n -> EvtInt n
     | Boolean b -> EvtBool b
-    | Symbol x -> lookup env x n vb
-    | List x -> EvtList (eval_list x env n vb)
-    | Tail l -> (match (eval l env n vb) with
+    | Symbol x -> lookup env x ieval
+    | List x -> EvtList (eval_list x ieval)
+    | Tail l -> (match (ieval l) with
         | EvtList(ls) -> (match ls with
             | [] -> raise (ListError "empty list")
             | _::r -> EvtList r)
         | _ -> raise (ListError "not a list"))
-    | Head l -> (match (eval l env n vb) with
+    | Head l -> (match (ieval l) with
         | EvtList(ls) -> (match ls with
             | [] -> raise (ListError "empty list")
             | v::_ -> v )
         | _ -> raise (ListError "not a list"))
-    | Cons(x, xs) -> (match (eval xs env n vb) with
+    | Cons(x, xs) -> (match (ieval xs) with
         | EvtList(ls) -> (match ls with
-            | [] -> EvtList([(eval x env n vb)])
-            | lss -> EvtList((eval x env n vb)::lss))
+            | [] -> EvtList([(ieval x)])
+            | lss -> EvtList((ieval x)::lss))
         | _ -> raise (ListError "not a list"))
-    | Sum (x,y) -> integer_sum (eval x env n vb, eval y env n vb)
-    | Sub (x,y) -> integer_sub (eval x env n vb, eval y env n vb)
-    | Mult (x,y) -> integer_mult (eval x env n vb, eval y env n vb)
-    | Eq (x, y) -> equals (eval x env n vb, eval y env n vb)
-    | Gt (x, y) -> greater (eval x env n vb, eval y env n vb)
-    | Lt (x, y) -> less (eval x env n vb, eval y env n vb)
-    (* Boolean operations *)
-    | And (x, y) -> bool_and (eval x env n vb, eval y env n vb)
-    | Or (x, y) -> bool_or (eval x env n vb, eval y env n vb)
-    | Not x -> bool_not (eval x env n vb)
+    | Sum   (x, y) ->   int_binop   (ieval x, ieval y)  (+)
+    | Sub   (x, y) ->   int_binop   (ieval x, ieval y)  (-)
+    | Mult  (x, y) ->   int_binop   (ieval x, ieval y)  ( * )
+    | And   (x, y) ->   bool_binop  (ieval x, ieval y)  (&&)
+    | Or    (x, y) ->   bool_binop  (ieval x, ieval y)  (||)
+    | Not   x      ->   bool_unop   (ieval x)           (not)
+    | Eq    (x, y) ->   EvtBool(compare_evt (ieval x) (ieval y) = 0)
+    | Gt    (x, y) ->   EvtBool(compare_evt (ieval x) (ieval y) > 0)
+    | Lt    (x, y) ->   EvtBool(compare_evt (ieval x) (ieval y) < 0)
     | IfThenElse (guard, first, alt) ->
-        let g = eval guard env n vb in
+        let g = ieval guard in
         (match g with
-        | EvtBool true -> eval first env n vb
-        | EvtBool false -> eval alt env n vb
+        | EvtBool true -> ieval first
+        | EvtBool false -> ieval alt
         | _ -> raise (TypeError "conditional statement guard is not boolean"))
     | Let (assignments, body) ->
         let evaluated_assignments = List.map
-            (fun (_, value) -> AlreadyEvaluated (eval value env n vb))
-            assignments
-        and identifiers = List.map (fun (ident, _) -> ident) assignments in
+            (fun (_, value) -> AlreadyEvaluated (ieval value)) assignments
+        and identifiers = fstl assignments in
         let new_env = bindlist env identifiers evaluated_assignments in
         eval body new_env n vb
     | Letlazy (assignments, body) ->
-        let identifiers = List.map (fun (ident, _) -> ident) assignments in
+        let identifiers = fstl assignments in
         let new_env = bindlist env identifiers
             (List.map (fun (_, value) -> LazyExpression value) assignments) in
         eval body new_env n vb
     | Letrec (ident, value, body) ->
         (match value with
-            | Lambda (params, fbody) ->
+            | Lambda (form_params, fbody) ->
                 let rec_env = (bind env ident
-                    (AlreadyEvaluated (RecClosure(ident, params, fbody, env))))
+                    (AlreadyEvaluated (RecClosure(ident, form_params, fbody, env))))
                 in eval body rec_env n vb
             | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
     | Letreclazy (ident, value, body) ->
@@ -132,29 +91,30 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
                 let rec_env = (bind env ident (LazyExpression value))
                 in eval body rec_env n vb
             | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
-    | Lambda (params,body) -> Closure(params, body, env)
-    | Apply(f, params) ->
-        let closure = eval f env n vb in
+    | Lambda (form_params,body) -> Closure(form_params, body, env)
+    | Apply(f, act_params) ->
+        let closure = ieval f in
         (match closure with
-        | Closure(args, body, decenv) -> (* Use static scoping *)
-            let evaluated_params = List.map (fun x -> AlreadyEvaluated (eval x env n vb)) params in
-            if (List.compare_lengths args params) > 0 then (* curry *)
-                let p_length = List.length params in
-                let applied_env = bindlist decenv (take p_length args) evaluated_params in
-                Closure((drop p_length args), body, applied_env)
+        | Closure(form_params, body, decenv) -> (* Use static scoping *)
+            let evaluated_params = List.map (fun x -> AlreadyEvaluated (ieval x)) act_params in
+            if (List.compare_lengths form_params act_params) > 0 then (* curry *)
+                let p_length = List.length act_params in
+                let applied_env = bindlist decenv (take p_length form_params) evaluated_params in
+                Closure((drop p_length form_params), body, applied_env)
             else  (* apply the function *)
-                let application_env = bindlist decenv args evaluated_params in
+                let application_env = bindlist decenv form_params evaluated_params in
                 eval body application_env n vb
-        | RecClosure(name, args, body, decenv) ->
-            let evaluated_params = List.map (fun x -> AlreadyEvaluated (eval x env n vb)) params in
-            if (List.compare_lengths args params) > 0 then (* curry *)
-                let p_length = List.length params in
+        (* Apply a recursive function *)
+        | RecClosure(name, form_params, body, decenv) ->
+            let evaluated_params = List.map (fun x -> AlreadyEvaluated (ieval x)) act_params in
+            if (List.compare_lengths form_params act_params) > 0 then (* curry *)
+                let p_length = List.length act_params in
                 let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
-                let applied_env = bindlist rec_env (take p_length args) evaluated_params in
-                Closure((drop p_length args), body, applied_env)
+                let applied_env = bindlist rec_env (take p_length form_params) evaluated_params in
+                RecClosure(name, (drop p_length form_params), body, applied_env)
             else  (* apply the function *)
                 let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
-                let application_env = bindlist rec_env args evaluated_params in
+                let application_env = bindlist rec_env form_params evaluated_params in
                 eval body application_env n vb
         | _ -> raise (TypeError "Cannot apply a non functional value")))
     in
@@ -162,16 +122,16 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
         "Evaluates to at depth" "%d\n%s\n" depth (show_evt evaluated)
     else ();
     evaluated;
-and eval_list (l: list_pattern) (env: env_type) (n: stackframe) vb: evt list =
+and eval_list (l: list_pattern) ieval: evt list =
     match l with
         | EmptyList -> []
-        | ListValue(x, xs) -> (eval x env n vb)::(eval_list xs env n vb)
+        | ListValue(x, xs) -> (ieval x)::(eval_list xs ieval)
 (* Search for a value in an environment *)
-and lookup (env: env_type) (ident: ide) (n: stackframe) vb : evt =
+and lookup (env: env_type) (ident: ide) ieval : evt =
     if ident = "" then failwith "invalid identifier" else
     match env with
     | [] -> raise (UnboundVariable ident)
-    | (i, LazyExpression e) :: env_rest -> if ident = i then eval e env n vb
-        else lookup env_rest ident n vb
+    | (i, LazyExpression e) :: env_rest -> if ident = i then ieval e
+        else lookup env_rest ident ieval
     | (i, AlreadyEvaluated e) :: env_rest -> if ident = i then e else
-        lookup env_rest ident n vb
+        lookup env_rest ident ieval

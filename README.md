@@ -8,7 +8,7 @@ the University of Pisa, taught by Professors Gianluigi Ferrari and Francesca
 Levi. It is based on the teachers'
 [minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml), an
 evaluation example to show how interpreters work. It is an interpreted subset of
-Caml, with eager evaluation and only local (`let-in`) declaration statements. I
+Caml, with eager/lazy evaluation and only local (`let-in`) declaration statements. I
 have added a simple parser and lexer made with menhir and ocamllex ([learn
 more](https://v1.realworldocaml.org/v1/en/html/parsing-with-ocamllex-and-menhir.html)).
 I have also added a simple REPL that show each reduction step that is done in
@@ -23,10 +23,15 @@ languages work**.
 ## Features
 
 * Show the AST of each expression
-* Easily choose between eager or lazy evaluation in your local definitions and functions by specifying lazyness using the `let lazy` and `lazyfun` statements.
-* Only boolean, unit and integer types
+* Easily choose between eager or lazy evaluation in your local definitions and
+  functions by specifying lazyness using the `let lazy` statement.
+* A simple AST optimizer
+* Only boolean, list, unit and integer types (by now)
 * Pretty color REPL showing every step made in evaluating a program
-* Only local declaration statements
+* Only local (optionally multiple) declaration statements
+```ocaml
+let x = 11 and y = 3 in x + y
+```
 * Recursive functions and closures
 * ocamllex and menhir lexer and parser
 * Extendable with ease

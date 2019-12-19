@@ -1,3 +1,11 @@
+## 0.2.3 2019-12-18
+### Added
+- A simple AST optimizer
+- Multiple let assignments (`let x = 2 and y = 3 and z = ... in ...`)
+- Function currying (partial application)
+### Bugfixes
+- Fixed function application parser
+
 ## 0.2.2 2019-12-13
 ### Added
 - `let lazy rec` (or `let rec lazy`) to define recursive lazy functions
