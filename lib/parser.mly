@@ -24,6 +24,7 @@
 %token LPAREN RPAREN
 %token AND
 %token LET LAZY REC IN
+%token PIPE
 %token SEMISEMI
 %token EOF
 
@@ -60,8 +61,10 @@ assignment:
 ast_expr:
   | e = ast_app_expr
     { e }
-  | l = delimited(LSQUARE, separated_list(SEMI, ast_expr) ,RSQUARE)
+  | l = delimited(LSQUARE, separated_list(SEMI, ast_expr), RSQUARE)
     { List (expand_list l) }
+  | l = delimited(LPAREN, separated_list(SEMI, ast_expr), RPAREN)
+    { Sequence(l) }
   | HEAD e = ast_expr
     { Head e }
   | TAIL e = ast_expr
@@ -100,7 +103,8 @@ ast_expr:
     { Letreclazy (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
     { Lambda (params, body) }
-
+  | e1 = ast_expr PIPE e2 = ast_expr
+    { Pipe(e1, e2) }
 
 
 ast_app_expr:

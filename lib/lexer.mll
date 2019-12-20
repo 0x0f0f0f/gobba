@@ -51,6 +51,7 @@ rule token = parse
   | ">"         { GREATER }
   | "<"         { LESS }
   | "not"       { NOT }
+  | ">=>"       { PIPE }
   | ";"         { SEMI }
   | ";;"        { SEMISEMI }
   | symbol      { SYMBOL (Lexing.lexeme lexbuf) }

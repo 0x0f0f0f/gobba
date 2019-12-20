@@ -2,6 +2,7 @@ open Types
 open Env
 open Errors
 open Util
+open Typecheck
 
 module T = ANSITerminal
 
@@ -37,7 +38,8 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     | Boolean b -> EvtBool b
     | Symbol x -> lookup env x ieval
     | List x -> EvtList (eval_list x ieval)
-    | Tail l -> (match (ieval l) with
+    | Tail l ->
+        (match (ieval l) with
         | EvtList(ls) -> (match ls with
             | [] -> raise (ListError "empty list")
             | _::r -> EvtList r)
@@ -63,10 +65,8 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     | Lt    (x, y) ->   EvtBool(compare_evt (ieval x) (ieval y) < 0)
     | IfThenElse (guard, first, alt) ->
         let g = ieval guard in
-        (match g with
-        | EvtBool true -> ieval first
-        | EvtBool false -> ieval alt
-        | _ -> raise (TypeError "conditional statement guard is not boolean"))
+        typecheck g "bool";
+        if g = EvtBool true then ieval first else ieval alt
     | Let (assignments, body) ->
         let evaluated_assignments = List.map
             (fun (_, value) -> AlreadyEvaluated (ieval value)) assignments
@@ -118,10 +118,25 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
                 eval body application_env n vb
         | _ -> raise (TypeError "Cannot apply a non functional value"))
     (* Eval a sequence of expressions but return the last *)
-    | Sequence(exprl) -> let rec loop el = (match el with
+    | Sequence(exprl) ->
+        let rec unroll el = (match el with
         | [] -> failwith "fatal: empty command sequence"
         | x::[] -> ieval x
-        | x::xs -> (let _ = ieval x in loop xs)) in loop exprl)
+        | x::xs -> (let _ = ieval x in unroll xs)) in unroll exprl
+    (* Pipe two functions together, creating a new function
+       That uses the first functions's result as the second's first argument *)
+    | Pipe(e1, e2) ->
+        (* Get the formal parameters of a function *)
+        let getparams x = (match x with
+            | Closure(params, _, _) -> params
+            | RecClosure(_, params, _, _) -> params
+            | _ -> failwith "fatal error") in
+        (* Convert a list of identifiers to a list o symbols *)
+        let syml l = List.map (fun x -> Symbol x) l in
+        let f1 = ieval e1 and f2 = ieval e2 in
+        typecheck f1 "fun"; typecheck f2 "fun";
+        let params1 = getparams f1 in
+        Closure(params1, Apply(e1, [Apply(e2, syml params1)]), env))
     in
     if vb then print_message ~color:T.Cyan ~loc:(Nowhere)
         "Evaluates to at depth" "%d\n%s\n" depth (show_evt evaluated)

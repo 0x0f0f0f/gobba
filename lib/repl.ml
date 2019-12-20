@@ -5,6 +5,9 @@ open Lexing
 open Errors
 open Optimizer
 
+let read_one parser str =
+  parser (Lexing.from_string (str ^ "\n"))
+
 let read_toplevel parser () =
     let prompt = "> "
     and prompt_more = "> " in
