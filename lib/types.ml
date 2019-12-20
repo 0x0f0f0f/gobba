@@ -32,6 +32,7 @@ type expr =
     | Letreclazy of ide * expr * expr
     | Lambda of ide list * expr
     | Apply of expr * expr list
+    | Sequence of expr list
     [@@deriving show { with_path = false }, eq, ord]
 and list_pattern = EmptyList | ListValue of expr * list_pattern [@@deriving show { with_path = false } ]
 (** A type to build lists, mutually recursive with `expr` *)

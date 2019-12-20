@@ -29,7 +29,6 @@ rule token = parse
   | "if"        { IF }
   | "then"      { THEN }
   | "else"      { ELSE }
-  | ";"         { SEMI }
   | "let"       { LET }
   | "and"       { AND }
   | "lazy"      { LAZY }
@@ -52,6 +51,7 @@ rule token = parse
   | ">"         { GREATER }
   | "<"         { LESS }
   | "not"       { NOT }
+  | ";"         { SEMI }
   | ";;"        { SEMISEMI }
   | symbol      { SYMBOL (Lexing.lexeme lexbuf) }
   | eof         { EOF }

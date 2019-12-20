@@ -116,7 +116,12 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
                 let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
                 let application_env = bindlist rec_env form_params evaluated_params in
                 eval body application_env n vb
-        | _ -> raise (TypeError "Cannot apply a non functional value")))
+        | _ -> raise (TypeError "Cannot apply a non functional value"))
+    (* Eval a sequence of expressions but return the last *)
+    | Sequence(exprl) -> let rec loop el = (match el with
+        | [] -> failwith "fatal: empty command sequence"
+        | x::[] -> ieval x
+        | x::xs -> (let _ = ieval x in loop xs)) in loop exprl)
     in
     if vb then print_message ~color:T.Cyan ~loc:(Nowhere)
         "Evaluates to at depth" "%d\n%s\n" depth (show_evt evaluated)

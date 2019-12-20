@@ -44,6 +44,10 @@
 %%
 
 toplevel:
+  | l = separated_list(SEMI, ast_expr) EOF
+    { Sequence(l) }
+  | l = separated_list(SEMI, ast_expr) SEMISEMI
+    { Sequence(l) }
   | d = ast_expr SEMISEMI
     { d }
   | d = ast_expr EOF
@@ -96,6 +100,7 @@ ast_expr:
     { Letreclazy (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
     { Lambda (params, body) }
+
 
 
 ast_app_expr:
