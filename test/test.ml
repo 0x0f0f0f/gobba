@@ -23,4 +23,5 @@ let () = A.run "minicaml" [
     A.test_case "stack underflow" `Quick test_stack_underflow;
    (*  A.test_case "stack overflow" `Quick test_stack_overflow *)
   ];
+  "parser", Parser.test_suite
 ]
