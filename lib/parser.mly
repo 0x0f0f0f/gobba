@@ -19,7 +19,7 @@
 %token IF THEN ELSE
 %token SEMI
 %token LSQUARE RSQUARE
-%token HEAD TAIL CONS
+%token HEAD TAIL CONS MAP
 %token LAMBDA
 %token LARROW
 %token LPAREN RPAREN
@@ -106,6 +106,8 @@ ast_expr:
     { Lambda (params, body) }
   | e1 = ast_expr PIPE e2 = ast_expr
     { Pipe(e1, e2) }
+  | MAP f = ast_expr l = ast_expr
+    { Mapv(f, l) }
 
 
 ast_app_expr:

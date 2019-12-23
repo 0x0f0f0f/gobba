@@ -42,6 +42,7 @@ rule token = parse
   | ")"         { RPAREN }
   | "head"      { HEAD }
   | "tail"      { TAIL }
+  | "map"       { MAP }
   | "::"        { CONS }
   | "&&"        { LAND }
   | "||"        { OR }

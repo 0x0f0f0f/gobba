@@ -67,12 +67,33 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
             | EvtDict x -> x
             | _ -> failwith "Not a dictionary") in
         EvtDict (evalkv (k, v) ieval :: edl)
-    | DictDelete(_, _) -> EvtUnit
-    | DictHaskey(_, _) -> EvtUnit
-    | Mapv(_, _) -> EvtUnit
+    | DictDelete(key, d) ->
+        let edl = (match ieval d with
+            | EvtDict x -> x
+            | _ -> failwith "Not a dictionary") in
+        let ek = ieval key in
+        EvtDict (delete_key ek edl)
+    | DictHaskey(key, d) ->
+        let edl = (match ieval d with
+            | EvtDict x -> x
+            | _ -> failwith "Not a dictionary") in
+        let ek = ieval key in
+        EvtBool(key_exist ek edl)
+    (* Catamorphisms and iterators *)
+    | Mapv(f, s) ->
+        let ef = ieval f in
+        typecheck ef "fun";
+        let es = ieval s in
+        (match es with
+            | EvtList x ->
+                EvtList(List.map (fun x -> apply_with_evt ef x n vb) x)
+            | EvtDict d ->
+                let (keys, values) = unzip d in
+                EvtDict(zip keys (List.map (fun x -> apply_with_evt ef x n vb) values))
+            | _ -> failwith "Value is not iterable")
+
     | Fold(_, _) -> EvtUnit
     | Filter(_, _) -> EvtUnit
-    (* Catamorphisms and iterators *)
     | Sum   (x, y) ->   int_binop   (ieval x, ieval y)  (+)
     | Sub   (x, y) ->   int_binop   (ieval x, ieval y)  (-)
     | Mult  (x, y) ->   int_binop   (ieval x, ieval y)  ( * )
@@ -182,3 +203,25 @@ and lookup (env: env_type) (ident: ide) ieval : evt =
         else lookup env_rest ident ieval
     | (i, AlreadyEvaluated e) :: env_rest -> if ident = i then e else
         lookup env_rest ident ieval
+and apply_with_evt f p n vb =
+    match f with
+    | Closure(form_params, body, decenv) -> (* Use static scoping *)
+        let evaluated_param =  AlreadyEvaluated p in
+        if List.length form_params > 1 then (* curry *)
+                let applied_env = bindlist decenv (take 1 form_params) [evaluated_param] in
+                Closure((drop 1 form_params), body, applied_env)
+            else  (* apply the function *)
+                let application_env = bindlist decenv form_params [evaluated_param] in
+                eval body application_env n vb
+           (* Apply a recursive function *)
+    | RecClosure(name, form_params, body, decenv) ->
+        let evaluated_param =  AlreadyEvaluated p in
+            if List.length form_params > 1 then (* curry *)
+                let rec_env = (bind decenv name (AlreadyEvaluated f)) in
+                let applied_env = bindlist rec_env (take 1 form_params) [evaluated_param] in
+                RecClosure(name, (drop 1 form_params), body, applied_env)
+            else  (* apply the function *)
+                let rec_env = (bind decenv name (AlreadyEvaluated f)) in
+                let application_env = bindlist rec_env form_params [evaluated_param] in
+                eval body application_env n vb
+    | _ -> raise (TypeError "Cannot apply a non functional value")

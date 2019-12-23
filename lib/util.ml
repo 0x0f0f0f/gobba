@@ -22,6 +22,7 @@ let sndl l = List.map snd l
 let unzip l = if l = [] then ([], []) else
   (fstl l, sndl l)
 
+(* *)
 let rec zip l1 l2 =
   match (l1, l2) with
   | ([], []) -> []
@@ -37,3 +38,16 @@ let rec dup_exist = function
 let rec dup_key_exist = function
   | [] -> false
   | (hk, _)::tl -> List.exists (fun (x,_) -> x = hk) tl || dup_key_exist tl
+
+let rec delete_key ks l = match l with
+  | [] -> []
+  | (k, v)::xs -> if k = ks
+    then delete_key ks xs
+    else (k, v)::(delete_key ks xs)
+
+(* Search for key in a list of key-value pairs *)
+let rec key_exist ks l = match l with
+  | [] -> false
+  | (k, _)::xs -> if k = ks
+    then true
+    else key_exist ks xs

@@ -102,9 +102,12 @@ on machines to simplify those processes. Reducing constants before evalaution
 may seem unnecessary when writing a small program, but they do take away
 computation time, and if they appear inside of loops, it is a wise choice to
 simplify those constant expressions whose result is already known before it is
-calculated in all the loop iterations. To achieve minimization to an unreducible form, optimizer calls are iterated on
-each previous call's result; this way, we get a tree representing an expression
-that cannot be optimized again. This process is fairly easy:
+calculated in all the loop iterations. It is also necessary in optimizing
+programs before compilation. The optimizer, by now, reduces operations between
+constants and \texttt{if} statements whose guard is always true (or false). To
+achieve minimization to an unreducible form, optimizer calls are repeated until
+it produces an output equal to its input; this way, we get a tree representing
+an expression that cannot be optimized again. This process is fairly easy:
 
 \begin{lstlisting}[style=caml]
 let rec iterate_optimizer e =
@@ -112,6 +115,8 @@ let rec iterate_optimizer e =
 	if oe = e then e (* Bottoms out *)
 	else iterate_optimizer oe
 \end{lstlisting}
+
+\section{Types}
 
 \section{Evaluation}
 
