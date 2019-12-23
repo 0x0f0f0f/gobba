@@ -40,7 +40,8 @@ let test_random_hell () =
   (Symbol "n"), (Apply ((Symbol "f"), [(Sub ((Symbol "n"), (Integer 1)))])))))),
   (Apply ((Symbol "f"), [(Integer 3)]))))]), EmptyList)))))]), (ListValue (
   (List (ListValue ((Integer 30), (ListValue ((Integer 40),
-  (ListValue ((Integer 50), EmptyList))))))), (ListValue ((Integer 2), EmptyList)))))))
+  (ListValue ((Integer 50), EmptyList))))))),(ListValue ((Integer 2), EmptyList))))
+      )))
 
 
 let test_misc_functions () =

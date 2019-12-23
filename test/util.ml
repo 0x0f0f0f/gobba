@@ -5,7 +5,7 @@ module A = Alcotest
 
 let quickcase (descr, case) = A.test_case descr `Quick case
 
-let parse = read_one (wrap_syntax_errors parser)
+let parse = read_one parser
 
 let checkeq descr fst snd eqfn = A.(check bool) descr true (eqfn fst snd)
 
