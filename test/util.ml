@@ -1,5 +1,8 @@
 open Minicaml.Types
 open Minicaml.Repl
+open Minicaml.Eval
+open Minicaml.Env
+
 
 module A = Alcotest
 
@@ -14,3 +17,6 @@ let checkparse expr result =
 
 let checkparsefail expr = A.check_raises expr (Failure("syntax error"))
   (fun () -> try let _ = (parse expr) in () with _ -> failwith "syntax error")
+
+let checkeval exp expected = A.(check bool) (show_expr exp) true (equal_evt (eval exp
+(empty_env ()) EmptyStack false) expected)

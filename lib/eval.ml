@@ -72,7 +72,6 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     | Mapv(_, _) -> EvtUnit
     | Fold(_, _) -> EvtUnit
     | Filter(_, _) -> EvtUnit
-
     (* Catamorphisms and iterators *)
     | Sum   (x, y) ->   int_binop   (ieval x, ieval y)  (+)
     | Sub   (x, y) ->   int_binop   (ieval x, ieval y)  (-)
