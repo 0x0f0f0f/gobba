@@ -13,6 +13,7 @@
 \usepackage{framed}
 \usepackage{titling}
 \usepackage{minibox}
+\usepackage{hyperref}
 \usepackage{float}
 \usepackage{wrapfig}
 \usepackage{longtable}
@@ -41,22 +42,61 @@
 
 \title{Minicaml, a purely functional, didactical programming language with an
 interactive REPL.}
-\author{Alessandro Cheli\\Course taught by Prof. Gianluigi Ferrari and Prof. Francesca Levi}
+\author{Alessandro Cheli\\Course taught by Prof. Gianluigi Ferrari\\and Prof. Francesca Levi}
 \begin{document}
 \begin{titlingpage}
 \maketitle
 
 \begin{abstract}
 \textbf{minicaml} is a small, purely functional interpreted programming language
-with a didactical purpose. It is based on the Prof. Gianluigi Ferrari and
-Prof. Francesca Levi's minicaml, an evaluation example to show students
-attending the Programming 2 course at the University of Pisa how interpreters
-work. It is an interpreted language with a Caml-like syntax, featuring
-interchangeable eager and lazy evaluation, a didactical REPL
-that shows each AST expression and each evaluation step.
+with a didactical purpose. It is based on the Prof. Gianluigi Ferrari and Prof.
+Francesca Levi's minicaml, an evaluation example to show students attending the
+Programming 2 course at the University of Pisa how interpreters work. It is an
+interpreted language with a Caml-like syntax, featuring interchangeable eager
+and lazy evaluation and a didactical REPL that shows each AST expression and
+each evaluation step.
 \end{abstract}
 \end{titlingpage}
 
+\section{REPL and command line interface}
+\subsection{Installation}
+\textbf{minicaml} is available in the opam 2.0 repository.
+(\url{https://opam.ocaml.org/}). The easiest way to install minicaml is with the
+OCaml package manager \textbf{opam}. To do so, please check that you have a version of opam $\geq$
+2.0.0 and run:
+\begin{lstlisting}[style=bash]
+opam install minicaml
+\end{lstlisting}
+Alternatively, \textbf{minicaml} can be installed from source by downloading the
+source code git repository and building it manually. \textbf{minicaml} has been tested
+only on Linux and macOS systems. It has not been tested yet on Windows and BSD
+derived systems.
+\begin{lstlisting}[style=bash]
+# download the source code
+git clone https://github.com/0x0f0f0f/minicaml
+# cd into the source code directory
+cd minicaml
+# install dependencies
+opam install ANSITerminal dune ppx_deriving menhir cmdliner
+# compile
+make
+# execute
+make run
+# install
+make install
+\end{lstlisting}
 
-Test
+\section{Lexer}
+
+\section{Parser}
+
+\section{AST Optimization}
+
+\section{Evaluation}
+
+\section{Tests}
+
+\section{Thanks}
+Thanks to Antonio DeLucreziis for helping me introduce lazy evaluation.
+
 \end{document}
