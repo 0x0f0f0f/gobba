@@ -10,5 +10,6 @@ let typecheck (x: evt) (t: string) = match x with
   | EvtString _   -> expect t "string"
   | EvtUnit       -> expect t "unit"
   | EvtList _     -> expect t "list"
+  | EvtDict _     -> expect t "dict"
   | Closure _     -> expect t "fun"
   | RecClosure _  -> expect t "fun"

@@ -20,6 +20,9 @@ let bool_unop x (op: bool -> bool) = match x with
     | EvtBool(a) -> EvtBool(op a)
     | _ -> raise (TypeError "type mismatch in boolean operation")
 
+let uniqueorfail l = if dup_key_exist l then
+    raise (DictError "Duplicate key in dictionary")
+    else l
 
 (** Evaluate an expression in an environment *)
 let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
@@ -55,6 +58,22 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
             | [] -> EvtList([(ieval x)])
             | lss -> EvtList((ieval x)::lss))
         | _ -> raise (ListError "not a list"))
+    (* Dictionaries and operations *)
+    | Dict(l) ->
+        let el = uniqueorfail (List.map (fun (x,y) -> evalkv (x,y) ieval) l) in
+        EvtDict el
+    | DictInsert((k, v), d) ->
+        let edl = (match ieval d with
+            | EvtDict x -> x
+            | _ -> failwith "Not a dictionary") in
+        EvtDict (evalkv (k, v) ieval :: edl)
+    | DictDelete(_, _) -> EvtUnit
+    | DictHaskey(_, _) -> EvtUnit
+    | Mapv(_, _) -> EvtUnit
+    | Fold(_, _) -> EvtUnit
+    | Filter(_, _) -> EvtUnit
+
+    (* Catamorphisms and iterators *)
     | Sum   (x, y) ->   int_binop   (ieval x, ieval y)  (+)
     | Sub   (x, y) ->   int_binop   (ieval x, ieval y)  (-)
     | Mult  (x, y) ->   int_binop   (ieval x, ieval y)  ( * )
@@ -147,6 +166,14 @@ and eval_list (l: list_pattern) ieval: evt list =
     match l with
         | EmptyList -> []
         | ListValue(x, xs) -> (ieval x)::(eval_list xs ieval)
+(* Check if first elem of tuple is an allowed type and return tuple of evaluated values *)
+and evalkv (x, y) ieval : (evt * evt) =
+    let ex = ieval x in
+        ((match ex with
+        | EvtInt _ -> ex
+        | EvtBool _ -> ex
+        | EvtString _ -> ex
+        | _ -> failwith "value not allowed as dictionary key"), ieval y)
 (* Search for a value in an environment *)
 and lookup (env: env_type) (ident: ide) ieval : evt =
     if ident = "" then failwith "invalid identifier" else

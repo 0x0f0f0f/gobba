@@ -27,3 +27,13 @@ let rec zip l1 l2 =
   | ([], []) -> []
   | (x::xs, y::ys) -> (x,y)::(zip xs ys)
   | _ -> failwith "lists are not of equal length"
+
+(* Search for duplicates *)
+let rec dup_exist = function
+  | [] -> false
+  | hd::tl -> List.exists ((=) hd) tl || dup_exist tl
+
+(* Search for duplicates in a list of key-value pairs *)
+let rec dup_key_exist = function
+  | [] -> false
+  | (hk, _)::tl -> List.exists (fun (x,_) -> x = hk) tl || dup_key_exist tl

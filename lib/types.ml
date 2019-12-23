@@ -14,6 +14,15 @@ type expr =
     | Head of expr
     | Tail of expr
     | Cons of expr * expr
+    (* Dictionaries and Operations *)
+    | Dict of (expr * expr) list 
+    | DictInsert of (expr * expr) * expr
+    | DictDelete of expr * expr
+    | DictHaskey of expr * expr
+    (* Dictionary and list morfisms*)
+    | Mapv of expr * expr
+    | Fold of expr * expr 
+    | Filter of expr * expr
     (* Numerical Operations *)
     | Sum of expr * expr
     | Sub of expr * expr
@@ -46,9 +55,11 @@ type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }, eq, o
 type evt =
     | EvtUnit
     | EvtInt of int         [@compare compare]
-    | EvtBool of bool       [@equal (=)]
+    | EvtBool of bool       [@equal (=)] [@compare compare]
     | EvtString of string   [@equal (=)] [@compare compare]
     | EvtList of evt list   [@equal (=)]
+    | EvtDict of (evt * evt) list [@equal (=)]
+(*     | Primitive of ide list * ide [@equal (=)] *)
     | Closure of ide list * expr * (type_wrapper env_t) [@equal (=)]
     (** RecClosure keeps the function name in the constructor for recursion *)
     | RecClosure of ide * ide list * expr * (type_wrapper env_t) [@equal (=)]
@@ -65,6 +76,10 @@ let rec show_unpacked_evt e = match e with
     | EvtBool v -> string_of_bool v
     | EvtString v -> "\"" ^ (String.escaped v) ^ "\""
     | EvtList l -> "[" ^ (String.concat "; " (List.map show_unpacked_evt l)) ^ "]"
+    | EvtDict d -> "{" ^ 
+        (String.concat ", " 
+            (List.map (fun (x,y) -> show_unpacked_evt x ^ ":" ^ show_unpacked_evt y) d)) 
+            ^ "}"
     | Closure (params, _, _) -> "(fun " ^ (String.concat " " params) ^ " -> ... )"
     | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"
     | _ -> show_evt e
@@ -101,3 +116,4 @@ exception WrongBindList
 exception TypeError of string
 exception ListError of string
 exception SyntaxError of string
+exception DictError of string
