@@ -91,10 +91,18 @@ make install
 \section{Parser}
 
 \section{AST Optimization}
+Before being evaluated, AST expressions are analyzed and optimized by an
+optimizer function that is recursively called over the tree that is representing
+the expression. To achieve minimization to an unreducible (not optimizable)
+form, optimizer calls are iterated on each previous call's result; this way,
+when a tree representing an expression cannot be optimized again.
+This is the process represented in pseudo-code:
+
 
 \section{Evaluation}
 
 \section{Tests}
+Unit testing is extensively performed using the alcotest testing framework.
 
 \section{Thanks}
 Thanks to Antonio DeLucreziis for helping me introduce lazy evaluation.

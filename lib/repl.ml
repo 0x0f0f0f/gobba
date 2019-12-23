@@ -52,11 +52,11 @@ let repl env verbose =
     while true do
         try
         let command = read_toplevel parser () in
-        if verbose then print_message ~loc:(Nowhere) "AST equivalent" "\n%s"
+        if verbose then print_message ~loc:(Nowhere) ~color:T.Yellow "AST equivalent" "\n%s"
           (show_expr command) else ();
-        let optimized_ast = optimize command in
+        let optimized_ast = iterate_optimizer command in
         if optimized_ast = command then () else
-          if verbose then print_message ~loc:(Nowhere) "After AST optimization" "\n%s"
+          if verbose then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
           (show_expr optimized_ast) else ();
         let evaluated = eval optimized_ast env EmptyStack verbose in
         if verbose then print_message ~color:T.Green ~loc:(Nowhere) "Result"
