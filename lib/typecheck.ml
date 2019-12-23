@@ -7,6 +7,7 @@ let expect t e = if t = e
 let typecheck (x: evt) (t: string) = match x with
   | EvtInt _      -> expect t "int"
   | EvtBool _     -> expect t "bool"
+  | EvtString _   -> expect t "string"
   | EvtUnit       -> expect t "unit"
   | EvtList _     -> expect t "list"
   | Closure _     -> expect t "fun"

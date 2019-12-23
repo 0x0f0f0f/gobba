@@ -36,6 +36,7 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     | Unit -> EvtUnit
     | Integer n -> EvtInt n
     | Boolean b -> EvtBool b
+    | String s -> EvtString s
     | Symbol x -> lookup env x ieval
     | List x -> EvtList (eval_list x ieval)
     | Tail l ->

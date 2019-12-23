@@ -7,6 +7,7 @@ type expr =
     | Unit
     | Integer of int
     | Boolean of bool
+    | String of string
     | Symbol of ide
     | List of list_pattern
     (* List operations *)
@@ -44,12 +45,13 @@ type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }, eq, o
 (** A type that represents an evaluated (reduced) value *)
 type evt =
     | EvtUnit
-    | EvtInt of int     [@compare fun a b -> compare a b]
-    | EvtBool of bool   [@equal fun a b -> a = b]
-    | EvtList of evt list  [@equal fun a b -> a = b]
-    | Closure of ide list * expr * (type_wrapper env_t) [@equal fun a b -> a = b]
+    | EvtInt of int         [@compare compare]
+    | EvtBool of bool       [@equal (=)]
+    | EvtString of string   [@equal (=)] [@compare compare]
+    | EvtList of evt list   [@equal (=)]
+    | Closure of ide list * expr * (type_wrapper env_t) [@equal (=)]
     (** RecClosure keeps the function name in the constructor for recursion *)
-    | RecClosure of ide * ide list * expr * (type_wrapper env_t) [@equal fun a b -> a = b]
+    | RecClosure of ide * ide list * expr * (type_wrapper env_t) [@equal (=)]
     [@@deriving show { with_path = false }, eq, ord]
 and type_wrapper =
     | LazyExpression of expr
@@ -61,6 +63,7 @@ evaluated expression for lazy evaluation *)
 let rec show_unpacked_evt e = match e with
     | EvtInt v -> string_of_int v
     | EvtBool v -> string_of_bool v
+    | EvtString v -> "\"" ^ (String.escaped v) ^ "\""
     | EvtList l -> "[" ^ (String.concat "; " (List.map show_unpacked_evt l)) ^ "]"
     | Closure (params, _, _) -> "(fun " ^ (String.concat " " params) ^ " -> ... )"
     | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"

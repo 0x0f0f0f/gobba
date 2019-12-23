@@ -4,6 +4,7 @@
 
 %token <string> SYMBOL
 %token <int> INTEGER
+%token <string> STRING
 %token UNIT
 %token TRUE FALSE
 %token NOT
@@ -37,7 +38,7 @@
 %nonassoc IF
 %left PLUS MINUS
 %left TIMES
-
+%left PIPE
 
 %start toplevel
 %type <Types.expr> toplevel
@@ -124,6 +125,8 @@ ast_simple_expr:
     { Boolean true }
   | FALSE
     { Boolean false }
+  | s = STRING
+    { String s }
   | n = INTEGER
     { Integer n }
 

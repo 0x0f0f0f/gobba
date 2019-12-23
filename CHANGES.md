@@ -3,6 +3,9 @@
 - A simple AST optimizer
 - Multiple let assignments (`let x = 2 and y = 3 and z = ... in ...`)
 - Function currying (partial application)
+- Strings
+- Sequences of expressions separated with `;` are treated as a single expression that returns the last one.
+- Function pipelining (reverse composition) with the `>=>` operator. (`(fun x y -> x + y >=> g) 1 2` now becomes `g 3`)
 ### Bugfixes
 - Fixed function application parser
 

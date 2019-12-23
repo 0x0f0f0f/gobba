@@ -21,12 +21,13 @@ let read_toplevel parser () =
 
  (** Parser wrapper that catches syntax-related errors and converts them to errors. *)
   let wrap_syntax_errors parser lex =
-    try parser lex
+    (try parser lex
     with
-      | Failure _ ->
-        syntax_error ~loc:(location_of_lex lex) "unrecognised symbol"
-      | _ ->
-        syntax_error ~loc:(location_of_lex lex) "syntax error"
+      | Failure f ->
+        print_error ((location_of_lex lex), "Syntax Error", f)
+      | e ->
+        print_error ((location_of_lex lex), "Syntax Error", (Printexc.to_string e)));
+    ()
 
 let print_position lexbuf =
     let pos = lexbuf.lex_curr_p in
@@ -50,7 +51,7 @@ let repl env verbose =
     try
     while true do
         try
-        let command = read_toplevel (wrap_syntax_errors parser) () in
+        let command = read_toplevel parser () in
         if verbose then print_message ~loc:(Nowhere) "AST equivalent" "\n%s"
           (show_expr command) else ();
         let optimized_ast = optimize command in
@@ -66,8 +67,7 @@ let repl env verbose =
             | Error err -> print_error err
             | Sys.Break -> prerr_endline "Interrupted."
             | e ->
-            print_error (Nowhere, "Semantic Error", (Printexc.to_string e));
-
+            print_error (Nowhere, "Error", (Printexc.to_string e));
     done
     with
       | End_of_file -> prerr_endline "Goodbye!"
