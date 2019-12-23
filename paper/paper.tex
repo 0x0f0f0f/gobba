@@ -93,11 +93,25 @@ make install
 \section{AST Optimization}
 Before being evaluated, AST expressions are analyzed and optimized by an
 optimizer function that is recursively called over the tree that is representing
-the expression. To achieve minimization to an unreducible (not optimizable)
-form, optimizer calls are iterated on each previous call's result; this way,
-when a tree representing an expression cannot be optimized again.
-This is the process represented in pseudo-code:
+the expression. The optimizer simplifies expressions which result is known and
+therefore does not need to be evaluated. For example, it is known that \texttt{5
++ 3 $\equiv$ 8} and \texttt{true \&\& (true || (false \&\& false)) $\equiv$
+true}. When a programmer writes a program, she or he may not want to do all the
+simple calculations before writing the program in which they appear in, we rely
+on machines to simplify those processes. Reducing constants before evalaution
+may seem unnecessary when writing a small program, but they do take away
+computation time, and if they appear inside of loops, it is a wise choice to
+simplify those constant expressions whose result is already known before it is
+calculated in all the loop iterations. To achieve minimization to an unreducible form, optimizer calls are iterated on
+each previous call's result; this way, we get a tree representing an expression
+that cannot be optimized again. This process is fairly easy:
 
+\begin{lstlisting}[style=caml]
+let rec iterate_optimizer e =
+	let oe = optimize e in
+	if oe = e then e (* Bottoms out *)
+	else iterate_optimizer oe
+\end{lstlisting}
 
 \section{Evaluation}
 
@@ -105,6 +119,6 @@ This is the process represented in pseudo-code:
 Unit testing is extensively performed using the alcotest testing framework.
 
 \section{Thanks}
-Thanks to Antonio DeLucreziis for helping me introduce lazy evaluation.
+Thanks to Antonio DeLucreziis for helping me implement lazy evaluation.
 
 \end{document}
