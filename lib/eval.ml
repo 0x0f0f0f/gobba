@@ -41,30 +41,16 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     | Boolean b -> EvtBool b
     | String s -> EvtString s
     | Symbol x -> lookup env x ieval
-    | List x -> EvtList (eval_list x ieval)
-    | Tail l ->
-        (match (ieval l) with
-        | EvtList(ls) -> (match ls with
-            | [] -> raise (ListError "empty list")
-            | _::r -> EvtList r)
-        | _ -> raise (ListError "not a list"))
-    | Head l -> (match (ieval l) with
-        | EvtList(ls) -> (match ls with
-            | [] -> raise (ListError "empty list")
-            | v::_ -> v )
-        | _ -> raise (ListError "not a list"))
-    | Cons(x, xs) -> (match (ieval xs) with
-        | EvtList(ls) -> (match ls with
+    | List x -> EvtList (List.map ieval x)
+    | Cons (x, xs) ->
+        let ls = unpack_list (ieval xs) in
+        (match ls with
             | [] -> EvtList([(ieval x)])
             | lss -> EvtList((ieval x)::lss))
-        | _ -> raise (ListError "not a list"))
     (* Dictionaries and operations *)
     | Dict(l) ->
         let el = uniqueorfail (List.map (fun (x,y) -> evalkv (x,y) ieval) l) in
         EvtDict el
-    | DictInsert((k, v), d) -> EvtDict (evalkv (k, v) ieval :: (unpack_dict (ieval d)))
-    | DictDelete(key, d) -> EvtDict (delete_key (ieval key) (unpack_dict (ieval d)))
-    | DictHaskey(key, d) -> EvtBool(key_exist (ieval key) (unpack_dict (ieval d)))
     (* Catamorphisms and iterators *)
     | Mapv(f, s) ->
         let ef = ieval f in
@@ -117,6 +103,38 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
                 in eval body rec_env n vb
             | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
     | Lambda (form_params,body) -> Closure(form_params, body, env)
+    (* Primitives *)
+    | Apply(Symbol "head", act_params) ->
+        if List.length act_params > 1 then raise (TooManyArgs "head") else
+        let ls = unpack_list (ieval (List.hd act_params)) in
+        (match ls with
+            | [] -> raise (ListError "empty list")
+            | v::_ -> v )
+    | Apply(Symbol "tail", act_params) ->
+        if List.length act_params > 1 then raise (TooManyArgs "tail") else
+        let ls = unpack_list (ieval (List.hd act_params)) in
+        (match ls with
+            | [] -> raise (ListError "empty list")
+            | _::r -> EvtList r)
+    (* Insert a key-value pair in a dictionary *)
+    | Apply(Symbol "insert", act_params) ->
+        let (k, v, d) = (match act_params with
+            | [k; v; d] -> (k, v, d)
+            | _ -> raise WrongBindList) in
+        EvtDict (evalkv (k, v) ieval :: (unpack_dict (ieval d)))
+    (* Remove a key-value pair from a dictionary *)
+    | Apply(Symbol "delete", act_params) ->
+        let (key, d) = (match act_params with
+            | [key; d] -> (key, d)
+            | _ -> raise WrongPrimitiveArgs) in
+        EvtDict (delete_key (ieval key) (unpack_dict (ieval d)))
+    (* Check if a key-value pair is in a dictionary *)
+    | Apply(Symbol "has", act_params) ->
+        let (key, d) = (match act_params with
+            | [key; d] -> (key, d)
+            | _ -> raise WrongPrimitiveArgs) in
+        EvtBool(key_exist (ieval key) (unpack_dict (ieval d)))
+    (* Function Application *)
     | Apply(f, act_params) ->
         let closure = ieval f in
         let evaluated_params = List.map (fun x -> AlreadyEvaluated (ieval x)) act_params in
@@ -130,26 +148,17 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     (* Pipe two functions together, creating a new function
        That uses the first functions's result as the second's first argument *)
     | Pipe(e1, e2) ->
-        (* Get the formal parameters of a function *)
-        let getparams x = (match x with
-            | Closure(params, _, _) -> params
-            | RecClosure(_, params, _, _) -> params
-            | _ -> failwith "fatal error") in
-        (* Convert a list of identifiers to a list o symbols *)
+        (* Convert a list of identifiers to a list of symbols *)
         let syml l = List.map (fun x -> Symbol x) l in
         let f1 = ieval e1 and f2 = ieval e2 in
-        typecheck f1 "fun"; typecheck f2 "fun";
-        let params1 = getparams f1 in
-        Closure(params1, Apply(e1, [Apply(e2, syml params1)]), env))
+        typecheck f2 "fun";
+        let (_, params1, _, _) = unpack_anyfun f1 in
+        Closure(params1, Apply(e2, [Apply(e1, syml params1)]), env))
     in
     if vb then print_message ~color:T.Cyan ~loc:(Nowhere)
         "Evaluates to at depth" "%d\n%s\n" depth (show_evt evaluated)
     else ();
     evaluated;
-and eval_list (l: list_pattern) ieval: evt list =
-    match l with
-        | EmptyList -> []
-        | ListValue(x, xs) -> (ieval x)::(eval_list xs ieval)
 (* Check if first elem of tuple is an allowed type and return tuple of evaluated values *)
 and evalkv (x, y) ieval : (evt * evt) =
     let ex = ieval x in

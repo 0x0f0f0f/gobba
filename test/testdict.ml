@@ -10,7 +10,7 @@ let test_dict () =
   "hello", EvtString "world")]))
 
 let test_insert () =
-  checkeval (DictInsert((Integer 123, Integer 456), sample_dict))
+  checkeval (Apply(Symbol "insert", [Integer 123; Integer 456; sample_dict]))
   (EvtDict([(EvtInt 123, EvtInt 456);(EvtString
   "hello", EvtString "world")]))
 

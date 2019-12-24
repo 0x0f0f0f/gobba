@@ -9,16 +9,9 @@ type expr =
     | Boolean of bool
     | String of string
     | Symbol of ide
-    | List of list_pattern
-    (* List operations *)
-    | Head of expr
-    | Tail of expr
+    | List of expr list
     | Cons of expr * expr
-    (* Dictionaries and Operations *)
-    | Dict of (expr * expr) list 
-    | DictInsert of (expr * expr) * expr
-    | DictDelete of expr * expr
-    | DictHaskey of expr * expr
+    | Dict of (expr * expr) list
     (* Dictionary and list morfisms*)
     | Mapv of expr * expr
     | Fold of expr * expr 
@@ -45,8 +38,6 @@ type expr =
     | Sequence of expr list
     | Pipe of expr * expr
     [@@deriving show { with_path = false }, eq, ord]
-and list_pattern = EmptyList | ListValue of expr * list_pattern [@@deriving show { with_path = false } ]
-(** A type to build lists, mutually recursive with `expr` *)
 
 (** A purely functional environment type, parametrized *)
 type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }, eq, ord]
@@ -93,11 +84,6 @@ type stackframe =
     | EmptyStack
     [@@deriving show { with_path = false }]
 
-(** Convert a native list to an AST list *)
-let rec expand_list l = match l with
-    | [] -> EmptyList
-    | x::xs -> ListValue (x, expand_list xs)
-
 (** Push an AST expression into a stack
     @param s The stack where to push the expression
     @param e The expression to push
@@ -112,7 +98,9 @@ let pop_stack (s: stackframe) = match s with
     | EmptyStack -> failwith "Stack underflow"
 
 exception UnboundVariable of string
+exception TooManyArgs of string
 exception WrongBindList
+exception WrongPrimitiveArgs
 exception TypeError of string
 exception ListError of string
 exception SyntaxError of string

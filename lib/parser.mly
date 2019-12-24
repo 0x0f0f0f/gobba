@@ -19,7 +19,9 @@
 %token IF THEN ELSE
 %token SEMI
 %token LSQUARE RSQUARE
-%token HEAD TAIL CONS MAP
+%token CONS
+%token COLON COMMA
+%token LBRACKET RBRACKET
 %token LAMBDA
 %token LARROW
 %token LPAREN RPAREN
@@ -59,17 +61,15 @@ assignment:
   | name = SYMBOL EQUAL value = ast_expr
     { (name, value) }
 
+dict_value:
+  | key = ast_expr COLON value = ast_expr
+    { (key, value) }
+
 ast_expr:
   | e = ast_app_expr
     { e }
-  | l = delimited(LSQUARE, separated_list(SEMI, ast_expr), RSQUARE)
-    { List (expand_list l) }
-  | l = delimited(LPAREN, separated_list(SEMI, ast_expr), RPAREN)
-    { Sequence(l) }
-  | HEAD e = ast_expr
-    { Head e }
-  | TAIL e = ast_expr
-    { Tail e }
+  | l = delimited(LPAREN, separated_nonempty_list(SEMI, ast_expr), RPAREN)
+    { Sequence l }
   | e = ast_expr CONS ls = ast_expr
     { Cons (e, ls) }
   | NOT e1 = ast_expr
@@ -106,8 +106,6 @@ ast_expr:
     { Lambda (params, body) }
   | e1 = ast_expr PIPE e2 = ast_expr
     { Pipe(e1, e2) }
-  | MAP f = ast_expr l = ast_expr
-    { Mapv(f, l) }
 
 
 ast_app_expr:
@@ -123,6 +121,10 @@ ast_simple_expr:
     { Unit }
   | LPAREN e = ast_expr RPAREN
     { e }
+  | l = delimited(LSQUARE, separated_list(SEMI, ast_expr), RSQUARE)
+    { List l }
+  | l = delimited(LBRACKET, separated_list(COMMA, dict_value), RBRACKET)
+    { Dict l }
   | TRUE
     { Boolean true }
   | FALSE

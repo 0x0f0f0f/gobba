@@ -21,4 +21,13 @@ let typecheck (x: evt) (t: string) = match x with
 let unpack_int x = (match x with EvtInt i -> i | _ -> terr "int")
 let unpack_bool x = (match x with EvtBool i -> i | _ -> terr "bool")
 let unpack_string x = (match x with EvtString i -> i | _ -> terr "string")
+let unpack_list x = (match x with EvtList i -> i | _ -> terr "list")
 let unpack_dict x = (match x with EvtDict i -> i | _ -> terr "dict")
+let unpack_closure x = (match x with Closure (p, b, e) -> (p,b,e) | _ -> terr "fun")
+let unpack_recclosure x = (match x with
+  | RecClosure (i, p, b, e) -> (i,p,b,e)
+  | _ -> terr "fun")
+let unpack_anyfun x = match x with
+  | RecClosure (i, p, b, e) -> (i,p,b,e)
+  | Closure (p, b, e) -> ("",p,b,e)
+  | _ -> terr "fun"

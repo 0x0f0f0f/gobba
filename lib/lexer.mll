@@ -18,7 +18,7 @@ let int = '-'? ['0'-'9'] ['0'-'9']*
 let white = [' ' '\t' '\r']
 
 rule token = parse
-  | white       {token lexbuf}
+  | white       { token lexbuf }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
   | int         { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
   | "()"        { UNIT }
@@ -40,9 +40,10 @@ rule token = parse
   | "]"         { RSQUARE }
   | "("         { LPAREN }
   | ")"         { RPAREN }
-  | "head"      { HEAD }
-  | "tail"      { TAIL }
-  | "map"       { MAP }
+  | "{"         { LBRACKET }
+  | "}"         { RBRACKET }
+  | ":"         { COLON }
+  | ","         { COMMA }
   | "::"        { CONS }
   | "&&"        { LAND }
   | "||"        { OR }
