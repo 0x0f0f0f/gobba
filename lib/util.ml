@@ -2,15 +2,15 @@
 let rec take k xs = match k with
   | 0 -> []
   | k -> match xs with
-    | [] -> failwith "take"
-    | y::ys -> y :: (take (k - 1) ys)
+  | [] -> failwith "take"
+  | y::ys -> y :: (take (k - 1) ys)
 
 (** Helper function to drop the first elements of a list *)
 let rec drop k xs = match k with
   | 0 -> xs
   | k -> match xs with
-    | [] -> failwith "drop"
-    | _::ys -> (drop (k - 1) ys)
+  | [] -> failwith "drop"
+  | _::ys -> (drop (k - 1) ys)
 
 let fst (a, _) = a
 let snd (_, a) = a
@@ -42,12 +42,19 @@ let rec dup_key_exist = function
 let rec delete_key ks l = match l with
   | [] -> []
   | (k, v)::xs -> if k = ks
-    then delete_key ks xs
-    else (k, v)::(delete_key ks xs)
+  then delete_key ks xs
+  else (k, v)::(delete_key ks xs)
 
 (* Search for key in a list of key-value pairs *)
 let rec key_exist ks l = match l with
   | [] -> false
   | (k, _)::xs -> if k = ks
-    then true
-    else key_exist ks xs
+  then true
+  else key_exist ks xs
+
+(* Search and get a key's value (first match) in a list of key-value pairs *)
+let rec get_key_val ks l = match l with
+  | [] -> failwith "not found"
+  | (k, v)::xs -> if k = ks
+  then v
+  else get_key_val ks xs

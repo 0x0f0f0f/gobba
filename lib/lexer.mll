@@ -4,11 +4,11 @@
   open Lexing
 
   let next_line lexbuf =
-    let pos = lexbuf.lex_curr_p in
-    lexbuf.lex_curr_p <-
-      { pos with pos_bol = lexbuf.lex_curr_pos;
-        pos_lnum = pos.pos_lnum + 1
-      }
+  let pos = lexbuf.lex_curr_p in
+  lexbuf.lex_curr_p <-
+    { pos with pos_bol = lexbuf.lex_curr_pos;
+    pos_lnum = pos.pos_lnum + 1
+    }
 }
 
 let digit = ['0'-'9']
@@ -73,7 +73,7 @@ and read_string buf = parse
   | '\\' 't'    { Buffer.add_char buf '\t'; read_string buf lexbuf }
   | '\\' '"'    { Buffer.add_char buf '"'; read_string buf lexbuf }
   | [^ '"' '\\']+
-    { Buffer.add_string buf (Lexing.lexeme lexbuf); read_string buf lexbuf }
+  { Buffer.add_string buf (Lexing.lexeme lexbuf); read_string buf lexbuf }
   | _
-    { raise (SyntaxError ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
+  { raise (SyntaxError ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
   | eof         { raise (SyntaxError ("Unterminated string")) }

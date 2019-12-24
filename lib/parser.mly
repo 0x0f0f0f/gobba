@@ -49,89 +49,89 @@
 
 toplevel:
   | l = separated_list(SEMI, ast_expr) EOF
-    { Sequence(l) }
+  { Sequence(l) }
   | l = separated_list(SEMI, ast_expr) SEMISEMI
-    { Sequence(l) }
+  { Sequence(l) }
   | d = ast_expr SEMISEMI
-    { d }
+  { d }
   | d = ast_expr EOF
-    { d }
+  { d }
 
 assignment:
   | name = SYMBOL EQUAL value = ast_expr
-    { (name, value) }
+  { (name, value) }
 
 dict_value:
   | key = ast_expr COLON value = ast_expr
-    { (key, value) }
+  { (key, value) }
 
 ast_expr:
   | e = ast_app_expr
-    { e }
+  { e }
   | l = delimited(LPAREN, separated_nonempty_list(SEMI, ast_expr), RPAREN)
-    { Sequence l }
+  { Sequence l }
   | e = ast_expr CONS ls = ast_expr
-    { Cons (e, ls) }
+  { Cons (e, ls) }
   | NOT e1 = ast_expr
-    { Not e1}
+  { Not e1}
   | e1 = ast_expr PLUS e2 = ast_expr
-    { Sum (e1, e2) }
+  { Sum (e1, e2) }
   | e1 = ast_expr MINUS e2 = ast_expr
-    { Sub (e1, e2) }
+  { Sub (e1, e2) }
   | e1 = ast_expr TIMES e2 = ast_expr
-    { Mult (e1, e2) }
+  { Mult (e1, e2) }
   | e1 = ast_expr EQUAL e2 = ast_expr
-    { Eq (e1, e2) }
+  { Eq (e1, e2) }
   | e1 = ast_expr GREATER e2 = ast_expr
-    { Gt (e1, e2) }
+  { Gt (e1, e2) }
   | e1 = ast_expr LESS e2 = ast_expr
-    { Lt (e1, e2) }
+  { Lt (e1, e2) }
   | e1 = ast_expr LAND e2 = ast_expr
-    { And (e1, e2)}
+  { And (e1, e2)}
   | e1 = ast_expr OR e2 = ast_expr
-    { Or (e1, e2)}
+  { Or (e1, e2)}
   | IF g = ast_expr THEN b = ast_expr ELSE e = ast_expr
-    { IfThenElse (g, b, e)}
+  { IfThenElse (g, b, e)}
   | LET a = separated_list(AND, assignment) IN body = ast_expr
-    { Let (a, body) }
+  { Let (a, body) }
   | LET REC name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
-    { Letrec (name, value, body) }
+  { Letrec (name, value, body) }
   | LET LAZY a = separated_list(AND, assignment) IN body = ast_expr
-    { Letlazy (a, body) }
+  { Letlazy (a, body) }
   | LET LAZY REC name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
-    { Letreclazy (name, value, body) }
+  { Letreclazy (name, value, body) }
   | LET REC LAZY name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
-    { Letreclazy (name, value, body) }
+  { Letreclazy (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
-    { Lambda (params, body) }
+  { Lambda (params, body) }
   | e1 = ast_expr PIPE e2 = ast_expr
-    { Pipe(e1, e2) }
+  { Pipe(e1, e2) }
 
 
 ast_app_expr:
   | e = ast_simple_expr
-    { e }
+  { e }
   | e1 = ast_app_expr args = ast_simple_expr+
-    { Apply (e1, args)}
+  { Apply (e1, args)}
 
 ast_simple_expr:
   | var = SYMBOL
-    { Symbol var }
+  { Symbol var }
   | UNIT
-    { Unit }
+  { Unit }
   | LPAREN e = ast_expr RPAREN
-    { e }
+  { e }
   | l = delimited(LSQUARE, separated_list(SEMI, ast_expr), RSQUARE)
-    { List l }
+  { List l }
   | l = delimited(LBRACKET, separated_list(COMMA, dict_value), RBRACKET)
-    { Dict l }
+  { Dict l }
   | TRUE
-    { Boolean true }
+  { Boolean true }
   | FALSE
-    { Boolean false }
+  { Boolean false }
   | s = STRING
-    { String s }
+  { String s }
   | n = INTEGER
-    { Integer n }
+  { Integer n }
 
 %%

@@ -31,3 +31,10 @@ let unpack_anyfun x = match x with
   | RecClosure (i, p, b, e) -> (i,p,b,e)
   | Closure (p, b, e) -> ("",p,b,e)
   | _ -> terr "fun"
+
+(* Check if first elem of tuple is an allowed type for dict key and return tuple *)
+let isvalidkey (x, y) = ((match x with
+    | EvtInt _ -> x
+    | EvtBool _ -> x
+    | EvtString _ -> x
+    | _ -> failwith "value not allowed as dictionary key"), y)

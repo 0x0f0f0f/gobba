@@ -19,12 +19,14 @@ let rec optimize (e: expr) : expr = match e with
   | And(x, y) ->  And (optimize x, optimize y)
   | Or(x, y) ->   Or (optimize x, optimize y)
   | Not(x) -> Not (optimize x)
+  | List(l) -> List(List.map optimize l)
+  | Dict(d) -> Dict(List.map (fun (k, v) -> (optimize k, optimize v)) d)
   | IfThenElse(guard, iftrue, iffalse) ->
-      (* Short circuit an if that is always true or false *)
-      let og = optimize guard in
-      if og = Boolean true then optimize iftrue
-      else if og = Boolean false then optimize iffalse
-      else IfThenElse(og, optimize iftrue, optimize iffalse)
+    (* Short circuit an if that is always true or false *)
+    let og = optimize guard in
+    if og = Boolean true then optimize iftrue
+    else if og = Boolean false then optimize iffalse
+    else IfThenElse(og, optimize iftrue, optimize iffalse)
   | Lambda(params, body) -> Lambda(params, optimize body)
   | Let(declarations, body) -> optimize_let declarations body false
   | Letlazy(declarations, body) -> optimize_let declarations body true
@@ -35,12 +37,12 @@ let rec optimize (e: expr) : expr = match e with
   and optimize_let declarations body islazy =
   let od = List.map (fun (i, v) -> (i, optimize v)) declarations in
   let ob = optimize body in
-    if List.length od = 1 then
-      let (ident, value) = List.hd od in
-      if ob = Symbol ident
-        then optimize value
-        else if islazy then Letlazy(od, ob) else Let(od, ob)
+  if List.length od = 1 then
+    let (ident, value) = List.hd od in
+    if ob = Symbol ident
+    then optimize value
     else if islazy then Letlazy(od, ob) else Let(od, ob)
+  else if islazy then Letlazy(od, ob) else Let(od, ob)
 
 (** Apply the optimizer again and again on an expression until it
 is fully reduced and ready to be evaluated *)
