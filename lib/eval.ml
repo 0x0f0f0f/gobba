@@ -89,7 +89,7 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
         in eval body rec_env n vb
       | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
   | Lambda (form_params,body) -> Closure(form_params, body, env)
-  (* Special Primitives *)
+  (* Special Primitives that are eval-recursive *)
   (* Map a function over an iterable structure *)
   | Apply (Symbol "map", act_params) ->
     let (f, s) = (match act_params with
@@ -103,6 +103,19 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
       | EvtDict d ->
         let (keys, values) = unzip d in
         EvtDict(zip keys (List.map (fun x -> applyfun ef [AlreadyEvaluated x] n vb) values))
+      | _ -> failwith "Value is not iterable")
+  | Apply (Symbol "foldl", act_params) ->
+    let (f, ac, s) = (match act_params with
+      | [f; ac; s] -> (f, ac, s)
+      | _ -> raise WrongPrimitiveArgs) in
+    let ef = ieval f and es = ieval s and a = ieval ac in
+    typecheck ef "fun";
+    (match es with
+      | EvtList x -> (List.fold_left
+      (fun acc x -> applyfun ef [AlreadyEvaluated acc; AlreadyEvaluated x] n vb) a x)
+      | EvtDict d ->
+        let (_, values) = unzip d in
+        (List.fold_left (fun acc x -> applyfun ef [AlreadyEvaluated acc; AlreadyEvaluated x] n vb) a values)
       | _ -> failwith "Value is not iterable")
   (* Function Application *)
   | Apply(f, act_params) ->
