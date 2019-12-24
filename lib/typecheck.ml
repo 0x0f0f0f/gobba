@@ -1,8 +1,10 @@
 open Types
 
+let terr t = raise (TypeError ("expected a value of type: " ^ t))
+
 let expect t e = if t = e
   then ()
-  else raise (TypeError ("expected a value of type: " ^ t))
+  else terr t
 
 let typecheck (x: evt) (t: string) = match x with
   | EvtInt _      -> expect t "int"
@@ -13,3 +15,10 @@ let typecheck (x: evt) (t: string) = match x with
   | EvtDict _     -> expect t "dict"
   | Closure _     -> expect t "fun"
   | RecClosure _  -> expect t "fun"
+
+(** Unpacking functions: extract a value or throw an err *)
+
+let unpack_int x = (match x with EvtInt i -> i | _ -> terr "int")
+let unpack_bool x = (match x with EvtBool i -> i | _ -> terr "bool")
+let unpack_string x = (match x with EvtString i -> i | _ -> terr "string")
+let unpack_dict x = (match x with EvtDict i -> i | _ -> terr "dict")
