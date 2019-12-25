@@ -49,9 +49,11 @@ git clone https://github.com/0x0f0f0f/minicaml
 # cd into it
 cd minicaml
 # install dependencies
-opam install dune menhir ANSITerminal
+opam install dune menhir ANSITerminal cmdliner alcotest bisect_ppx
 # compile
 make
+# test
+make test
 # run
 make run
 # rlwrap is suggested

@@ -7,7 +7,7 @@
 - Sequences of expressions separated with `;` are treated as a single expression
   that returns the value of the last one.
 - Function pipelining (reverse composition) with the `>=>` operator.
-  (`(fun x y-> x + y >=> g) 1 2` now becomes `g 3`)
+  (`(fun x y -> x + y >=> g) 1 2` is `g 3`)
 - Dictionaries (`{"hello": 123, "world": 345}`)
 - Map, foldl and filter on lists and dictionaries
 - Testing and code coverage using alcotest and bisect_ppx
