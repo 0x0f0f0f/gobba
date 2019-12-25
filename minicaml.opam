@@ -20,7 +20,7 @@ depends: [
     "menhir"
     "ppx_deriving"
     "cmdliner"
-    "alcotest" {dev & >= 0.8.5}
+    "alcotest" {dev & >= "0.8.5"}
     "bisect_ppx" {dev & >= "1.5.0"}
 ]
 

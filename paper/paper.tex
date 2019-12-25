@@ -1,29 +1,27 @@
-\documentclass[12pt]{article}
+\documentclass[a4paper, 11pt]{article}
 
+%% Language and font encodings. This says how to do hyphenation on end of lines.
+\usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
-\usepackage{graphicx}
-\usepackage{floatflt}
-\usepackage{blindtext}
-\usepackage{enumitem}
-\usepackage{amsthm}
-\usepackage{subfig}
+\usepackage[T1]{fontenc}
 \usepackage{listings}
 \usepackage{listingsutf8}
-\usepackage{amsmath}
-\usepackage{framed}
-\usepackage{titling}
-\usepackage{minibox}
-\usepackage{hyperref}
-\usepackage{float}
-\usepackage{wrapfig}
-\usepackage{longtable}
-\usepackage[strict]{changepage}
-\usepackage{pgfplots}
-\usepackage{tikz}
-\usetikzlibrary{matrix}
-\pgfplotsset{width=11cm,compat=1.9}
-\usepgfplotslibrary{external}
-\tikzexternalize
+\usepackage{xcolor}
+\usepackage{multicol}
+\setlength{\columnsep}{1cm}
+\setlength{\columnseprule}{0.5pt}
+%\usepackage{aas_macros}
+
+%% Sets page size and margins. You can edit this to your liking
+\usepackage[top=1.3cm, bottom=2.0cm, outer=2.5cm, inner=2.5cm, heightrounded,
+marginparwidth=1cm, marginparsep=0.4cm, margin=1.5cm]{geometry}
+
+%% Useful packages
+\usepackage{graphicx} %allows you to use jpg or png images. PDF is still recommended
+\usepackage[colorlinks=False]{hyperref} % add links inside PDF files
+\usepackage{amsmath}  % Math fonts
+\usepackage{amsfonts} %
+\usepackage{amssymb}  %
 
 \definecolor{vgreen}{RGB}{104,180,104}
 \definecolor{vblue}{RGB}{49,49,255}
@@ -40,11 +38,18 @@
  showstringspaces=false, stringstyle=\color{blue},
  literate={'"'}{\textquotesingle "\textquotesingle}3}
 
+
+%% Citation package
+\usepackage[authoryear]{natbib}
+\bibliographystyle{abbrvnat}
+\setcitestyle{authoryear,open={(},close={)}}
+
+
 \title{Minicaml, a purely functional, didactical programming language with an
 interactive REPL. WORK IN PROGRESS DRAFT}
 \author{Alessandro Cheli\\Course taught by Prof. Gianluigi Ferrari\\and Prof. Francesca Levi}
+
 \begin{document}
-\begin{titlingpage}
 \maketitle
 
 \begin{abstract}
@@ -56,7 +61,6 @@ interpreted language featuring a Caml-like syntax, static (lexical scoping),
 interchangeable eager and lazy evaluation and a didactical REPL that
 shows each AST expression and each evaluation step.
 \end{abstract}
-\end{titlingpage}
 
 \section{REPL and command line interface}
 \subsection{Installation}
@@ -86,6 +90,7 @@ make run
 make install
 \end{lstlisting}
 
+\begin{multicols}{2}
 \section{Lexer}
 
 \section{Parser}
@@ -124,11 +129,18 @@ let rec iterate_optimizer e =
 Unit testing is extensively performed using the alcotest testing framework. Code
 coverage is provided by the \texttt{bisect\_ppx} library which yields an HTML
 page containing the coverage percentage when unit tests are run by the dune
-build system. After each commit is pushed to the remote source repository on
-Github, the package is built and tests are run by the Travis Continuos
+build system. After each commit is pushed to the remote version control repository on
+Github, the package is built and tests are run thanks to the Travis Continuos
 Integration system.
 
-\section{Thanks}
-Thanks to Antonio DeLucreziis for helping me implement lazy evaluation.
+\section{Thanks to}
 
+\begin{itemize}
+	\item Prof. Gian-Luigi Ferrari for teaching us how to project and develop
+	interpreters in OCaml
+	\item Antonio DeLucreziis for helping me implement lazy evaluation.
+	\item Prof. Alessandro Berarducci for helping me study lambda calculus in deep.
+\end{itemize}
+
+\end{multicols}
 \end{document}
