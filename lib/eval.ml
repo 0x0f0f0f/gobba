@@ -3,7 +3,6 @@ open Env
 open Errors
 open Util
 open Typecheck
-open Primitives
 
 module T = ANSITerminal
 
@@ -77,9 +76,9 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
     eval body new_env n vb
   | Letrec (ident, value, body) ->
     (match value with
-      | Lambda (form_params, fbody) ->
+      | Lambda (params, fbody) ->
         let rec_env = (bind env ident
-          (AlreadyEvaluated (RecClosure(ident, form_params, fbody, env))))
+          (AlreadyEvaluated (RecClosure(ident, params, fbody, env))))
         in eval body rec_env n vb
       | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
   | Letreclazy (ident, value, body) ->
@@ -88,11 +87,11 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
         let rec_env = (bind env ident (LazyExpression value))
         in eval body rec_env n vb
       | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
-  | Lambda (form_params,body) -> Closure(form_params, body, env)
+  | Lambda (params,body) -> Closure(params, body, env)
   (* Special Primitives that are eval-recursive *)
   (* Map a function over an iterable structure *)
-  | Apply (Symbol "map", act_params) ->
-    let (f, s) = (match act_params with
+  | Apply (Symbol "map", args) ->
+    let (f, s) = (match args with
       | [f; s] -> (f, s)
       | _ -> raise WrongPrimitiveArgs) in
     let ef = ieval f and es = ieval s in
@@ -104,8 +103,8 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
         let (keys, values) = unzip d in
         EvtDict(zip keys (List.map (fun x -> applyfun ef [AlreadyEvaluated x] n vb) values))
       | _ -> failwith "Value is not iterable")
-  | Apply (Symbol "foldl", act_params) ->
-    let (f, ac, s) = (match act_params with
+  | Apply (Symbol "foldl", args) ->
+    let (f, ac, s) = (match args with
       | [f; ac; s] -> (f, ac, s)
       | _ -> raise WrongPrimitiveArgs) in
     let ef = ieval f and es = ieval s and a = ieval ac in
@@ -117,17 +116,30 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
         let (_, values) = unzip d in
         (List.fold_left (fun acc x -> applyfun ef [AlreadyEvaluated acc; AlreadyEvaluated x] n vb) a values)
       | _ -> failwith "Value is not iterable")
+  | Apply (Symbol "filter", args) ->
+    let (p, s) = (match args with
+      | [p; s] -> (ieval p, ieval s)
+      | _ -> raise WrongPrimitiveArgs) in
+    typecheck p "fun";
+    (match s with
+      | EvtList x ->
+        EvtList(List.filter
+        (fun x -> applyfun p [AlreadyEvaluated x] n vb = EvtBool true) x)
+      | EvtDict d ->
+        EvtDict(List.filter (fun (_,v) ->
+          applyfun p [AlreadyEvaluated v] n vb = EvtBool true) d)
+      | _ -> failwith "Value is not iterable")
   (* Function Application *)
-  | Apply(f, act_params) ->
-    let applyaux f act_params =
+  | Apply(f, args) ->
+    let applyaux f args =
       let closure = ieval f in
-      let evaluated_params = List.map (fun x -> AlreadyEvaluated (ieval x)) act_params in
+      let evaluated_params = List.map (fun x -> AlreadyEvaluated (ieval x)) args in
       applyfun closure evaluated_params n vb in
     (match f with
-      | Symbol s -> if key_exist s primitives_table
-        then (get_key_val s primitives_table) (List.map ieval act_params)
-        else applyaux f act_params
-      | _ -> applyaux f act_params)
+      | Symbol s -> if key_exist s Primitives.table
+        then (get_key_val s Primitives.table) (List.map ieval args)
+        else applyaux f args
+      | _ -> applyaux f args)
   (* Eval a sequence of expressions but return the last *)
   | Sequence(exprl) ->
     let rec unroll el = (match el with
@@ -160,20 +172,20 @@ and lookup (env: env_type) (ident: ide) ieval : evt =
 and applyfun closure evaluated_params n vb =
   let p_length = List.length evaluated_params in
   match closure with
-    | Closure(form_params, body, decenv) -> (* Use static scoping *)
-      if (List.compare_lengths form_params evaluated_params) > 0 then (* curry *)
-        let applied_env = bindlist decenv (take p_length form_params) evaluated_params in
-        Closure((drop p_length form_params), body, applied_env)
+    | Closure(params, body, decenv) -> (* Use static scoping *)
+      if (List.compare_lengths params evaluated_params) > 0 then (* curry *)
+        let applied_env = bindlist decenv (take p_length params) evaluated_params in
+        Closure((drop p_length params), body, applied_env)
       else  (* apply the function *)
-        let application_env = bindlist decenv form_params evaluated_params in
+        let application_env = bindlist decenv params evaluated_params in
         eval body application_env n vb
     (* Apply a recursive function *)
-    | RecClosure(name, form_params, body, decenv) ->
+    | RecClosure(name, params, body, decenv) ->
       let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
-      if (List.compare_lengths form_params evaluated_params) > 0 then (* curry *)
-        let applied_env = bindlist rec_env (take p_length form_params) evaluated_params in
-        RecClosure(name, (drop p_length form_params), body, applied_env)
+      if (List.compare_lengths params evaluated_params) > 0 then (* curry *)
+        let applied_env = bindlist rec_env (take p_length params) evaluated_params in
+        RecClosure(name, (drop p_length params), body, applied_env)
       else  (* apply the function *)
-        let application_env = bindlist rec_env form_params evaluated_params in
+        let application_env = bindlist rec_env params evaluated_params in
         eval body application_env n vb
     | _ -> raise (TypeError "Cannot apply a non functional value")

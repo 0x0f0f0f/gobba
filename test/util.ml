@@ -15,8 +15,12 @@ let checkeq descr fst snd eqfn = A.(check bool) descr true (eqfn fst snd)
 let checkparse expr result =
   A.(check bool) expr true (equal_expr (parse expr) result)
 
-let checkparsefail expr = A.check_raises expr (Failure("syntax error"))
-  (fun () -> try let _ = (parse expr) in () with _ -> failwith "syntax error")
+let checkparsefail exp = A.check_raises exp (Failure("syntax error"))
+  (fun () -> try let _ = (parse exp) in () with _ -> failwith "syntax error")
 
 let checkeval exp expected = A.(check bool) (show_expr exp) true (equal_evt (eval exp
 (empty_env ()) EmptyStack false) expected)
+
+let checkevalfail exp = A.(check_raises) (show_expr exp)
+(Failure("evaluation error")) (fun () -> try let _ = (eval exp (empty_env ())
+EmptyStack false) in () with _ -> failwith "evaluation error")

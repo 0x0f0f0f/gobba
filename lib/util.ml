@@ -58,3 +58,9 @@ let rec get_key_val ks l = match l with
   | (k, v)::xs -> if k = ks
   then v
   else get_key_val ks xs
+
+let rec filter_by_keys kl l = match l with
+  | [] -> []
+  | (k, v)::xs -> if List.mem k kl
+    then (k, v)::(filter_by_keys kl xs)
+    else (filter_by_keys kl xs)
