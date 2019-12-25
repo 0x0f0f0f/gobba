@@ -1,11 +1,16 @@
-## 0.2.3 2019-12-18
+## 0.3 2019-12-25
 ### Added
 - A simple AST optimizer
 - Multiple let assignments (`let x = 2 and y = 3 and z = ... in ...`)
 - Function currying (partial application)
 - Strings
-- Sequences of expressions separated with `;` are treated as a single expression that returns the last one.
-- Function pipelining (reverse composition) with the `>=>` operator. (`(fun x y -> x + y >=> g) 1 2` now becomes `g 3`)
+- Sequences of expressions separated with `;` are treated as a single expression
+  that returns the value of the last one.
+- Function pipelining (reverse composition) with the `>=>` operator.
+  (`(fun x y-> x + y >=> g) 1 2` now becomes `g 3`)
+- Dictionaries (`{"hello": 123, "world": 345}`)
+- Map, foldl and filter on lists and dictionaries
+- Testing and code coverage using alcotest and bisect_ppx
 ### Bugfixes
 - Fixed function application parser
 
