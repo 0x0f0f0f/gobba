@@ -45,6 +45,22 @@ let test_foldl () =
     checkevalfail (Apply (Symbol "foldl", [(Lambda (["x"], (Plus ((Integer 1),
     (Symbol "x"))))); (Integer 0); (String "x")]))
 
+let test_filter () =
+  checkeval (Apply ((Symbol "filter"),
+  [(Lambda (["x"], (Gt ((Symbol "x"), (Integer 3)))));
+    (List
+       [(Integer 1); (Integer 2); (Integer 3); (Integer 4); (Integer 5);
+         (Integer 4); (Integer 3); (Integer 2); (Integer 1)])
+    ]))
+  (EvtList [(EvtInt 4); (EvtInt 5); (EvtInt 4)]);
+  checkevalfail (Apply ((Symbol "filter"),
+  [(Lambda (["x"], (Gt ((Symbol "x"), (Integer 3)))));
+    (List
+       [(Integer 1); (Integer 2); (Integer 3); (Integer 4); (Integer 5);
+         (Integer 4); (Integer 3); (Integer 2); (Integer 1)]); Integer 3
+  ]));
+  checkevalfail (Apply ((Symbol "filter"),
+  [(Lambda (["x"], (Gt ((Symbol "x"), (Integer 3))))); Integer 3 ]))
 
 let test_suite = List.map quickcase [
   ("evaluate list", test_list);
@@ -53,4 +69,5 @@ let test_suite = List.map quickcase [
   ("cons", test_cons);
   ("map", test_map);
   ("foldl", test_foldl);
+  ("filter", test_filter);
 ]

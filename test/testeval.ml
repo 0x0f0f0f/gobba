@@ -22,7 +22,48 @@ let test_apply () =
   checkeval (Let(["f", plus_one], (Apply(Symbol "f", [Integer 1])))) (EvtInt 2);
   checkeval (Letrec("fib", fib, (Apply(Symbol "fib", [Integer 10])))) (EvtInt 55);
   checkeval (Letreclazy("fib", fib, (Apply(Symbol "fib", [Integer 10])))) (EvtInt 55);
-  checkevalfail (Let(["f", plus_one], (Apply(Symbol "f", [Integer 1; Integer 2]))))
+  checkevalfail (Let(["f", plus_one], (Apply(Symbol "f", [Integer 1; Integer 2]))));
+  checkevalfail (Apply(Integer 5, [Integer 5]))
+let test_curry () =
+  checkeval (Let ([("f", (Lambda (["x"; "y"], (Plus ((Symbol "x"), (Symbol "y"))))))],
+    (Apply ((Symbol "f"), [(Integer 3)]))))
+  (Closure (["y"], (Plus ((Symbol "x"), (Symbol "y"))),
+    [("x", (AlreadyEvaluated (EvtInt 3)))]));
+  checkeval (Letrec ("fib",
+   (Lambda (["a"; "n"],
+      (IfThenElse ((Lt ((Symbol "n"), (Integer 2))), (Symbol "n"),
+         (Plus (
+            (Plus ((Symbol "a"),
+               (Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 1)))]))
+               )),
+            (Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 2)))]))))
+         ))
+      )),
+   (Apply ((Symbol "fib"), [(Integer 2)]))))
+  (RecClosure ("fib", ["n"],
+   (IfThenElse ((Lt ((Symbol "n"), (Integer 2))), (Symbol "n"),
+      (Plus (
+         (Plus ((Symbol "a"),
+            (Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 1)))])))),
+         (Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 2)))]))))
+      )),
+   [("a", (AlreadyEvaluated (EvtInt 2)));
+     ("fib",
+      (AlreadyEvaluated
+         (RecClosure ("fib", ["a"; "n"],
+            (IfThenElse ((Lt ((Symbol "n"), (Integer 2))), (Symbol "n"),
+               (Plus (
+                  (Plus ((Symbol "a"),
+                     (Apply ((Symbol "fib"),
+                        [(Sub ((Symbol "n"), (Integer 1)))]))
+                     )),
+                  (Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 2)))]
+                     ))
+                  ))
+               )),
+            []))))
+     ]
+   ))
 
 let test_let () =
   checkeval (Let(["f", Integer 5], Symbol "f")) (EvtInt 5);
@@ -74,6 +115,11 @@ let test_sequence () =
   checkevalfail (Sequence([]));
   checkeval (Sequence([Integer 1; Integer 2])) (EvtInt 2)
 
+let test_lookup () =
+  checkevalfail (Symbol "");
+  checkevalfail (Symbol "notbound");
+  checkeval (Letlazy(["a", Integer 1; "b", Integer 2], Symbol "a")) (EvtInt 1)
+
 let test_suite = List.map quickcase [
   ("constants", test_constants);
   ("arithmetics", test_arithmetic);
@@ -81,6 +127,8 @@ let test_suite = List.map quickcase [
   ("comparisons", test_comparisons);
   ("let", test_let);
   ("apply", test_apply);
+  ("curry", test_curry);
   ("pipe", test_pipe);
   ("sequence", test_sequence);
+  ("lookup", test_lookup);
 ]

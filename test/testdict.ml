@@ -64,6 +64,15 @@ let test_filterkeys () =
   (EvtDict [(EvtString "apple", EvtInt 314)]);
   checkevalfail (Apply(Symbol "filterkeys", [List[String "doesntexist"]; sample_dict; sample_dict]))
 
+let test_filter () =
+  checkeval (Apply ((Symbol "filter"),
+    [(Lambda (["x"], (Gt ((Symbol "x"), (Integer 3)))));
+      (Dict
+        [((String "a"), (Integer 1)); ((String "b"), (Integer 2));
+          ((String "c"), (Integer 3)); ((String "d"), (Integer 4))])
+    ]))
+  (EvtDict [((EvtString "d"), (EvtInt 4))])
+
 let test_suite = List.map quickcase [
   ("evaluate dictionary", test_dict);
   ("insert in a dictionary", test_insert);
@@ -73,5 +82,6 @@ let test_suite = List.map quickcase [
   ("map", test_map);
   ("foldl", test_foldl);
   ("filterkeys", test_filterkeys);
+  ("filter", test_filter);
 (*   ("no duplicate keys", test_duplicate) *)
 ]
