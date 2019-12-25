@@ -123,7 +123,10 @@ let rec iterate_optimizer e =
 \section{Tests}
 Unit testing is extensively performed using the alcotest testing framework. Code
 coverage is provided by the \texttt{bisect\_ppx} library which yields an HTML
-page when tests are run by dune.
+page containing the coverage percentage when unit tests are run by the dune
+build system. After each commit is pushed to the remote source repository on
+Github, the package is built and tests are run by the Travis Continuos
+Integration system.
 
 \section{Thanks}
 Thanks to Antonio DeLucreziis for helping me implement lazy evaluation.
