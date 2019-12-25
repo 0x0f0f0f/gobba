@@ -1,6 +1,5 @@
 opam-version: "2.0"
 version: "0.3"
-ocaml-version: [ >= "4.05.0" ]
 maintainer: "sudo-woodo3@protonmail.com"
 authors: ["Alessandro Cheli"]
 homepage: "https://github.com/0x0f0f0f/minicaml"
@@ -16,7 +15,7 @@ build: [
 ]
 depends: [
     "dune" {>= "2.0"}
-    "ocaml"
+    "ocaml" {>= "4.05.0"}
     "ANSITerminal"
     "menhir"
     "ppx_deriving"
