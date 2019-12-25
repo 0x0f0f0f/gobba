@@ -15,7 +15,7 @@ let bool_binop (x, y) (op: bool -> bool -> bool) =
   let a = unpack_bool x and b = unpack_bool y in EvtBool(op a b)
 
 let bool_unop x (op: bool -> bool) =
-  let a = unpack_bool in EvtBool(op a)
+  let a = unpack_bool x in EvtBool(op a)
 
 let uniqueorfail l = if dup_key_exist l then
   raise (DictError "Duplicate key in dictionary")
