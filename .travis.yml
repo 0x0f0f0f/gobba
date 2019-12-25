@@ -1,32 +1,6 @@
-language: c
-env:
-  - RUN_TEST=true OCAML_VERSION=4.07.0
-  - RUN_TEST=true OCAML_VERSION=4.08.0
-  - RUN_TEST=true OCAML_VERSION=4.09.0
-addons:
-  apt:
-    packages:
-      - opam
-      - time
-before_install:
-  # Download and use opam2
-  - wget -O ${HOME}/opam https://github.com/ocaml/opam/releases/download/2.0.0-beta6/opam-2.0.0-beta6-x86_64-linux
-  - chmod +x ${HOME}/opam
-  # Some opam boilerplate
-  - export OPAMYES=1
-  - export OPAMJOBS=2
-  # Init opam, and the default switch with the right ocaml version
-  - ${HOME}/opam init --compiler=${OCAML_VERSION}
-  - eval `${HOME}/opam config env`
-  - export OPAMVERBOSE=1
-  - opam switch ${OCAML_VERSION}
-  - eval `opam config env`
-  - opam install ocamlfind dune iter camlzip
-  - if ${RUN_TEST}; then opam install containers ; fi
-install:
-  - make build
-script:
-  # Build and launch the tests
-  - if [ "$TO_TEST" = "tests" ]; then make && make test; fi
-  # Try and install the package with opam
-  - if [ "$TO_TEST" = "install" ]; then ${HOME}/opam install minicaml.dev; fi
+language: ocaml
+env: OCAML_VERSION=4.09
+
+build: [ make ]
+
+build-test: [ "make test" ]
