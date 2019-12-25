@@ -41,7 +41,7 @@
  literate={'"'}{\textquotesingle "\textquotesingle}3}
 
 \title{Minicaml, a purely functional, didactical programming language with an
-interactive REPL.}
+interactive REPL. WORK IN PROGRESS DRAFT}
 \author{Alessandro Cheli\\Course taught by Prof. Gianluigi Ferrari\\and Prof. Francesca Levi}
 \begin{document}
 \begin{titlingpage}
@@ -121,7 +121,9 @@ let rec iterate_optimizer e =
 \section{Evaluation}
 
 \section{Tests}
-Unit testing is extensively performed using the alcotest testing framework.
+Unit testing is extensively performed using the alcotest testing framework. Code
+coverage is provided by the \texttt{bisect\_ppx} library which yields an HTML
+page when tests are run by dune.
 
 \section{Thanks}
 Thanks to Antonio DeLucreziis for helping me implement lazy evaluation.
