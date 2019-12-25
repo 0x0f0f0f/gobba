@@ -1,6 +1,10 @@
-language: ocaml
-env: OCAML_VERSION=4.09
-
-build: [ make ]
-
-build-test: [ "make test" ]
+language: c
+sudo: required
+install: test -e .travis.opam.sh || wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
+env:
+  - OCAML_VERSION=4.08
+  - OCAML_VERSION=4.09
+os:
+  - linux
+  - osx
