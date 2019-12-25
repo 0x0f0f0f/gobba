@@ -8,17 +8,14 @@ module T = ANSITerminal
 
 (** Numerical Primitives *)
 
-let int_binop (x, y) (op: int -> int -> int) = match (x, y) with
-  | EvtInt(a), EvtInt(b) -> EvtInt(op a b)
-  | _, _ -> raise (TypeError "type mismatch in arithmetical operation")
+let int_binop (x, y) (op: int -> int -> int) =
+  let a = unpack_int x and b = unpack_int y in EvtInt(op a b)
 
-let bool_binop (x, y) (op: bool -> bool -> bool) = match (x, y) with
-  | EvtBool(a), EvtBool(b) -> EvtBool(op a b)
-  | _, _ -> raise (TypeError "type mismatch in boolean operation")
+let bool_binop (x, y) (op: bool -> bool -> bool) =
+  let a = unpack_bool x and b = unpack_bool y in EvtBool(op a b)
 
-let bool_unop x (op: bool -> bool) = match x with
-  | EvtBool(a) -> EvtBool(op a)
-  | _ -> raise (TypeError "type mismatch in boolean operation")
+let bool_unop x (op: bool -> bool) =
+  let a = unpack_bool in EvtBool(op a)
 
 let uniqueorfail l = if dup_key_exist l then
   raise (DictError "Duplicate key in dictionary")
@@ -51,7 +48,7 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
   | Dict(l) ->
     let el = uniqueorfail (List.map (fun (x,y) -> isvalidkey (ieval x, ieval y)) l) in
     EvtDict el
-  | Sum   (x, y) ->   int_binop   (ieval x, ieval y)  (+)
+  | Plus   (x, y) ->   int_binop   (ieval x, ieval y)  (+)
   | Sub   (x, y) ->   int_binop   (ieval x, ieval y)  (-)
   | Mult  (x, y) ->   int_binop   (ieval x, ieval y)  ( * )
   | And   (x, y) ->   bool_binop  (ieval x, ieval y)  (&&)

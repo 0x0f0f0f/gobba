@@ -13,7 +13,7 @@ type expr =
   | Cons of expr * expr
   | Dict of (expr * expr) list
   (* Numerical Operations *)
-  | Sum of expr * expr
+  | Plus of expr * expr
   | Sub of expr * expr
   | Mult of expr * expr
   | Eq of expr * expr

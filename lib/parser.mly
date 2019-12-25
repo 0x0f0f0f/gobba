@@ -75,7 +75,7 @@ ast_expr:
   | NOT e1 = ast_expr
   { Not e1}
   | e1 = ast_expr PLUS e2 = ast_expr
-  { Sum (e1, e2) }
+  { Plus (e1, e2) }
   | e1 = ast_expr MINUS e2 = ast_expr
   { Sub (e1, e2) }
   | e1 = ast_expr TIMES e2 = ast_expr

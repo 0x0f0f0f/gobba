@@ -1,7 +1,7 @@
 open Types
 
 let rec optimize (e: expr) : expr = match e with
-  | Sum(Integer x, Integer y) -> Integer (x + y) (* Autoreduce constants *)
+  | Plus(Integer x, Integer y) -> Integer (x + y) (* Autoreduce constants *)
   | Sub(Integer x, Integer y) -> Integer (x - y)
   | Mult(Integer x, Integer y) -> Integer (x * y)
   | Eq(Integer x, Integer y) -> Boolean (x == y)
@@ -13,7 +13,7 @@ let rec optimize (e: expr) : expr = match e with
   | Gt(x, y) -> Gt (optimize x, optimize y)
   | Lt(x, y) -> Lt (optimize x, optimize y)
   | Not(Boolean x) -> Boolean (not x)
-  | Sum(x, y) ->  Sum (optimize x, optimize y)
+  | Plus(x, y) ->  Plus (optimize x, optimize y)
   | Sub(x, y) ->  Sub (optimize x, optimize y)
   | Mult(x, y) -> Mult (optimize x, optimize y)
   | And(x, y) ->  And (optimize x, optimize y)
