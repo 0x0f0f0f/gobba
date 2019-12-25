@@ -48,7 +48,7 @@ let rec eval (e: expr) (env: env_type) (n: stackframe) vb : evt =
   | Dict(l) ->
     let el = uniqueorfail (List.map (fun (x,y) -> isvalidkey (ieval x, ieval y)) l) in
     EvtDict el
-  | Plus   (x, y) ->   int_binop   (ieval x, ieval y)  (+)
+  | Plus   (x, y) ->  int_binop   (ieval x, ieval y)  (+)
   | Sub   (x, y) ->   int_binop   (ieval x, ieval y)  (-)
   | Mult  (x, y) ->   int_binop   (ieval x, ieval y)  ( * )
   | And   (x, y) ->   bool_binop  (ieval x, ieval y)  (&&)

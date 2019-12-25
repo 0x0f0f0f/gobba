@@ -19,14 +19,14 @@ let test_bool () =
 let test_unit () = checkparse "()" (Unit)
 
 let test_arithmetic () =
-  checkparse "5 + 3" (Sum(Integer 5, Integer 3));
+  checkparse "5 + 3" (Plus(Integer 5, Integer 3));
   checkparse "x - 123" (Sub(Symbol "x", Integer 123));
   checkparse "x * 123" (Mult(Symbol "x", Integer 123));
   checkparse "1235 + 2345 * (123 - 2) + 11"
-  (Sum ((Sum ((Integer 1235),
+  (Plus ((Plus ((Integer 1235),
     (Mult ((Integer 2345), (Sub ((Integer 123), (Integer 2))))))),
     (Integer 11)));
-  checkparse "1234 + -32" (Sum ((Integer 1234), (Integer(-32))));
+  checkparse "1234 + -32" (Plus ((Integer 1234), (Integer(-32))));
   checkparsefail "1234 +- 32";
   checkparsefail "1234 /- 32";
   checkparsefail "1234 + + 32"
@@ -63,7 +63,7 @@ let test_misc_functions () =
   (Letrec ("fib",
    (Lambda (["n"],
     (IfThenElse ((Lt ((Symbol "n"), (Integer 2))), (Symbol "n"),
-     (Sum ((Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 1)))])),
+     (Plus ((Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 1)))])),
       (Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 2)))]))))
      ))
     )),
@@ -82,10 +82,10 @@ let test_pipeline () =
   checkparse
   "((let rec fib = fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2)) in fib) >=> (fun x -> x + 1))"
   (Pipe ( (Letrec ("fib", (Lambda (["n"],
-  (IfThenElse ((Lt ((Symbol "n"), (Integer 2))), (Symbol "n"), (Sum ( (Apply
+  (IfThenElse ((Lt ((Symbol "n"), (Integer 2))), (Symbol "n"), (Plus ( (Apply
   ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 1)))])), (Apply ((Symbol
   "fib"), [(Sub ((Symbol "n"), (Integer 2)))])) )) )) )), (Symbol "fib"))),
-  (Lambda (["x"], (Sum ((Symbol "x"), (Integer 1)))))))
+  (Lambda (["x"], (Plus ((Symbol "x"), (Integer 1)))))))
 
 let test_suite = List.map quickcase [
   ("parse integers", test_int);

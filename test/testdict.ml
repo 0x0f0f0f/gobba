@@ -7,14 +7,17 @@ let sample_dict = (Dict([(String "hello", String "world"); (String "apple", Inte
 
 let test_dict () =
   checkeval sample_dict (EvtDict([(EvtString
-  "hello", EvtString "world"); (EvtString "apple", EvtInt 314)]))
+  "hello", EvtString "world"); (EvtString "apple", EvtInt 314)]));
+  checkeval (Dict([(Boolean true, String "true")])) (EvtDict([EvtBool true, EvtString "true"]));
+  checkevalfail (Dict([(String "hello", String "world"); (String "hello", String "world"); (String "apple", Integer 314)]));
+  checkevalfail (Dict([(Lambda(["x"], (Symbol "x")), String "world")]))
 
 let test_insert () =
   checkeval (Apply(Symbol "insert", [Integer 123; Integer 456; sample_dict]))
   (EvtDict([(EvtInt 123, EvtInt 456);(EvtString
   "hello", EvtString "world"); (EvtString "apple", EvtInt 314)]));
-  checkevalfail (Apply(Symbol "insert", [String "doesntexist"; Integer 123; sample_dict; sample_dict]))
-
+  checkevalfail (Apply(Symbol "insert", [String "doesntexist"; Integer 123; sample_dict; sample_dict]));
+  checkevalfail (Apply(Symbol "insert", [String "hello"; Integer 123; sample_dict; sample_dict]))
 
 let test_delete () =
   checkeval (Apply(Symbol "delete", [String "hello"; sample_dict]))
@@ -34,7 +37,7 @@ let test_getkey () =
 
 let test_map () =
   checkeval (Apply ((Symbol "map"),
-    [(Lambda (["x"], (Sum ((Integer 1), (Symbol "x")))));
+    [(Lambda (["x"], (Plus ((Integer 1), (Symbol "x")))));
     (Dict
       [((String "a"), (Integer 1)); ((String "b"), (Integer 2));
       ((String "c"), (Integer 3)); ((String "d"), (Integer 4))])
@@ -46,7 +49,7 @@ let test_map () =
 
 let test_foldl () =
   checkeval (Apply ((Symbol "foldl"),
-   [(Lambda (["acc"; "x"], (Sum ((Symbol "acc"), (Symbol "x")))));
+   [(Lambda (["acc"; "x"], (Plus ((Symbol "acc"), (Symbol "x")))));
    (Integer 0);
    (Dict
     [((String "a"), (Integer 1)); ((String "b"), (Integer 2));
