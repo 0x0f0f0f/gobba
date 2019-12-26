@@ -19,6 +19,9 @@ with
 
 let parser = Parser.file Lexer.token
 
-let rec run_file cmdlst env verbose = match cmdlst with
-  | x::xs -> run_file xs (Repl.run_one x env verbose) verbose
+let rec run_file_list cmdlst env verbose = match cmdlst with
+  | x::xs -> run_file_list xs (Repl.run_one x env verbose) verbose
   | [] -> ()
+
+let run_file fn verbose = 
+  run_file_list (read_file parser fn) (Env.empty_env ()) verbose;;

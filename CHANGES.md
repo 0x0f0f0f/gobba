@@ -1,3 +1,13 @@
+## 0.3.5 2019-12-26
+### Added
+- `map2` primitive
+- Reading programs from files
+- An abstraction that allows treating primitives as functions, and so allows
+  currying and all the fancy stuff.
+- Examples in the `examples/` directory
+- *Greater or equal to* and *Less than or equal to* operators
+- More test coverage.
+
 ## 0.3 2019-12-25
 ### Added
 - A simple AST optimizer
