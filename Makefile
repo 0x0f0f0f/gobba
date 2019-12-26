@@ -8,7 +8,7 @@ build:
 
 test:
 	BISECT_ENABLE=yes dune runtest -f
-	bisect-ppx-report -html coverage/ -I _build/default _build/default/test/bisect*.out
+	bisect-ppx-report html -o coverage/
 
 run:
 	dune exec ./bin/main.exe
