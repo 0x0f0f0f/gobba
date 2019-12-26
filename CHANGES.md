@@ -1,4 +1,4 @@
-## 0.3.5 2019-12-26
+## 0.3.1 2019-12-26
 ### Added
 - `map2` primitive
 - Reading programs from files
