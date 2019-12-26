@@ -1,8 +1,8 @@
 open Types
 open Eval
-open Printf
-open Lexing
-open Errors
+open Env
+open Util
+open Interface
 open Optimizer
 
 let read_one parser str =
@@ -19,21 +19,6 @@ let read_toplevel parser () =
     done ;
     parser (Lexing.from_string (!str ^ "\n"))
 
- (** Parser wrapper that catches syntax-related errors and converts them to errors. *)
-  let wrap_syntax_errors parser lex =
-  (try parser lex
-  with
-    | Failure f ->
-    print_error ((location_of_lex lex), "Syntax Error", f)
-    | e ->
-    print_error ((location_of_lex lex), "Syntax Error", (Printexc.to_string e)));
-  ()
-
-let print_position lexbuf =
-  let pos = lexbuf.lex_curr_p in
-  sprintf "%s:%d:%d" pos.pos_fname pos.pos_lnum
-    (pos.pos_cnum - pos.pos_bol + 1)
-
 let parser = Parser.toplevel Lexer.token
 
 let rec read_lines_until ic del =
@@ -46,22 +31,50 @@ let rec read_lines_until ic del =
     then line
     else line ^ (read_lines_until ic del)
 
+let run_one command env verbose =
+  if verbose >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow
+      "AST equivalent" "\n%s"
+        (show_command command) else ();
+  match command with
+    | Expr e ->
+      let optimized_ast = iterate_optimizer e in
+      if optimized_ast = e then () else
+        if verbose >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
+        (show_expr optimized_ast) else ();
+      let evaluated = eval optimized_ast env EmptyStack verbose in
+      if verbose >= 1 then print_message ~color:T.Green ~loc:(Nowhere) "Result"
+      "\t%s" (show_evt evaluated) else ();
+      print_endline (show_unpacked_evt evaluated);
+      env
+    | Def dl ->
+      let (idel, vall) = unzip dl in
+      let ovall = (List.map (iterate_optimizer) vall) in
+      if ovall = vall then () else
+            if verbose >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
+              (show_command (Def(zip idel ovall))) else ();
+      (bindlist env idel (List.map
+        (fun x -> AlreadyEvaluated (eval x env EmptyStack verbose)) ovall))
+    | Defrec dl ->
+      let odl = (List.map (fun (i,v) -> (i, iterate_optimizer v)) dl) in
+      if dl = odl then () else
+            if verbose >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
+              (show_command (Def(odl))) else ();
+      (bindlist env (fst (unzip odl)) (List.map
+        (fun (ident, value) ->
+          (match value with
+          | Lambda (params, fbody) ->
+            let rec_env = (bind env ident
+              (AlreadyEvaluated (RecClosure(ident, params, fbody, env))))
+            in AlreadyEvaluated (RecClosure(ident, params, fbody, rec_env))
+          | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
+        ) dl))
+
 let repl env verbose =
   Sys.catch_break true;
   try
   while true do
     try
-    let command = read_toplevel parser () in
-    if verbose then print_message ~loc:(Nowhere) ~color:T.Yellow "AST equivalent" "\n%s"
-      (show_expr command) else ();
-    let optimized_ast = iterate_optimizer command in
-    if optimized_ast = command then () else
-      if verbose then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
-      (show_expr optimized_ast) else ();
-    let evaluated = eval optimized_ast env EmptyStack verbose in
-    if verbose then print_message ~color:T.Green ~loc:(Nowhere) "Result"
-    "\t%s" (show_evt evaluated) else ();
-    print_endline (show_unpacked_evt evaluated);
+    let _ = run_one (Expr (read_toplevel (wrap_syntax_errors parser) ())) env verbose in ()
     with
       | End_of_file -> raise End_of_file
       | Error err -> print_error err

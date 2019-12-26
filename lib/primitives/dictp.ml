@@ -41,9 +41,9 @@ let filterkeys act_params =
   EvtDict(filter_by_keys kll ed)
 
 let table = [
-  ("insert", insert_dict);
-  ("delete", delete_dict);
-  ("haskey", haskey);
-  ("getkey", getkey);
-  ("filterkeys", filterkeys)
+  ("insert", (insert_dict, 3));
+  ("delete", (delete_dict, 2));
+  ("haskey", (haskey, 2));
+  ("getkey", (getkey, 2));
+  ("filterkeys", (filterkeys, 2))
 ]

@@ -13,7 +13,7 @@
 
 let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
-let symbol = alpha (alpha|digit)*
+let symbol = alpha (alpha|digit|'_')*
 let int = '-'? ['0'-'9'] ['0'-'9']*
 let white = [' ' '\t' '\r']
 
@@ -53,6 +53,8 @@ rule token = parse
   | "="         { EQUAL }
   | ">"         { GREATER }
   | "<"         { LESS }
+  | ">="         { GREATEREQUAL }
+  | "<="         { LESSEQUAL }
   | "not"       { NOT }
   | ">=>"       { PIPE }
   | ";"         { SEMI }

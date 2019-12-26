@@ -19,8 +19,11 @@ let checkparsefail exp = A.check_raises exp (Failure("syntax error"))
   (fun () -> try let _ = (parse exp) in () with _ -> failwith "syntax error")
 
 let checkeval exp expected = A.(check bool) (show_expr exp) true (equal_evt (eval exp
-(empty_env ()) EmptyStack false) expected)
+(empty_env ()) EmptyStack 0) expected)
+
+let check exp expected = A.(check bool) exp true (equal_evt (eval
+(parse exp) (empty_env ()) EmptyStack 0) expected)
 
 let checkevalfail exp = A.(check_raises) (show_expr exp)
 (Failure("evaluation error")) (fun () -> try let _ = (eval exp (empty_env ())
-EmptyStack false) in () with _ -> failwith "evaluation error")
+EmptyStack 0) in () with _ -> failwith "evaluation error")

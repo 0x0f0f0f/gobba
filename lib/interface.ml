@@ -1,3 +1,6 @@
+open Lexing
+open Printf
+
 module T = ANSITerminal
 
 type location =
@@ -54,3 +57,18 @@ let fatal_error msg = error ~kind:"Fatal error" msg
 
 (** A syntax error reported by the toplevel *)
 let syntax_error ?loc msg = error ~kind:"Syntax error" ?loc msg
+
+
+(** Parser wrapper that catches syntax-related errors and converts them to errors. *)
+let wrap_syntax_errors parser lex =
+try parser lex
+with
+  | Failure _ ->
+    syntax_error ~loc:(location_of_lex lex) "unrecognised symbol"
+  | _ ->
+    syntax_error ~loc:(location_of_lex lex) ("syntax error")
+
+let print_position lexbuf =
+  let pos = lexbuf.lex_curr_p in
+  sprintf "%s:%d:%d" pos.pos_fname pos.pos_lnum
+    (pos.pos_cnum - pos.pos_bol + 1)

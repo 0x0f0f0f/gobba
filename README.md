@@ -1,6 +1,5 @@
-# minicaml
-
-[Leggi qui in italiano](https://github.com/0x0f0f0f/minicaml/blob/master/README-it.md)
+![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master)
+# minicaml 
 
 **minicaml** is a small, purely functional interpreted programming language with
 a didactical purpose. I wrote **minicaml** for the **Programming 2** course at
@@ -66,6 +65,7 @@ rlwrap minicaml
 
 ## Usage
 
-Run `make run` to run a REPL. The REPL shows the AST equivalentof each submitted
-expression, and each reduction step in the evaluation is shown. It also signals
+Run `make run` to run a REPL. If the `minicaml` executable is ran with the flag
+`-v`, the REPL will show the AST equivalent of each submitted
+expression, and each reduction step in the evaluation will be shown. It also signals
 syntactical and semantical errors.

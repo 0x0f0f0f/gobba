@@ -19,6 +19,8 @@ type expr =
   | Eq of expr * expr
   | Gt of expr * expr
   | Lt of expr * expr
+  | Ge of expr * expr
+  | Le of expr * expr
   (* Boolean operations *)
   | And of expr * expr
   | Or of expr * expr
@@ -35,6 +37,14 @@ type expr =
   | Pipe of expr * expr
   [@@deriving show { with_path = false }, eq, ord]
 
+(** A type useful for evaluating files, stating if a command is
+an expression or simply a "global" declaration (appended to environment) *)
+type command =
+  | Expr of expr
+  | Def of (ide * expr) list
+  | Defrec of (ide * expr) list
+  [@@deriving show { with_path = false }, eq, ord]
+
 (** A purely functional environment type, parametrized *)
 type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }, eq, ord]
 
@@ -46,16 +56,17 @@ type evt =
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
   | EvtDict of (evt * evt) list [@equal (=)]
-(*     | Primitive of ide list * ide [@equal (=)] *)
   | Closure of ide list * expr * (type_wrapper env_t) [@equal (=)]
   (** RecClosure keeps the function name in the constructor for recursion *)
   | RecClosure of ide * ide list * expr * (type_wrapper env_t) [@equal (=)]
+  (** Abstraction that permits treating primitives as closures *)
+  | PrimitiveAbstraction of (ide * int * (type_wrapper env_t))
   [@@deriving show { with_path = false }, eq, ord]
 and type_wrapper =
   | LazyExpression of expr
   | AlreadyEvaluated of evt
   [@@deriving show { with_path = false }]
-(** Wrapper type that allows both AST expressions and
+(* Wrapper type that allows both AST expressions and
 evaluated expression for lazy evaluation *)
 
 let rec show_unpacked_evt e = match e with
@@ -72,7 +83,7 @@ let rec show_unpacked_evt e = match e with
   | _ -> show_evt e
 
 (** An environment of already evaluated values  *)
-type env_type = type_wrapper env_t 
+type env_type = type_wrapper env_t
 
 (** A recursive type representing a stacktrace frame *)
 type stackframe =

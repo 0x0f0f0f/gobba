@@ -5,13 +5,8 @@ module A = Alcotest
 
 let plus_one = (Lambda(["n"], Plus(Symbol "n", Integer 1)))
 
-let fib =
-  (Lambda (["n"],
-      (IfThenElse ((Lt ((Symbol "n"), (Integer 2))), (Symbol "n"),
-         (Plus ((Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 1)))])),
-            (Apply ((Symbol "fib"), [(Sub ((Symbol "n"), (Integer 2)))]))))
-         ))
-      ))
+let fib = "fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2))"
+
 
 let test_constants () =
   checkeval (Integer 32) (EvtInt 32);
@@ -19,9 +14,9 @@ let test_constants () =
   checkeval (Unit) (EvtUnit)
 
 let test_apply () =
+  check ("let rec fib = " ^ fib ^ " in fib 10") (EvtInt 55);
+  check ("let rec lazy fib = " ^ fib ^ " in fib 10") (EvtInt 55);
   checkeval (Let(["f", plus_one], (Apply(Symbol "f", [Integer 1])))) (EvtInt 2);
-  checkeval (Letrec("fib", fib, (Apply(Symbol "fib", [Integer 10])))) (EvtInt 55);
-  checkeval (Letreclazy("fib", fib, (Apply(Symbol "fib", [Integer 10])))) (EvtInt 55);
   checkevalfail (Let(["f", plus_one], (Apply(Symbol "f", [Integer 1; Integer 2]))));
   checkevalfail (Apply(Integer 5, [Integer 5]))
 let test_curry () =
@@ -84,10 +79,16 @@ let test_boolops () =
   checkeval (Not (Not (Boolean true))) (EvtBool true)
 
 let test_comparisons () =
-  checkeval (Eq (Integer 5, Integer 5)) (EvtBool true);
-  checkeval (Eq (Integer 5, String "x")) (EvtBool false);
-  checkeval (Gt (Integer 9, Integer 3)) (EvtBool true);
-  checkeval (Lt (Integer 9, Integer 3)) (EvtBool false)
+  check "5 = 5" (EvtBool true);
+  check "5 = \"x\"" (EvtBool false);
+  check "9 > 3" (EvtBool true);
+  check "9 < 3" (EvtBool false);
+  check "5 >= 5" (EvtBool true);
+  check "5 >= 4" (EvtBool true);
+  check "5 >= 6" (EvtBool false);
+  check "5 <= 5" (EvtBool true);
+  check "5 <= 4" (EvtBool false);
+  check "5 <= 6" (EvtBool true)
 
 let test_pipe () =
   checkeval

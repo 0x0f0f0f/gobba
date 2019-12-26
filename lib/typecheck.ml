@@ -15,6 +15,7 @@ let typecheck (x: evt) (t: string) = match x with
   | EvtDict _     -> expect t "dict"
   | Closure _     -> expect t "fun"
   | RecClosure _  -> expect t "fun"
+  | PrimitiveAbstraction _  -> expect t "fun"
 
 (** Unpacking functions: extract a value or throw an err *)
 

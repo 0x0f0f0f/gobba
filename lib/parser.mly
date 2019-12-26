@@ -14,8 +14,7 @@
 %token MINUS
 %token TIMES
 %token EQUAL
-%token GREATER
-%token LESS
+%token GREATER GREATEREQUAL LESS LESSEQUAL
 %token IF THEN ELSE
 %token SEMI
 %token LSQUARE RSQUARE
@@ -42,10 +41,32 @@
 %left TIMES
 %left PIPE
 
+%start file
+%type <Types.command list> file
+
 %start toplevel
 %type <Types.expr> toplevel
 
 %%
+
+file:
+  | EOF
+    { [] }
+  | e = ast_expr EOF
+    { [Expr e] }
+  | e = ast_expr SEMISEMI lst = file
+    { Expr e :: lst }
+  | ds = nonempty_list(def) SEMISEMI lst = file
+    { ds @ lst }
+  | ds = nonempty_list(def) EOF
+    { ds }
+
+
+def:
+  | LET a = separated_list(AND, assignment)
+    { Def a }
+  | LET REC a = separated_list(AND, assignment)
+    { Defrec a }
 
 toplevel:
   | l = separated_list(SEMI, ast_expr) EOF
@@ -86,6 +107,10 @@ ast_expr:
   { Gt (e1, e2) }
   | e1 = ast_expr LESS e2 = ast_expr
   { Lt (e1, e2) }
+  | e1 = ast_expr GREATEREQUAL e2 = ast_expr
+  { Ge (e1, e2) }
+  | e1 = ast_expr LESSEQUAL e2 = ast_expr
+  { Le (e1, e2) }
   | e1 = ast_expr LAND e2 = ast_expr
   { And (e1, e2)}
   | e1 = ast_expr OR e2 = ast_expr

@@ -15,7 +15,14 @@ let tail act_params =
     | [] -> raise (ListError "empty list")
     | _::r -> EvtList r)
 
+let mem act_params =
+  let (elem, ls) = (match act_params with
+    | [elem; ls] -> (elem, unpack_list ls)
+    | _ -> raise WrongBindList) in
+  EvtBool(List.mem elem ls)
+
 let table = [
-  ("head", head);
-  ("tail", tail)
+  ("head", (head, 1));
+  ("tail", (tail, 1));
+  ("mem", (mem, 2))
 ]
