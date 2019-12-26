@@ -7,6 +7,8 @@
 - Examples in the `examples/` directory
 - *Greater or equal to* and *Less than or equal to* operators
 - More test coverage.
+### Bugfixes
+- Fixed various bugs of 0.3
 
 ## 0.3 2019-12-25
 ### Added

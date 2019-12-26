@@ -3,49 +3,44 @@ open Util
 
 module A = Alcotest
 
-let sample_dict = (Dict([(String "hello", String "world"); (String "apple", Integer 314)]))
+let sample_dict = "{\"hello\":\"world\", \"apple\":314}"
 
 let test_dict () =
-  checkeval sample_dict (EvtDict([(EvtString
+  check sample_dict (EvtDict([(EvtString
   "hello", EvtString "world"); (EvtString "apple", EvtInt 314)]));
-  checkeval (Dict([(Boolean true, String "true")])) (EvtDict([EvtBool true, EvtString "true"]));
-  checkevalfail (Dict([(String "hello", String "world"); (String "hello", String "world"); (String "apple", Integer 314)]));
-  checkevalfail (Dict([(Lambda(["x"], (Symbol "x")), String "world")]))
+  check "{true:\"true\"}" (EvtDict([EvtBool true, EvtString "true"]));
+  checkfail "{\"hello\":\"world\", \"hello\":\"world\", \"apple\":314}";
+  checkfail "{(fun x -> x):1}"
 
 let test_insert () =
-  checkeval (Apply(Symbol "insert", [Integer 123; Integer 456; sample_dict]))
+  check ("insert 123 456 " ^ sample_dict)
   (EvtDict([(EvtInt 123, EvtInt 456);(EvtString
   "hello", EvtString "world"); (EvtString "apple", EvtInt 314)]));
-  checkevalfail (Apply(Symbol "insert", [String "doesntexist"; Integer 123; sample_dict; sample_dict]));
-  checkevalfail (Apply(Symbol "insert", [String "hello"; Integer 123; sample_dict; sample_dict]))
+  check ("insert \"hello\" 123 " ^ sample_dict)
+  (EvtDict([(EvtString "hello", EvtInt 123); (EvtString "apple", EvtInt 314)]));
+  checkfail ("insert \"doesntexist\" 123 " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_delete () =
-  checkeval (Apply(Symbol "delete", [String "hello"; sample_dict]))
-  (EvtDict([(EvtString "apple", EvtInt 314)]));
-  checkevalfail (Apply(Symbol "delete", [String "doesntexist"; sample_dict; sample_dict]));
-  checkevalfail (Apply(Symbol "delete", [String "doesntexist"; sample_dict]))
-
+  check ("delete \"hello\"" ^ sample_dict) (EvtDict([(EvtString "apple", EvtInt 314)]));
+  checkfail ("delete \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict); 
+  checkfail ("delete \"doesntexist\"" ^ sample_dict)
+  
 let test_haskey () =
-  checkeval (Apply(Symbol "haskey", [String "ciaone"; sample_dict])) (EvtBool false);
-  checkeval (Apply(Symbol "haskey", [String "hello"; sample_dict])) (EvtBool true);
-  checkevalfail (Apply(Symbol "haskey", [String "doesntexist"; sample_dict; sample_dict]))
+  check ("haskey \"ciaone\" " ^ sample_dict) (EvtBool false);
+  check ("haskey \"hello\" " ^ sample_dict) (EvtBool true);
+  checkfail ("haskey \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_getkey () =
-  checkeval (Apply(Symbol "getkey", [String "hello"; sample_dict])) (EvtString "world");
-  checkevalfail (Apply(Symbol "getkey", [String "doesntexist"; sample_dict; sample_dict]));
-  checkevalfail (Apply(Symbol "getkey", [String "doesntexist"; sample_dict]))
+  check ("getkey \"hello\" " ^ sample_dict) (EvtString "world");
+  checkfail ("getkey \"doesntexist\" " ^ sample_dict);
+  checkfail ("getkey \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_map () =
-  checkeval (Apply ((Symbol "map"),
-    [(Lambda (["x"], (Plus ((Integer 1), (Symbol "x")))));
-    (Dict
-      [((String "a"), (Integer 1)); ((String "b"), (Integer 2));
-      ((String "c"), (Integer 3)); ((String "d"), (Integer 4))])
-    ]))
+  check "map (fun x -> x + 1) {\"a\":1,\"b\":2,\"c\":3,\"d\":4}" 
     (EvtDict
       [((EvtString "a"), (EvtInt 2)); ((EvtString "b"), (EvtInt 3));
       ((EvtString "c"), (EvtInt 4)); ((EvtString "d"), (EvtInt 5))]);
-  checkevalfail (Apply (Symbol "map", [String "fail"; String "fail"; String "Fail"]))
+  checkfail "map \"fail\" \"fail\" \"fail\"" 
 
 let test_foldl () =
   checkeval (Apply ((Symbol "foldl"),
@@ -60,17 +55,12 @@ let test_foldl () =
    "Fail"; Integer 0]))
 
 let test_filterkeys () =
-  checkeval (Apply(Symbol "filterkeys", [List[String "apple"]; sample_dict]))
+  check ("filterkeys [\"apple\"] " ^ sample_dict)
   (EvtDict [(EvtString "apple", EvtInt 314)]);
-  checkevalfail (Apply(Symbol "filterkeys", [List[String "doesntexist"]; sample_dict; sample_dict]))
+  checkfail ("filterkeys \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_filter () =
-  checkeval (Apply ((Symbol "filter"),
-    [(Lambda (["x"], (Gt ((Symbol "x"), (Integer 3)))));
-      (Dict
-        [((String "a"), (Integer 1)); ((String "b"), (Integer 2));
-          ((String "c"), (Integer 3)); ((String "d"), (Integer 4))])
-    ]))
+  check "filter (fun x -> x > 3) {\"a\":1,\"b\":2,\"c\":3,\"d\":4}" 
   (EvtDict [((EvtString "d"), (EvtInt 4))])
 
 let test_suite = List.map quickcase [

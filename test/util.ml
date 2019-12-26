@@ -24,6 +24,9 @@ let checkeval exp expected = A.(check bool) (show_expr exp) true (equal_evt (eva
 let check exp expected = A.(check bool) exp true (equal_evt (eval
 (parse exp) (empty_env ()) EmptyStack 0) expected)
 
+let checkfail exp  = A.(check_raises) exp (Failure("evaluation error")) 
+(fun () -> try let _ = (eval (parse exp) (empty_env ()) EmptyStack 0) in () with _ -> failwith "evaluation error")
+
 let checkevalfail exp = A.(check_raises) (show_expr exp)
 (Failure("evaluation error")) (fun () -> try let _ = (eval exp (empty_env ())
 EmptyStack 0) in () with _ -> failwith "evaluation error")

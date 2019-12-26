@@ -7,7 +7,10 @@ let insert_dict act_params =
   let (k, v, d) = (match act_params with
     | [k; v; d] -> (k, v, unpack_dict d)
     | _ -> raise WrongBindList) in
-  EvtDict (isvalidkey (k, v) :: d)
+  if key_exist k d 
+  then EvtDict (isvalidkey (k, v) :: (delete_key k d))
+  else EvtDict (isvalidkey (k, v) :: d)
+
 
 (** Remove a key-value pair from a dictionary *)
 let delete_dict act_params  =

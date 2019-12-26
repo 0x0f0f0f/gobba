@@ -31,7 +31,7 @@ let rec read_lines_until ic del =
     then line
     else line ^ (read_lines_until ic del)
 
-let run_one command env verbose =
+let run_one command env verbose printres =
   if verbose >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow
       "AST equivalent" "\n%s"
         (show_command command) else ();
@@ -44,7 +44,7 @@ let run_one command env verbose =
       let evaluated = eval optimized_ast env EmptyStack verbose in
       if verbose >= 1 then print_message ~color:T.Green ~loc:(Nowhere) "Result"
       "\t%s" (show_evt evaluated) else ();
-      print_endline (show_unpacked_evt evaluated);
+      if printres then print_endline (show_unpacked_evt evaluated) else ();
       env
     | Def dl ->
       let (idel, vall) = unzip dl in
@@ -74,7 +74,7 @@ let repl env verbose =
   try
   while true do
     try
-    let _ = run_one (Expr (read_toplevel (wrap_syntax_errors parser) ())) env verbose in ()
+    let _ = run_one (Expr (read_toplevel (wrap_syntax_errors parser) ())) env verbose true in ()
     with
       | End_of_file -> raise End_of_file
       | Error err -> print_error err

@@ -191,10 +191,6 @@ and applyfun (closure: evt) (args: type_wrapper list) env n vb : evt =
     in let evtargs = List.map (fun x -> match x with
         | AlreadyEvaluated y -> y
         | LazyExpression _ -> failwith "FATAL ERROR: this should have never happened") args in
-   (* Generate a list of parameter names to use in the primitive abstraction *)
-    let rec generate_prim_params name n =
-      let argname = "__" ^ name ^ "_arg" ^ (string_of_int n) in
-      if n = 0 then [argname] else argname::(generate_prim_params name (n - 1)) in
     let p_length = List.length args in
     (match closure with
       | Closure(params, body, decenv) -> (* Use static scoping *)
@@ -215,10 +211,10 @@ and applyfun (closure: evt) (args: type_wrapper list) env n vb : evt =
           eval body application_env n vb
       | PrimitiveAbstraction(name, numargs, decenv) ->
         if (numargs > p_length) then (* curry *)
-          let primargs = List.rev (generate_prim_params name (numargs - 1)) in
+          let primargs = generate_prim_params (numargs) in
           let symprimargs = List.map (fun x -> Symbol x) primargs in
-          let missing_args = (drop p_length primargs)
-          and ihavethose_args = (take p_length primargs) in
+          let missing_args = drop p_length primargs
+          and ihavethose_args = take p_length primargs in
           let app_env = bindlist decenv ihavethose_args args in
           Closure(missing_args, Apply(Symbol name, symprimargs), app_env)
         else

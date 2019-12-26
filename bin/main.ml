@@ -1,22 +1,25 @@
 open Minicaml
 open Cmdliner
 
-let run_minicaml verbose program =
+let run_minicaml verbose program printexprs =
   match program with
   | None -> Repl.repl (Env.empty_env()) verbose
-  | Some name -> File.run_file name verbose
-
+  | Some name -> File.run_file name verbose printexprs
 
 let verbose = 
   let doc = "If 1, Print AST to stderr after expressions " ^
   "are entered in the REPL. If 2, print also reduction steps" in
   Arg.(value & opt int 0 & info ["v"; "verbose"] ~docv:"VERBOSITY" ~doc)
 
+let print_exprs = 
+  let doc = "If set set, print the result of expressions when evaluating a program from file" in
+  Arg.(value & flag & info ["p"; "printexprs"] ~doc)
+
 let program =
-  let doc = "The program that will be run. If not a program is not provided, launch a REPL shell." in
+  let doc = "The program that will be run. If a program is not provided, launch a REPL shell" in
   Arg.(value & pos 0 (some string) None & info [] ~docv:"PROGRAM_FILE" ~doc)
 
-let run_minicaml_t = Term.(const run_minicaml $ verbose $ program)
+let run_minicaml_t = Term.(const run_minicaml $ verbose $ program $ print_exprs)
 
 let info =
   let doc = "a small, purely functional interpreted programming language " ^

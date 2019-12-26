@@ -69,6 +69,11 @@ and type_wrapper =
 (* Wrapper type that allows both AST expressions and
 evaluated expression for lazy evaluation *)
 
+(* Generate a list of parameter names to use in the primitive abstraction *)
+let generate_prim_params n = 
+  Array.to_list(Array.make n 'a' |> Array.mapi (fun i c -> int_of_char c + i |> char_of_int |> Printf.sprintf "%c"))
+
+
 let rec show_unpacked_evt e = match e with
   | EvtInt v -> string_of_int v
   | EvtBool v -> string_of_bool v
@@ -80,6 +85,7 @@ let rec show_unpacked_evt e = match e with
       ^ "}"
   | Closure (params, _, _) -> "(fun " ^ (String.concat " " params) ^ " -> ... )"
   | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"
+  | PrimitiveAbstraction (name, numargs, _ ) -> name ^ " = " ^ "(fun " ^ (generate_prim_params numargs |> String.concat " ") ^ " -> ... )"
   | _ -> show_evt e
 
 (** An environment of already evaluated values  *)
