@@ -69,18 +69,18 @@ let run_one command env verbose printres =
           | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
         ) dl))
 
+let rec repl_loop env verbose  =
+  try
+  let cmd = read_toplevel (wrap_syntax_errors parser) () in
+  let _ = repl_loop (run_one cmd env verbose true) verbose in ()
+  with
+  | End_of_file -> raise End_of_file
+  | Error err -> print_error err; ()
+  | Sys.Break -> prerr_endline "Interrupted."; ()
+  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); ()
+
 let repl env verbose =
   Sys.catch_break true;
   try
-  while true do
-    try
-    let _ = run_one (Expr (read_toplevel (wrap_syntax_errors parser) ())) env verbose true in ()
-    with
-      | End_of_file -> raise End_of_file
-      | Error err -> print_error err
-      | Sys.Break -> prerr_endline "Interrupted."
-      | e ->
-      print_error (Nowhere, "Error", (Printexc.to_string e));
-  done
-  with
-    | End_of_file -> prerr_endline "Goodbye!"
+    let _ = repl_loop env verbose in ()
+  with End_of_file -> prerr_endline "Goodbye!"; ()

@@ -121,6 +121,13 @@ let test_lookup () =
   checkevalfail (Symbol "notbound");
   checkeval (Letlazy(["a", Integer 1; "b", Integer 2], Symbol "a")) (EvtInt 1)
 
+let test_primitive_abstraction () = 
+   check "head"  (PrimitiveAbstraction ("head", 1, []));
+   check "head [1]" (EvtInt 1);
+   check "insert 3" (Closure (["b"; "c"],
+   (Apply ((Symbol "insert"), [(Symbol "a"); (Symbol "b"); (Symbol "c")])),
+   [("a", (AlreadyEvaluated (EvtInt 3)))]))
+
 let test_suite = List.map quickcase [
   ("constants", test_constants);
   ("arithmetics", test_arithmetic);
@@ -132,4 +139,5 @@ let test_suite = List.map quickcase [
   ("pipe", test_pipe);
   ("sequence", test_sequence);
   ("lookup", test_lookup);
+  ("primitives abstraction", test_primitive_abstraction);
 ]

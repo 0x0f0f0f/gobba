@@ -45,7 +45,7 @@
 %type <Types.command list> file
 
 %start toplevel
-%type <Types.expr> toplevel
+%type <Types.command> toplevel
 
 %%
 
@@ -70,13 +70,17 @@ def:
 
 toplevel:
   | l = separated_list(SEMI, ast_expr) EOF
-  { Sequence(l) }
+  { Expr(Sequence(l)) }
   | l = separated_list(SEMI, ast_expr) SEMISEMI
-  { Sequence(l) }
+  { Expr(Sequence(l)) }
+  | d = def SEMISEMI
+  { d }
+  | d = def EOF
+  { d }
   | d = ast_expr SEMISEMI
-  { d }
+  { Expr d }
   | d = ast_expr EOF
-  { d }
+  { Expr d }
 
 assignment:
   | name = SYMBOL EQUAL value = ast_expr
