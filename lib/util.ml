@@ -1,3 +1,5 @@
+open Types
+
 (** Helper function to take the first elements of a list *)
 let rec take k xs = match k with
   | 0 -> []
@@ -64,3 +66,20 @@ let rec filter_by_keys kl l = match l with
   | (k, v)::xs -> if List.mem k kl
     then (k, v)::(filter_by_keys kl xs)
     else (filter_by_keys kl xs)
+
+(** Generate an empty environment *)
+let empty_env : unit -> env_type =
+  fun _ -> []
+
+(** Bind a value (evaluated or not, see lazyness) to an identifier, returning a new environment *)
+let bind env ident value =
+  (ident, value) :: (delete_key ident env)
+
+(** Bind a list of identifiers to a list of values, returning a new environment *)
+let rec bindlist env ident_list value_list =
+  match (ident_list, value_list) with
+  | ([], []) -> env
+  | (i::ident_rest, v::value_rest) ->
+    bindlist (bind env i v) ident_rest value_rest
+  | _ -> raise WrongBindList
+

@@ -24,4 +24,4 @@ let rec run_file_list cmdlst env verbose printexprs = match cmdlst with
   | [] -> ()
 
 let run_file fn verbose = 
-  run_file_list (read_file parser fn) (Env.empty_env ()) verbose;;
+  run_file_list (read_file parser fn) (Util.empty_env ()) verbose;;

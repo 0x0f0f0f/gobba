@@ -3,7 +3,7 @@ open Cmdliner
 
 let run_minicaml verbose program printexprs =
   match program with
-  | None -> Repl.repl (Env.empty_env()) verbose
+  | None -> Repl.repl (Util.empty_env()) verbose
   | Some name -> File.run_file name verbose printexprs
 
 let verbose = 

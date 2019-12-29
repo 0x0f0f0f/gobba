@@ -1,7 +1,7 @@
 open Minicaml.Types
 open Minicaml.Repl
 open Minicaml.Eval
-open Minicaml.Env
+open Minicaml.Util
 
 
 module A = Alcotest

@@ -1,6 +1,5 @@
 open Types
 open Eval
-open Env
 open Util
 open Interface
 open Optimizer

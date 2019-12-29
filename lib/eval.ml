@@ -1,5 +1,4 @@
 open Types
-open Env
 open Interface
 open Util
 open Typecheck
