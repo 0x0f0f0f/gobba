@@ -1,10 +1,13 @@
 open Minicaml
+open Minicaml.Types
 open Cmdliner
 
-let run_minicaml verbose program printexprs =
+let run_minicaml verbose program printresult =
+  let opts = {env = (Util.empty_env()); verbosity = verbose; stack =
+  EmptyStack; printresult = printresult } in
   match program with
-  | None -> Repl.repl (Util.empty_env()) verbose
-  | Some name -> File.run_file name verbose printexprs
+  | None -> Repl.repl opts
+  | Some name -> File.run_file name opts
 
 let verbose = 
   let doc = "If 1, Print AST to stderr after expressions " ^

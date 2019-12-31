@@ -1,4 +1,5 @@
 open Interface
+open Types
 
 (** Parse the contents from a file, using a given [parser]. *)
 let read_file parser fn =
@@ -19,9 +20,9 @@ with
 
 let parser = Parser.file Lexer.token
 
-let rec run_file_list cmdlst env verbose printexprs = match cmdlst with
-  | x::xs -> run_file_list xs (Repl.run_one x env verbose printexprs) verbose printexprs
+let rec run_file_list cmdlst opts = match cmdlst with
+  | x::xs -> run_file_list xs {opts with env = (Repl.run_one x opts)}
   | [] -> ()
 
-let run_file fn verbose = 
-  run_file_list (read_file parser fn) (Util.empty_env ()) verbose;;
+let run_file fn opts =
+  run_file_list (read_file parser fn) opts;;

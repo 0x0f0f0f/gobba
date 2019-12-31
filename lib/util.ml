@@ -24,7 +24,7 @@ let sndl l = List.map snd l
 let unzip l = if l = [] then ([], []) else
   (fstl l, sndl l)
 
-(* *)
+(* Zip together two lists with in single list of couples *)
 let rec zip l1 l2 =
   match (l1, l2) with
   | ([], []) -> []

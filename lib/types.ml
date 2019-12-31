@@ -110,6 +110,18 @@ let pop_stack (s: stackframe) = match s with
   | StackValue(_, _, ss) -> ss
   | EmptyStack -> failwith "Stack underflow"
 
+let depth_of_stack (s: stackframe) = match s with
+  | StackValue(d, _, _) -> d
+  | EmptyStack -> 0
+
+
+type evalopts = {
+  env: env_type;
+  verbosity: int;
+  stack: stackframe;
+  printresult: bool;
+}
+
 exception UnboundVariable of string
 exception TooManyArgs of string
 exception WrongBindList
