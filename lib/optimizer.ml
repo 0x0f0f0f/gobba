@@ -34,7 +34,7 @@ let rec optimize (e: expr) : expr = match e with
   | Letreclazy(ident, dec, body) -> Letreclazy(ident, optimize dec, optimize body)
   | Apply(func, params) -> Apply(func, (List.map optimize params))
   | _ -> e
-  and optimize_let declarations body islazy =
+and optimize_let declarations body islazy =
   let od = List.map (fun (i, v) -> (i, optimize v)) declarations in
   let ob = optimize body in
   if List.length od = 1 then
@@ -45,7 +45,7 @@ let rec optimize (e: expr) : expr = match e with
   else if islazy then Letlazy(od, ob) else Let(od, ob)
 
 (** Apply the optimizer again and again on an expression until it
-is fully reduced and ready to be evaluated *)
+    is fully reduced and ready to be evaluated *)
 let rec iterate_optimizer e =
   let oe = optimize e in
   if oe = e then e (* Bottoms out *)

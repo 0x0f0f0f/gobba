@@ -35,15 +35,15 @@ type expr =
   | Apply of expr * expr list
   | Sequence of expr list
   | Pipe of expr * expr
-  [@@deriving show { with_path = false }, eq, ord]
+[@@deriving show { with_path = false }, eq, ord]
 
 (** A type useful for evaluating files, stating if a command is
-an expression or simply a "global" declaration (appended to environment) *)
+    an expression or simply a "global" declaration (appended to environment) *)
 type command =
   | Expr of expr
   | Def of (ide * expr) list
   | Defrec of (ide * expr) list
-  [@@deriving show { with_path = false }, eq, ord]
+[@@deriving show { with_path = false }, eq, ord]
 
 (** A purely functional environment type, parametrized *)
 type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }, eq, ord]
@@ -60,14 +60,19 @@ type evt =
   (** RecClosure keeps the function name in the constructor for recursion *)
   | RecClosure of ide * ide list * expr * (type_wrapper env_t) [@equal (=)]
   (** Abstraction that permits treating primitives as closures *)
-  | PrimitiveAbstraction of (ide * int * (type_wrapper env_t))
-  [@@deriving show { with_path = false }, eq, ord]
+  | PrimitiveAbstraction of primitivet
+[@@deriving show { with_path = false }, eq, ord]
+(* Wrapper type that allows both AST expressions and
+   evaluated expression for lazy evaluation *)
 and type_wrapper =
   | LazyExpression of expr
   | AlreadyEvaluated of evt
-  [@@deriving show { with_path = false }]
-(* Wrapper type that allows both AST expressions and
-evaluated expression for lazy evaluation *)
+[@@deriving show { with_path = false }]
+(* Primitive abstraction type *)
+and primitivet =
+  (ide * int * (type_wrapper env_t))
+[@@deriving show { with_path = false }]
+
 
 (* Generate a list of parameter names to use in the primitive abstraction *)
 let generate_prim_params n = 
@@ -80,9 +85,9 @@ let rec show_unpacked_evt e = match e with
   | EvtString v -> "\"" ^ (String.escaped v) ^ "\""
   | EvtList l -> "[" ^ (String.concat "; " (List.map show_unpacked_evt l)) ^ "]"
   | EvtDict d -> "{" ^ 
-    (String.concat ", " 
-      (List.map (fun (x,y) -> show_unpacked_evt x ^ ":" ^ show_unpacked_evt y) d)) 
-      ^ "}"
+                 (String.concat ", " 
+                    (List.map (fun (x,y) -> show_unpacked_evt x ^ ":" ^ show_unpacked_evt y) d)) 
+                 ^ "}"
   | Closure (params, _, _) -> "(fun " ^ (String.concat " " params) ^ " -> ... )"
   | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"
   | PrimitiveAbstraction (name, numargs, _ ) -> name ^ " = " ^ "(fun " ^ (generate_prim_params numargs |> String.concat " ") ^ " -> ... )"
@@ -95,11 +100,11 @@ type env_type = type_wrapper env_t
 type stackframe =
   | StackValue of int * expr * stackframe
   | EmptyStack
-  [@@deriving show { with_path = false }]
+[@@deriving show { with_path = false }]
 
 (** Push an AST expression into a stack
-  @param s The stack where to push the expression
-  @param e The expression to push
+    @param s The stack where to push the expression
+    @param e The expression to push
 *)
 let push_stack (s: stackframe) (e: expr) = match s with
   | StackValue(d, ee, ss) -> StackValue(d+1, e, StackValue(d, ee, ss))
@@ -121,6 +126,8 @@ type evalopts = {
   stack: stackframe;
   printresult: bool;
 }
+
+
 
 exception UnboundVariable of string
 exception TooManyArgs of string

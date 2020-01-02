@@ -26,8 +26,8 @@ let unpack_list x = (match x with EvtList i -> i | _ -> terr "list")
 let unpack_dict x = (match x with EvtDict i -> i | _ -> terr "dict")
 let unpack_closure x = (match x with Closure (p, b, e) -> (p,b,e) | _ -> terr "fun")
 let unpack_recclosure x = (match x with
-  | RecClosure (i, p, b, e) -> (i,p,b,e)
-  | _ -> terr "fun")
+    | RecClosure (i, p, b, e) -> (i,p,b,e)
+    | _ -> terr "fun")
 let unpack_anyfun x = match x with
   | RecClosure (i, p, b, e) -> (i,p,b,e)
   | Closure (p, b, e) -> ("",p,b,e)
