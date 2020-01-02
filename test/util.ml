@@ -7,7 +7,7 @@ open Minicaml.Util
 module A = Alcotest
 
 let opts = {
-  env = (empty_env ());
+  env = (Dict.empty ());
   verbosity = 0;
   printresult = false;
   stack = EmptyStack;

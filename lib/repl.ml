@@ -51,18 +51,18 @@ let run_one command opts =
       if ovall = vall then () else
             if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
               (show_command (Def(zip idel ovall))) else ();
-      (bindlist opts.env idel (List.map
+      (Dict.insertmany opts.env idel (List.map
         (fun x -> AlreadyEvaluated (eval x opts)) ovall))
     | Defrec dl ->
       let odl = (List.map (fun (i,v) -> (i, iterate_optimizer v)) dl) in
       if dl = odl then () else
             if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
               (show_command (Def(odl))) else ();
-      (bindlist opts.env (fst (unzip odl)) (List.map
+      (Dict.insertmany opts.env (fst (unzip odl)) (List.map
         (fun (ident, value) ->
           (match value with
           | Lambda (params, fbody) ->
-            let rec_env = (bind opts.env ident
+            let rec_env = (Dict.insert opts.env ident
               (AlreadyEvaluated (RecClosure(ident, params, fbody, opts.env))))
             in AlreadyEvaluated (RecClosure(ident, params, fbody, rec_env))
           | _ -> raise (TypeError "Cannot define recursion on non-functional values"))

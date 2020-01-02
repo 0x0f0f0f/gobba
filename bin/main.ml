@@ -3,7 +3,7 @@ open Minicaml.Types
 open Cmdliner
 
 let run_minicaml verbose program printresult =
-  let opts = {env = (Util.empty_env()); verbosity = verbose; stack =
+  let opts = {env = (Util.Dict.empty()); verbosity = verbose; stack =
   EmptyStack; printresult = printresult } in
   match program with
   | None -> Repl.repl opts

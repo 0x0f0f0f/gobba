@@ -16,7 +16,7 @@ let bool_binop (x, y) (op: bool -> bool -> bool) =
 let bool_unop x (op: bool -> bool) =
   let a = unpack_bool x in EvtBool(op a)
 
-let uniqueorfail l = if dup_key_exist l then
+let uniqueorfail l = if Dict.dup_exists l then
   raise (DictError "Duplicate key in dictionary")
   else l
 
@@ -62,24 +62,24 @@ let rec eval (e: expr) (opts: evalopts) : evt =
     let evaluated_assignments = List.map
       (fun (_, value) -> AlreadyEvaluated (eval value opts)) assignments
     and identifiers = fstl assignments in
-    let new_env = bindlist opts.env identifiers evaluated_assignments in
+    let new_env = Dict.insertmany opts.env identifiers evaluated_assignments in
     eval body {opts with env = new_env}
   | Letlazy (assignments, body) ->
     let identifiers = fstl assignments in
-    let new_env = bindlist opts.env identifiers
+    let new_env = Dict.insertmany opts.env identifiers
       (List.map (fun (_, value) -> LazyExpression value) assignments) in
     eval body {opts with env = new_env}
   | Letrec (ident, value, body) ->
     (match value with
       | Lambda (params, fbody) ->
-        let rec_env = (bind opts.env ident
+        let rec_env = (Dict.insert opts.env ident
           (AlreadyEvaluated (RecClosure(ident, params, fbody, opts.env))))
         in eval body {opts with env = rec_env}
       | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
   | Letreclazy (ident, value, body) ->
     (match value with
       | Lambda (_, _) ->
-        let rec_env = (bind opts.env ident (LazyExpression value))
+        let rec_env = (Dict.insert opts.env ident (LazyExpression value))
         in eval body {opts with env = rec_env}
       | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
   | Lambda (params,body) -> Closure(params, body, opts.env)
@@ -164,9 +164,9 @@ let rec eval (e: expr) (opts: evalopts) : evt =
   evaluated;
 (* Search for a value in the primitives table and environment *)
 and lookup (ident: ide) (opts: evalopts) : evt =
-  if key_exist ident Primitives.table
+  if Dict.exists ident Primitives.table
   then
-    let ( _, numargs) = (get_key_val ident Primitives.table) in
+    let ( _, numargs) = (Dict.get ident Primitives.table) in
     PrimitiveAbstraction (ident, numargs, opts.env)
   else lookup_env ident opts
 (* Search for a value in an environment *)
@@ -191,19 +191,19 @@ and applyfun (closure: evt) (args: type_wrapper list) (opts: evalopts) : evt =
     (match closure with
       | Closure(params, body, decenv) -> (* Use static scoping *)
         if (List.compare_lengths params args) > 0 then (* curry *)
-          let applied_env = bindlist decenv (take p_length params) args in
+          let applied_env = Dict.insertmany decenv (take p_length params) args in
           Closure((drop p_length params), body, applied_env)
         else  (* apply the function *)
-          let application_env = bindlist decenv params args in
+          let application_env = Dict.insertmany decenv params args in
           eval body {opts with env = application_env}
       (* Apply a recursive function *)
       | RecClosure(name, params, body, decenv) ->
-        let rec_env = (bind decenv name (AlreadyEvaluated closure)) in
+        let rec_env = (Dict.insert decenv name (AlreadyEvaluated closure)) in
         if (List.compare_lengths params args) > 0 then (* curry *)
-          let applied_env = bindlist rec_env (take p_length params) args in
+          let applied_env = Dict.insertmany rec_env (take p_length params) args in
           RecClosure(name, (drop p_length params), body, applied_env)
         else  (* apply the function *)
-          let application_env = bindlist rec_env params args in
+          let application_env = Dict.insertmany rec_env params args in
           eval body {opts with env = application_env}
       | PrimitiveAbstraction(name, numargs, decenv) ->
         if (numargs > p_length) then (* curry *)
@@ -211,10 +211,10 @@ and applyfun (closure: evt) (args: type_wrapper list) (opts: evalopts) : evt =
           let symprimargs = List.map (fun x -> Symbol x) primargs in
           let missing_args = drop p_length primargs
           and ihavethose_args = take p_length primargs in
-          let app_env = bindlist decenv ihavethose_args args in
+          let app_env = Dict.insertmany decenv ihavethose_args args in
           Closure(missing_args, Apply(Symbol name, symprimargs), app_env)
         else
           (* Apply the primitive *)
-          let (prim, _) = get_key_val name Primitives.table in
+          let (prim, _) = Dict.get name Primitives.table in
           prim evtargs
       | _ -> raise (TypeError "Cannot apply a non functional value"))
