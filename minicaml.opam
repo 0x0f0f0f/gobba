@@ -10,8 +10,8 @@ synopsis: "A simple, didactical, purely functional programming language"
 description: "A simple, didactical, purely functional programming language written for the programming 2 course at the University of Pisa, extended with a simple parser made with Menhir and ocamllex"
 doc: "https://github.com/0x0f0f0f/minicaml"
 build: [
-  ["dune" "build" "-p" name "-j" jobs]
-  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  [make "-j" jobs]
+  [make "test" "-j" jobs] {with-test}
 ]
 depends: [
     "dune" {>= "2.0"}
@@ -21,5 +21,5 @@ depends: [
     "ppx_deriving"
     "cmdliner"
     "alcotest" {with-test & >= "0.8.5"}
-    "bisect_ppx" {with-test & >= "1.5.0"}
+    "bisect_ppx" {with-test & >= "1.4.1"}
 ]
