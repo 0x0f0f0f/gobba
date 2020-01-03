@@ -17,6 +17,7 @@ let typecheck (x: evt) (t: string) = match x with
   | RecClosure _  -> expect t "fun"
   | PrimitiveAbstraction _  -> expect t "fun"
 
+
 (** Unpacking functions: extract a value or throw an err *)
 
 let unpack_int x = (match x with EvtInt i -> i | _ -> terr "int")
