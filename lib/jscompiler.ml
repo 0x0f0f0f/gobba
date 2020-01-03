@@ -1,5 +1,6 @@
 open Types
 
+
 (** Numerical Primitives *)
 
 let int_binop x y op =
@@ -51,11 +52,7 @@ let rec compile (e : expr) : string =
     "(" ^ compile first ^ ") : (" ^
     compile alt ^ ")"
   | Let (assignments, body) ->
-    "{\n" ^ (String.concat ";\n"
-               (List.map (fun (ident, value) ->
-                    "let " ^ ident ^ " = " ^ (compile value ))
-                   assignments)) ^
-    "; (" ^ compile body  ^ ")\n}"
+    "{\n" ^ compile_assignments assignments ^ "(" ^ compile body  ^ ")\n}"
   | Letlazy (_, _) -> "throw \"NOT YET IMPLEMENTED\";"
   | Letrec (ident, value, body) -> compile (Let([(ident, value)], body))
   | Letreclazy (_, _, _) ->  "throw \"NOT YET IMPLEMENTED\";"
@@ -73,3 +70,18 @@ let rec compile (e : expr) : string =
   | Pipe (_, _) -> "throw \"NOT YET IMPLEMENTED\";"
 and tuple elems  =
   "(" ^ (String.concat "," (List.map (fun x -> compile x ) elems)) ^ ")"
+and compile_assignments ass =
+  (String.concat ";\n"
+     (List.map (fun (ident, value) ->
+          "let " ^ ident ^ " = " ^ (compile value ))
+         ass)) ^ ";\n"
+
+
+let rec compile_cmdlist cmdlist = match cmdlist with
+  | [] -> ""
+  | x::xs -> (match x with
+      | Def(assignments) -> "{ " ^ compile_assignments assignments ^ compile_cmdlist xs ^ "}"
+      | Defrec(assignments) -> "{ " ^ compile_assignments assignments ^ compile_cmdlist xs ^ "}"
+      | Expr(e) -> compile e)
+
+let compile_program p = Primitives.alljs ^ "\n" ^ compile_cmdlist p

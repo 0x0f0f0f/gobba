@@ -43,8 +43,33 @@ let filterkeys args =
 
 let table = [
   ("insert", (insert_dict, 3));
-  ("delete", (delete_dict, 2));
+  ("remove", (delete_dict, 2));
   ("haskey", (haskey, 2));
   ("getkey", (getkey, 2));
   ("filterkeys", (filterkeys, 2))
 ]
+
+let js = {|
+function insert (key, val, dict) {
+  let __new = Object.assign({}, dict);
+  __new[key] = val;
+  return __new;
+}
+function remove (key, dict) {
+  let result = {};
+  for(k in dict) {
+    if (k != key)
+      { result[k] = dict[k]; }
+  }
+  return result;
+}
+function haskey (key, dict) { return (key in dict) }
+function getkey (key, dict) { return dict[key] }
+function filterkeys (keys, dict) { return (
+  Object.keys(dict)
+  .filter(key => keys.includes(key))
+  .reduce((obj, key) => {
+    obj[key] = dict[key];
+    return obj;
+  }, {}))}
+|}

@@ -88,3 +88,26 @@ let table = [
   ("foldl", (foldl, 3));
   ("filter", (filter, 2));
 ]
+
+let js = {|
+function map (fn, list) { return list.map(fn) }
+function map2 (fn, list1, list2) {
+  if(list1.length != list2.length) { throw "lists have different length" }
+  if(list1 == list2 == []) return [];
+  const h1 = head(list1);
+  const t1 = tail(list1);
+  const h2 = head(list2);
+  const t2 = tail(list2);
+  return [fn(h1, h2)].concat(map2(fn, t1, t2))
+}
+function foldl (f, acc, arr) {
+  if (!arr.length) {
+    return acc;
+  } else {
+    return foldl(f, f(acc, head(arr)), tail(arr));
+  }
+}
+function filter (pred, list) {
+  return list.filter(pred)
+}
+|}

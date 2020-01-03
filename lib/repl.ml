@@ -72,7 +72,7 @@ let run_one command opts =
 let rec repl_loop opts  =
   let loop () =
     let cmd = read_toplevel (wrap_syntax_errors parser) () in
-    let _, newenv = run_one cmd opts in 
+    let _, newenv = run_one cmd opts in
     let _ = repl_loop {opts with env = newenv} in ()
   in
   try

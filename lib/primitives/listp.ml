@@ -26,3 +26,9 @@ let table = [
   ("tail", (tail, 1));
   ("mem", (mem, 2))
 ]
+
+let js = {|
+  function head (list) { return list[0]; }
+  function tail (list) { return list.slice(1) }
+  function mem (elem, list) { return list.includes(elem); }
+|}
