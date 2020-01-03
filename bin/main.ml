@@ -40,6 +40,6 @@ let info =
     `S Manpage.s_bugs;
     `P "Email bug reports to <sudo-woodo3@protonmail.com>"
   ] in
-  Term.info "minicaml" ~version:"0.3.1" ~doc ~exits:Term.default_exits ~man
+  Term.info "minicaml" ~version:"0.3.2" ~doc ~exits:Term.default_exits ~man
 
 let () = Term.exit @@ Term.eval (run_minicaml_t, info)

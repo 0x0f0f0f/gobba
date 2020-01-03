@@ -1,6 +1,6 @@
 (lang dune 2.0)
 (name minicaml)
-(version 0.3.1-6-g17de02c)
+(version 0.3.2)
 (using menhir 2.0)
 (source (github 0x0f0f0f/minicaml))
 (license MIT)
