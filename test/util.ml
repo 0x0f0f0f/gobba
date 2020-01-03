@@ -1,8 +1,8 @@
-open Minicaml.Types
-open Minicaml.Repl
-open Minicaml.Eval
-open Minicaml.Util
-
+open Minicaml
+open Types
+open Repl
+open Eval
+open Util
 
 module A = Alcotest
 
@@ -38,3 +38,7 @@ let check exp expected = A.(check bool) exp true (equal_evt (eval (parse exp) op
 let checkfail exp  = A.(check_raises) exp (Failure("evaluation error"))
 (fun () -> try let _ = (eval (parse exp) opts) in () with _ -> failwith "evaluation error")
 
+let examples_path = Sys.getenv "MINICAML_EXAMPLES"
+
+let checkprogram fn expected = A.(check bool) fn true (equal_evt (last (last
+(File.run_file (Filename.concat examples_path fn) opts))) expected)

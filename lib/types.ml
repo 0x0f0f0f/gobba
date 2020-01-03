@@ -137,3 +137,4 @@ exception TypeError of string
 exception ListError of string
 exception DictError of string
 exception SyntaxError of string
+exception FileNotFoundError of string

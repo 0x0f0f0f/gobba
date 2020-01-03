@@ -3,12 +3,16 @@
 default: build
 
 build:
+	sed -i 's/\([^;]\)\( bisect_ppx)))\)/\1)));\2/' lib/dune
 	dune build
 	dune build @install
 
 test:
-	BISECT_ENABLE=yes dune runtest -f
-	bisect-ppx-report html -o coverage/
+	sed -i 's/)));\( bisect_ppx)))\)/\1/' lib/dune
+	dune build
+	dune build @install
+	BISECT_ENABLE=yes MINICAML_EXAMPLES=$(realpath ./examples/) dune runtest -f
+	bisect-ppx-report -html coverage/ -I _build/default _build/default/test/bisect*.out
 
 run:
 	dune exec ./bin/main.exe

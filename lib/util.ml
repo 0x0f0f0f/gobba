@@ -67,6 +67,8 @@ let rec drop k xs = match k with
     | [] -> failwith "drop"
     | _::ys -> (drop (k - 1) ys)
 
+let last l = List.hd (drop ((List.length l) - 1) l)
+
 let fst (a, _) = a
 let snd (_, a) = a
 

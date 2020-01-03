@@ -44,21 +44,21 @@ let run_one command opts =
     if opts.verbosity >= 1 then print_message ~color:T.Green ~loc:(Nowhere) "Result"
         "\t%s" (show_evt evaluated) else ();
     if opts.printresult then print_endline (show_unpacked_evt evaluated) else ();
-    opts.env
+    (evaluated,opts.env)
   | Def dl ->
     let (idel, vall) = unzip dl in
     let ovall = (List.map (iterate_optimizer) vall) in
     if ovall = vall then () else
     if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
         (show_command (Def(zip idel ovall))) else ();
-    (Dict.insertmany opts.env idel (List.map
+    (EvtUnit, Dict.insertmany opts.env idel (List.map
                                       (fun x -> AlreadyEvaluated (eval x opts)) ovall))
   | Defrec dl ->
     let odl = (List.map (fun (i,v) -> (i, iterate_optimizer v)) dl) in
     if dl = odl then () else
     if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
         (show_command (Def(odl))) else ();
-    (Dict.insertmany opts.env (fst (unzip odl))
+    (EvtUnit, Dict.insertmany opts.env (fst (unzip odl))
        (List.map
           (fun (ident, value) ->
              (match value with
@@ -72,7 +72,8 @@ let run_one command opts =
 let rec repl_loop opts  =
   let loop () =
     let cmd = read_toplevel (wrap_syntax_errors parser) () in
-    let _ = repl_loop {opts with env = (run_one cmd opts)} in ()
+    let _, newenv = run_one cmd opts in 
+    let _ = repl_loop {opts with env = newenv} in ()
   in
   try
     loop ()

@@ -11,7 +11,7 @@ let run_minicaml verbose program printresult =
   } in
   match program with
   | None -> Repl.repl {opts with printresult = true}
-  | Some name -> File.run_file name opts
+  | Some name -> let _ = File.run_file name opts in ()
 
 let verbose = 
   let doc = "If 1, Print AST to stderr after expressions " ^
