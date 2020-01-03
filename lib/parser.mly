@@ -10,6 +10,8 @@
 %token NOT
 %token LAND
 %token OR
+%token CONCATSTR
+%token CONCATLST
 %token PLUS
 %token MINUS
 %token TIMES
@@ -99,6 +101,10 @@ ast_expr:
   { Cons (e, ls) }
   | NOT e1 = ast_expr
   { Not e1}
+  | e1 = ast_expr CONCATLST e2 = ast_expr
+  { ConcatLists (e1, e2) }
+  | e1 = ast_expr CONCATSTR e2 = ast_expr
+  { ConcatStrings (e1, e2) }
   | e1 = ast_expr PLUS e2 = ast_expr
   { Plus (e1, e2) }
   | e1 = ast_expr MINUS e2 = ast_expr

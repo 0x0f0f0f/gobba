@@ -1,3 +1,8 @@
+## 0.3.2 2019-01-03
+### Added 
+- Reworking of language internals.
+- More primitives and operators.
+
 ## 0.3.1 2019-12-26
 ### Added
 - `map2` primitive

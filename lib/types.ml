@@ -11,6 +11,8 @@ type expr =
   | Symbol of ide
   | List of expr list
   | Cons of expr * expr
+  | ConcatLists of expr * expr
+  | ConcatStrings of expr * expr
   | Dict of (expr * expr) list
   (* Numerical Operations *)
   | Plus of expr * expr

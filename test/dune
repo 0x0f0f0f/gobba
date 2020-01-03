@@ -1,1 +1,4 @@
-(test (name test) (libraries minicaml alcotest))
+(test 
+    (name test) 
+    (libraries minicaml alcotest)
+    (package minicaml))

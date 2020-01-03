@@ -70,6 +70,7 @@ let test_arithmetic () =
   checkeval (Plus(Integer 4, Integer 3)) (EvtInt 7);
   checkeval (Sub (Integer 4, Integer 3)) (EvtInt 1);
   checkeval (Mult(Integer 4, Integer 3)) (EvtInt 12);
+  check "5 * 2 * 212 + (134 * 2 - 2 + 1 ) * 1 + 2 * 1 + 2 + 1" (EvtInt 2392);
   checkevalfail (Plus (Integer 4, String "x"))
 
 let test_boolops () =

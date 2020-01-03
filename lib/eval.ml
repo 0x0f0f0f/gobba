@@ -45,6 +45,8 @@ let rec eval (e : expr) (opts : evalopts) : evt =
         match ls with
         | [] -> EvtList [ eval x opts ]
         | lss -> EvtList (eval x opts :: lss) )
+    | ConcatLists(e1, e2) -> EvtList ((unpack_list (eval e1 opts)) @ (unpack_list (eval e2 opts)))
+    | ConcatStrings(e1, e2) -> EvtString ((unpack_string (eval e1 opts)) ^ (unpack_string (eval e2 opts)))
     (* Dictionaries and operations *)
     | Dict l ->
       let el =

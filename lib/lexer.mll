@@ -47,6 +47,8 @@ rule token = parse
   | "::"        { CONS }
   | "&&"        { LAND }
   | "||"        { OR }
+  | "^"         { CONCATSTR }
+  | "@"         { CONCATLST }
   | "+"         { PLUS }
   | "-"         { MINUS }
   | "*"         { TIMES }
