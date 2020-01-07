@@ -45,6 +45,8 @@ marginparwidth=1cm, marginparsep=0.4cm, margin=1.2cm]{geometry}
 \bibliographystyle{abbrvnat}
 \setcitestyle{authoryear,open={(},close={)}}
 
+\newcommand{\te}[1]{\text{#1}}
+
 \title{Minicaml, a purely functional, didactical programming language\\WORK IN PROGRESS DRAFT}
 \author{Alessandro Cheli\\Course taught by Prof. Gianluigi Ferrari\\and Prof. Francesca Levi}
 
@@ -134,6 +136,19 @@ Boolean operations are reduced using laws from the propositional calculus, such 
 \section{Types}
 
 \section{Evaluation}
+\subsection{Operational Semantics}
+
+\paragraph{Dictionaries}
+
+\begin{gather*}
+	\te{Insertion} \\
+	\dotfill \\
+	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow
+	\te{true}}{<\te{env}, \te{insert k v dict}> \Rightarrow \te{dict} \cup (\te{k,v})} \\ \\
+	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{false}}{<\te{env},
+	\te{insert k v dict}> \Rightarrow \te{dict}} \\ \quad \\
+	\te{Deletion} \\ \hline
+\end{gather*}
 
 \section{Tests}
 Unit testing is extensively performed using the alcotest testing framework. Code
