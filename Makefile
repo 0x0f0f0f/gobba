@@ -10,18 +10,15 @@ endif
 default: build
 
 build:
-	sed -i 's/\([^;]\)\( bisect_ppx)))\)/\1)));\2/' lib/dune
 	dune build -j $(JOBS) bin/main.exe
 	dune build @install
 
 doc: 
-	sed -i 's/\([^;]\)\( bisect_ppx)))\)/\1)));\2/' lib/dune
 	dune build @doc -j $(JOBS) 
 
 test:
-	sed -i 's/)));\( bisect_ppx)))\)/\1/' lib/dune
-	dune build -j $(JOBS) 
-	dune build @install
+	BISECT_ENABLE=yes dune build -j $(JOBS) 
+	BISECT_ENABLE=yes dune build @install
 	BISECT_ENABLE=yes MINICAML_EXAMPLES=$(realpath ./examples/) dune runtest -f
 	bisect-ppx-report -html coverage/ -I _build/default _build/default/test/bisect*.out
 

@@ -8,10 +8,8 @@ license: "MIT"
 synopsis: "A simple, didactical, purely functional programming language"
 description: "A simple, didactical, purely functional programming language written for the programming 2 course at the University of Pisa, extended with a simple parser made with Menhir and ocamllex"
 doc: "https://github.com/0x0f0f0f/minicaml"
-build: [
-  [make "-j" jobs]
-  [make "test" "-j" jobs] {with-test}
-]
+
+
 depends: [
     "dune" {>= "2.0"}
     "ocaml" {>= "4.05.0"}
