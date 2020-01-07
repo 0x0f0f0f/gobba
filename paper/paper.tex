@@ -6,6 +6,8 @@
 \usepackage[T1]{fontenc}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{mathtools}
+\usepackage{amsthm}
 \usepackage{collectbox}
 %\usepackage{tgpagella} % text only
 \usepackage{mathpazo}
@@ -54,6 +56,27 @@ marginparwidth=1cm, marginparsep=0.4cm, margin=1.2cm]{geometry}
         \fbox{\BOXCONTENT}%
     }%
 }
+\def\C{\mathbb{C}}
+\def\N{\mathbb{N}}
+\def\Q{\mathbb{Q}}
+\def\R{\mathbb{R}}
+\def\Z{\mathbb{Z}}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+
+\theoremstyle{plain}% default
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem*{cor}{Corollary}
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{conj}{Conjecture}[section]
+\newtheorem{exmp}{Example}[section]
+\newtheorem{exrc}[exmp]{Exercise}
+\theoremstyle{remark}
+\newtheorem*{comm}{Comment}
+\newtheorem*{note}{Note}
+\newtheorem{caso}{Case}
 
 \title{Minicaml, a purely functional, didactical programming language\\WORK IN PROGRESS DRAFT}
 \author{Alessandro Cheli\\Course taught by Prof. Gianluigi Ferrari\\and Prof. Francesca Levi}
@@ -146,51 +169,82 @@ Boolean operations are reduced using laws from the propositional calculus, such 
 \section{Evaluation}
 \subsection{Operational Semantics}
 
-\textbf{Dictionaries}\\
-Note that the evaluation step of the dictionary is considered implicit in most
-cases. Primitives require that the arguments passed are already evaluated,
-therefore dictionaries are considered already evaluated. An exception is made
-for the \textit{Fold Left} catamorphism, where the key-value couples have
-to be enumerated in order to show the set-theoretic representation of a left fold.
+\begin{note}
+	The letter $e$ denotes an environment. \\
+	The symbol $\_$ is used whenever a value exists but is content is irrelevant
+	to the semantical rule, or cannot be determined and therefore is discarded.
+\end{note}
 
 
+\textbf{Dictionaries}
+
+\begin{gather*}
+	\te{Creation} \\
+	\hline \\
+	<\te{e, d}> \Rightarrow \\ \{ (k,v) \in d \mid \forall i,j \in \N \wedge i,j \in \left[1, \abs{d}\right] \land i \neq j \\ \text{such that } k_i \neq k_j \}
+\end{gather*}
 \begin{gather*}
 	\te{Insertion} \\
 	\hline \\
-	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow
-	\te{true}}{<\te{env, insert k v dict}> \Rightarrow \te{dict} \cup (\te{k,v})} \\ \\
-	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{false}}{<\te{env, insert k v dict}> \Rightarrow \te{dict}}
+	\dfrac{ \begin{aligned}
+		<\te{e, d}> \Rightarrow \te{ed} \\
+		<\te{e, k} \in \te{ed}> \Rightarrow \te{false} \\
+	\end{aligned} }{<\te{e, insert k v d}> \Rightarrow \te{ed} \cup (\te{k,v})} \\ \\
+	\dfrac{ \begin{aligned}
+		<\te{e, d}> \Rightarrow \te{ed} \\
+		<\te{e, k} \in \te{ed}> \Rightarrow \te{true}
+	\end{aligned}}{<\te{e, insert k v d}> \Rightarrow \te{ed} \textbackslash \{(\te{k,\_})\} \cup (k, v) }
 \end{gather*}
 \begin{gather*}
 	\te{Deletion} \\ \hline \\
-	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{true}}{<\te{env, remove k dict}> \Rightarrow \te{dict} \textbackslash \{(\te{k,v})\}} \\ \\
-	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{false}}{<\te{env, remove k dict}> \Rightarrow \te{error}}
+	\dfrac{	\begin{aligned}
+		<\te{e, d}> \Rightarrow \te{ed} \\
+		<\te{e, k} \in \te{ed}> \Rightarrow \te{true}
+	\end{aligned}}{<\te{e, remove k d}> \Rightarrow \te{ed} \textbackslash \{(\te{k,v})\}} \\ \\
+	\dfrac{	\begin{aligned}
+		<\te{e, d}> \Rightarrow \te{ed} \\
+		<\te{e, k} \in \te{ed}> \Rightarrow \te{false}
+	\end{aligned}}{<\te{e, remove k d}> \Rightarrow \te{error}}
 \end{gather*}
 \begin{gather*}
 	\te{Contains key} \\ \hline \\
-	<\te{env}, \te{haskey k dict}> \Rightarrow \te{k} \in \te{dict}
+	\dfrac{<\te{e, d}> \Rightarrow \te{ed}}{<\te{e}, \te{haskey k d}> \Rightarrow (\te{k, \_}) \in \te{ed}}
 \end{gather*}
 \begin{gather*}
 	\te{Retreive a value} \\ \hline \\
-	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{true}}{<\te{env, getkey k dict}> \Rightarrow \te{v}} \\ \\
-	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{false}}{<\te{env, getkey k dict}> \Rightarrow \te{error}}
+	\dfrac{	\begin{aligned}
+		<\te{e, d}> \Rightarrow \te{ed} \\
+		<\te{e, k} \in \te{ed}> \Rightarrow \te{true}
+	\end{aligned}}{<\te{e, getkey k d}> \Rightarrow \te{v}} \\ \\
+	\dfrac{	\begin{aligned}
+		<\te{e, d}> \Rightarrow \te{ed} \\
+		<\te{e, k} \in \te{ed}> \Rightarrow \te{false}
+	\end{aligned}}{<\te{e, getkey k d}> \Rightarrow \te{error}}
 \end{gather*}
 \begin{gather*}
 	\te{Filter by keys} \\ \hline \\
-	\dfrac{<\te{env, ks}> \Rightarrow \te{\{k1, ..., kn\}}}{<\te{env, filterkeys ks d}> \Rightarrow \{ (k, v) \in \te{d} \mid (k \in ks) \}}
+	\dfrac{	\begin{aligned}
+		<\te{e, d}> \Rightarrow \te{ed} \\
+		<\te{e, ks}> \Rightarrow \te{\{k1, ..., kn\}}
+	\end{aligned}}{<\te{e, filterkeys ks d}> \Rightarrow \{ (k, v) \in \te{ed} \mid (k \in ks) \}}
 \end{gather*}
 \begin{gather*}
 	\te{Map} \\ \hline \\
-	\dfrac{<\te{env, f}> \Rightarrow \lambda(x)}{<\te{env, map f d}> \Rightarrow \{ (k, \lambda(v)) \mid (k, v) \in \te{d}  \}}
+	\dfrac{	\begin{aligned}
+		<\te{e, d}> \Rightarrow \te{ed} \\
+		<\te{e, f}> \Rightarrow \lambda(x)
+	\end{aligned}}
+	{<\te{e, map f d}> \Rightarrow \{ (k, \lambda(v)) \mid (k, v) \in \te{ed}  \}}
 \end{gather*}
 \begin{gather*}
 	\te{Fold Left} \\ \hline \\
 	\dfrac{\begin{aligned}
-		<\te{env, f}> \Rightarrow \lambda(x,y)  \\
-		<\te{env, d}> \Rightarrow \{(k_1, v_1), \hdots, (k_n, v_n)\}
-	\end{aligned}}{<\te{env, foldl f a d}> \Rightarrow \lambda( \hdots \lambda(\lambda(a, v_1), v_2), \hdots, v_n)} \\ \\
+		<\te{e, f}> \Rightarrow \lambda(x,y)  \\
+		<\te{e, d}> \Rightarrow \{(k_1, v_1), \hdots, (k_n, v_n)\}
+	\end{aligned}}{<\te{e, foldl f a d}> \Rightarrow \lambda( \hdots \lambda(\lambda(a, v_1), v_2), \hdots, v_n)} \\ \\
 \end{gather*}
 
+\section{Javascript Transpiler}
 
 \section{Tests}
 Unit testing is extensively performed using the alcotest testing framework. Code
