@@ -138,17 +138,35 @@ Boolean operations are reduced using laws from the propositional calculus, such 
 \section{Evaluation}
 \subsection{Operational Semantics}
 
-\paragraph{Dictionaries}
+\textbf{Dictionaries}\\
+Note that the evaluation step of the dictionary is considered implicit.
 
 \begin{gather*}
 	\te{Insertion} \\
-	\dotfill \\
+	\hline \\
 	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow
-	\te{true}}{<\te{env}, \te{insert k v dict}> \Rightarrow \te{dict} \cup (\te{k,v})} \\ \\
-	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{false}}{<\te{env},
-	\te{insert k v dict}> \Rightarrow \te{dict}} \\ \quad \\
-	\te{Deletion} \\ \hline
+	\te{true}}{<\te{env, insert k v dict}> \Rightarrow \te{dict} \cup (\te{k,v})} \\ \\
+	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{false}}{<\te{env, insert k v dict}> \Rightarrow \te{dict}} \\ \\
+	\te{Deletion} \\ \hline \\
+	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{true}}{<\te{env, remove k dict}> \Rightarrow \te{dict} \textbackslash \{(\te{k,v})\}} \\ \\
+	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{false}}{<\te{env, remove k dict}> \Rightarrow \te{error}} \\ \\
+	\te{Contains key} \\ \hline \\
+	<\te{env}, \te{haskey k dict}> \Rightarrow \te{k} \in \te{dict} \\ \\
+	\te{Retreive a value} \\ \hline \\
+	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{true}}{<\te{env, getkey k dict}> \Rightarrow \te{v}} \\ \\
+	\dfrac{<\te{env, k} \in \te{dict}> \Rightarrow \te{false}}{<\te{env, getkey k dict}> \Rightarrow \te{error}} \\ \\
+	\te{Filter by keys} \\ \hline \\
+	\dfrac{<\te{env, ks}> \Rightarrow \te{\{k1, ..., kn\}}}{<\te{env, filterkeys ks d}> \Rightarrow \{ (k, v) \in \te{d} \mid (k \in ks) \}} \\ \\
+	\te{Map} \\ \hline \\
+	\dfrac{<\te{env, f}> \Rightarrow \lambda(x)}{<\te{env, map f d}> \Rightarrow \{ (k, \lambda(v)) \mid (k, v) \in \te{d}  \}} \\ \\
+	\te{Fold Left} \\ \hline \\
+	\dfrac{\begin{aligned}
+		<\te{env, f}> \Rightarrow \lambda(x,y)  \\
+		<\te{env, d}> \Rightarrow \{(k_1, v_1), \hdots, (k_n, v_n)\}
+	\end{aligned}}{<\te{env, foldl f a d}> \Rightarrow \lambda( \hdots \lambda(\lambda(a, v_1), v_2), \hdots, v_n)} \\ \\
 \end{gather*}
+
+
 
 \section{Tests}
 Unit testing is extensively performed using the alcotest testing framework. Code
