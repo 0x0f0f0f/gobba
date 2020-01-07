@@ -10,8 +10,8 @@ description: "A simple, didactical, purely functional programming language writt
 doc: "https://github.com/0x0f0f0f/minicaml"
 
 build: [
-  ["dune" "build" "-p" name "-j" jobs],
-  [make "test" "-j" jobs]
+  ["dune" "build" "-p" name "-j" jobs]
+  [make "test" "-j" jobs] {with-test}
 ]
 depends: [
     "dune" {>= "2.0"}
