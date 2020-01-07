@@ -16,10 +16,12 @@ build:
 doc: 
 	dune build @doc -j $(JOBS) 
 
+test: export BISECT_ENABLE=yes
 test:
-	BISECT_ENABLE=yes dune build -j $(JOBS) 
-	BISECT_ENABLE=yes dune build @install
-	BISECT_ENABLE=yes MINICAML_EXAMPLES=$(realpath ./examples/) dune runtest -f
+	dune clean
+	dune build -j $(JOBS) 
+	dune build @install
+	MINICAML_EXAMPLES=$(realpath ./examples/) dune runtest -f
 	bisect-ppx-report -html coverage/ -I _build/default _build/default/test/bisect*.out
 
 run:
