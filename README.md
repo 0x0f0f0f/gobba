@@ -80,7 +80,7 @@ The executable name is `minicaml`. If a file is specified as the first command
 line argument, then it will be ran as a program. If you are running a program you may want to use the flag `-p` to print the results of the expressions that are evaluated. Otherwise, if a program is not specified a REPL session will
 be opened. If the `minicaml` executable is ran with the flag `-v1`, it will show
 the AST equivalent of each submitted expression, if ran with `-v2` it will also
-show each reduction step in the evaluation.
+show each reduction step in the evaluation. Use the experimental `-j` flag to compile a program to Javascript, using the [Ramda](https://ramdajs.com/) library as a "functional prelude".
 
 Keep in mind that **minicaml** is purely functional and values
 are immutable.

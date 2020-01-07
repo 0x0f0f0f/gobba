@@ -1,3 +1,6 @@
+## 0.3.3 2019-01-08
+- Rely on the [Ramda.js](https://ramdajs.com/) library for JS transpilation.
+
 ## 0.3.2 2019-01-03
 ### Added 
 - Reworking of language internals.
