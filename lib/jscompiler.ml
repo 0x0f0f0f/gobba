@@ -22,27 +22,26 @@ let rec compile (e : expr) : string =
   | String s -> "\"" ^ s ^ "\""
   | Symbol x -> x
   | List x -> "[" ^ (String.concat "," (List.map (fun x -> compile x ) x)) ^ "]"
-  | Cons (x, xs) ->
-    "(() => {let __arr = " ^
+  | Cons (x, xs) -> 
+    "R.insert(0," ^
+    compile x  ^ "," ^
     compile xs  ^
-    "; __arr.unshift(" ^
-    compile x  ^
-    "); return __arr})()"
+    ")"
   | ConcatLists(e1, e2) ->
-    "((" ^ compile e1  ^ ").concat(" ^ compile e2  ^ "))"
+    "R.concat(" ^ compile e1  ^ "," ^ compile e2  ^ ")"
   | ConcatStrings(e1, e2) ->
-    "((" ^ compile e1  ^ ").concat(" ^ compile e2  ^ "))"
+    "R.concat(" ^ compile e1  ^ "," ^ compile e2  ^ ")"
   (* Dictionaries and operations *)
   | Dict l ->
-    "(() => {" ^
-    (String.concat "," (List.map (fun (k,v) -> (compile k ) ^ ": " ^ (compile v )) l)) ^ "})()"
+    "{" ^
+    (String.concat "," (List.map (fun (k,v) -> (compile k ) ^ ": " ^ (compile v )) l)) ^ "}"
   | Plus (x, y) -> int_binop (compile x ) (compile y ) "+"
   | Sub (x, y) ->  int_binop (compile x ) (compile y ) "-"
   | Mult (x, y) -> int_binop (compile x ) (compile y ) "*"
   | And (x, y) ->  bool_binop (compile x ) (compile y ) "+"
   | Or (x, y) ->  int_binop (compile x ) (compile y ) "+"
   | Not x -> bool_unop (compile x ) "!"
-  | Eq (x, y) -> comparison (compile x ) (compile y ) "==="
+  | Eq (x, y) -> "R.equals(" ^ compile x ^ "," ^ compile y ^ ")"
   | Gt (x, y) -> comparison (compile x ) (compile y ) ">"
   | Lt (x, y) -> comparison (compile x ) (compile y ) "<"
   | Ge (x, y) -> comparison (compile x ) (compile y ) ">="
@@ -60,8 +59,7 @@ let rec compile (e : expr) : string =
     "((" ^ String.concat ", " params ^") => " ^
     (compile body ) ^ ")"
   (* Function Application *)
-  | Apply (f, expr_args) ->
-    "(" ^ compile f  ^ ")" ^ tuple expr_args
+  | Apply (f, expr_args) -> compile f  ^ tuple expr_args
   (* Eval a sequence of expressions but return the last *)
   | Sequence exprl ->
     "{ " ^ String.concat "; " (List.map (fun x -> compile x ) exprl) ^ " }"

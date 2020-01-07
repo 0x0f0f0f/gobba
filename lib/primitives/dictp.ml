@@ -50,26 +50,9 @@ let table = [
 ]
 
 let js = {|
-function insert (key, val, dict) {
-  let __new = Object.assign({}, dict);
-  __new[key] = val;
-  return __new;
-}
-function remove (key, dict) {
-  let result = {};
-  for(k in dict) {
-    if (k != key)
-      { result[k] = dict[k]; }
-  }
-  return result;
-}
-function haskey (key, dict) { return (key in dict) }
-function getkey (key, dict) { return dict[key] }
-function filterkeys (keys, dict) { return (
-  Object.keys(dict)
-  .filter(key => keys.includes(key))
-  .reduce((obj, key) => {
-    obj[key] = dict[key];
-    return obj;
-  }, {}))}
+const insert = R.assoc;
+const remove = R.dissoc;
+const haskey = R.has;
+const getkey = R.prop;
+const filterkeys = R.pick;
 |}

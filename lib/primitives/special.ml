@@ -90,24 +90,12 @@ let table = [
 ]
 
 let js = {|
-function map (fn, list) { return list.map(fn) }
+const map = R.map;
 function map2 (fn, list1, list2) {
   if(list1.length != list2.length) { throw "lists have different length" }
-  if(list1 == list2 == []) return [];
-  const h1 = head(list1);
-  const t1 = tail(list1);
-  const h2 = head(list2);
-  const t2 = tail(list2);
-  return [fn(h1, h2)].concat(map2(fn, t1, t2))
+  if(R.isEmpty(list1) && R.isEmpty(list2)) return [];
+  return R.concat([fn(head(list1), head(list2))], (map2(fn, tail(list1), tail(list2))))
 }
-function foldl (f, acc, arr) {
-  if (!arr.length) {
-    return acc;
-  } else {
-    return foldl(f, f(acc, head(arr)), tail(arr));
-  }
-}
-function filter (pred, list) {
-  return list.filter(pred)
-}
+const foldl = R.reduce;
+const filter = R.filter;
 |}
