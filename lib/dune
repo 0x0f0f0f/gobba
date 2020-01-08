@@ -5,5 +5,6 @@
  (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord bisect_ppx -conditional)))
 
 (copy_files primitives/*.ml)
+(copy_files js/*.ml)
 (ocamllex lexer)
 (menhir (modules parser))

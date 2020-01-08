@@ -80,6 +80,8 @@ let rec compile_cmdlist cmdlist = match cmdlist with
   | x::xs -> (match x with
       | Def(assignments) -> "{ " ^ compile_assignments assignments ^ compile_cmdlist xs ^ "}"
       | Defrec(assignments) -> "{ " ^ compile_assignments assignments ^ compile_cmdlist xs ^ "}"
-      | Expr(e) -> compile e)
+      | Expr(e) -> compile (Optimizer.optimize e))
 
-let compile_program p = Primitives.alljs ^ "\n" ^ compile_cmdlist p
+let compile_program p = compile_cmdlist p
+
+let jsprelude = "{" ^ Ramda.ramda ^ "}" ^  Primitives.jsprelude

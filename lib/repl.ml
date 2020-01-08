@@ -52,7 +52,7 @@ let run_one command opts =
     if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
         (show_command (Def(zip idel ovall))) else ();
     (EvtUnit, Dict.insertmany opts.env idel (List.map
-                                               (fun x -> AlreadyEvaluated (eval x opts)) ovall))
+                                      (fun x -> AlreadyEvaluated (eval x opts)) ovall))
   | Defrec dl ->
     let odl = (List.map (fun (i,v) -> (i, iterate_optimizer v)) dl) in
     if dl = odl then () else
@@ -79,9 +79,9 @@ let rec repl_loop opts  =
     loop ()
   with
   | End_of_file -> raise End_of_file
-  | Error err -> print_error err; repl_loop opts
+  | Error err -> print_error err; loop ()
   | Sys.Break -> prerr_endline "Interrupted.";
-  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); repl_loop opts
+  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); loop ()
 
 let repl opts =
   Sys.catch_break true;

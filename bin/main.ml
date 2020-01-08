@@ -2,7 +2,7 @@ open Minicaml
 open Minicaml.Types
 open Cmdliner
 
-let run_minicaml verbose program printresult javascript =
+let run_minicaml verbose program printresult javascript nojsprelude =
   let opts = {
     env = (Util.Dict.empty());
     verbosity = verbose;
@@ -12,7 +12,8 @@ let run_minicaml verbose program printresult javascript =
   match program with
   | None -> Repl.repl {opts with printresult = true}
   | Some name -> if javascript
-    then print_string (File.compile_file name)
+    then
+      print_string ((if nojsprelude then "" else (Jscompiler.jsprelude)) ^ (File.compile_file name))
     else let _ = File.run_file name opts in ()
 
 let verbose =
@@ -21,18 +22,24 @@ let verbose =
   Arg.(value & opt int 0 & info ["v"; "verbose"] ~docv:"VERBOSITY" ~doc)
 
 let print_exprs =
-  let doc = "If set set, print the result of expressions when evaluating a program from file" in
+  let doc = "If set, print the result of expressions when evaluating a program from file" in
   Arg.(value & flag & info ["p"; "printexprs"] ~doc)
 
 let javascript =
-  let doc = "If set set, compile the program to JavaScript when reading a program from file" in
+  let doc = "If set, compile the program to JavaScript when reading a program from file" in
   Arg.(value & flag & info ["j"; "javascript"] ~doc)
+
+let nojsprelude =
+  let doc = "If set, and minicaml is compiling a program to JavaScript, do not
+  include the Javascript prelude" in
+  Arg.(value & flag & info ["nojsprelude"] ~doc)
 
 let program =
   let doc = "The program that will be run. If a program is not provided, launch a REPL shell" in
   Arg.(value & pos 0 (some string) None & info [] ~docv:"PROGRAM_FILE" ~doc)
 
-let run_minicaml_t = Term.(const run_minicaml $ verbose $ program $ print_exprs $ javascript)
+let run_minicaml_t = Term.(const run_minicaml $ verbose $ program $ print_exprs
+$ javascript $ nojsprelude)
 
 let info =
   let doc = "a small, purely functional interpreted programming language " ^

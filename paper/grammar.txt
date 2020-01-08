@@ -1,0 +1,59 @@
+<file> ::= EOF
+         | <ast_expr> EOF
+         | <ast_expr> SEMISEMI <file>
+         | nonempty_list(<def>) SEMISEMI <file>
+         | nonempty_list(<def>) EOF
+
+<def> ::= LET [<assignment> (AND <assignment>)*]
+        | LET REC [<assignment> (AND <assignment>)*]
+
+<toplevel> ::= [<ast_expr> (SEMI <ast_expr>)*] EOF
+             | [<ast_expr> (SEMI <ast_expr>)*] SEMISEMI
+             | <def> SEMISEMI
+             | <def> EOF
+             | <ast_expr> SEMISEMI
+             | <ast_expr> EOF
+
+<assignment> ::= SYMBOL EQUAL <ast_expr>
+
+<dict_value> ::= <ast_expr> COLON <ast_expr>
+
+<ast_expr> ::= <ast_app_expr>
+             | LPAREN <ast_expr> (SEMI <ast_expr>)* RPAREN
+             | <ast_expr> CONS <ast_expr>
+             | NOT <ast_expr>
+             | <ast_expr> CONCATLST <ast_expr>
+             | <ast_expr> CONCATSTR <ast_expr>
+             | <ast_expr> PLUS <ast_expr>
+             | <ast_expr> MINUS <ast_expr>
+             | <ast_expr> TIMES <ast_expr>
+             | <ast_expr> EQUAL <ast_expr>
+             | <ast_expr> GREATER <ast_expr>
+             | <ast_expr> LESS <ast_expr>
+             | <ast_expr> GREATEREQUAL <ast_expr>
+             | <ast_expr> LESSEQUAL <ast_expr>
+             | <ast_expr> LAND <ast_expr>
+             | <ast_expr> OR <ast_expr>
+             | IF <ast_expr> THEN <ast_expr> ELSE <ast_expr>
+             | LET [<assignment> (AND <assignment>)*] IN <ast_expr>
+             | LET REC SYMBOL EQUAL <ast_expr> IN <ast_expr>
+             | LET LAZY [<assignment> (AND <assignment>)*] IN <ast_expr>
+             | LET LAZY REC SYMBOL EQUAL <ast_expr> IN <ast_expr>
+             | LET REC LAZY SYMBOL EQUAL <ast_expr> IN <ast_expr>
+             | LAMBDA SYMBOL+ LARROW <ast_expr>
+             | <ast_expr> PIPE <ast_expr>
+
+<ast_app_expr> ::= <ast_simple_expr>
+                 | <ast_app_expr> <ast_simple_expr>+
+
+<ast_simple_expr> ::= SYMBOL
+                    | UNIT
+                    | LPAREN <ast_expr> RPAREN
+                    | LSQUARE [<ast_expr> (SEMI <ast_expr>)*] RSQUARE
+                    | LBRACKET [<dict_value> (COMMA <dict_value>)*] RBRACKET
+                    | TRUE
+                    | FALSE
+                    | STRING
+                    | INTEGER
+
+

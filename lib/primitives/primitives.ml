@@ -9,4 +9,4 @@ let wrapprim table =
 let table: (string * ((evt list -> (evt -> type_wrapper list -> evalopts -> evt) -> evalopts -> evt) * int)) list
   = (wrapprim Dictp.table) @ (wrapprim Listp.table) @ (wrapprim Stringp.table) @ Special.table
 
-let alljs = "{" ^ Ramda.ramda ^ "}\n" ^ Dictp.js ^ Listp.js ^ Special.js
+let jsprelude = Dictp.js ^ Listp.js ^ Special.js

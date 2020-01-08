@@ -10,7 +10,8 @@
 \usepackage{amsthm}
 \usepackage{collectbox}
 %\usepackage{tgpagella} % text only
-\usepackage{mathpazo}
+%\usepackage{mathpazo}
+\usepackage{stix}
 
 \usepackage{multicol}
 \setlength{\columnsep}{1.5cm}
@@ -38,6 +39,12 @@ marginparwidth=1cm, marginparsep=0.4cm, margin=1.2cm]{geometry}
 	literate=*{:}{:}1}
 
 \lstdefinestyle{caml} {language=caml, basicstyle=\ttfamily, columns=[c]fixed,
+ keywordstyle=\color{vblue}, identifierstyle=\color{black},
+ commentstyle=\color{vgreen}, upquote=true, commentstyle=, breaklines=true,
+ showstringspaces=false, stringstyle=\color{blue},
+ literate={'"'}{\textquotesingle "\textquotesingle}3}
+
+\lstdefinestyle{txt} {basicstyle=\ttfamily, columns=[c]fixed,
  keywordstyle=\color{vblue}, identifierstyle=\color{black},
  commentstyle=\color{vgreen}, upquote=true, commentstyle=, breaklines=true,
  showstringspaces=false, stringstyle=\color{blue},
@@ -127,14 +134,21 @@ make install
 
 \clearpage
 
-\begin{multicols}{2}
+
 
 \section{Lexer}
 
 Lexing is achieved with \texttt{ocamllex}, the default tool for generating
 scanners in OCaml
 
-\section{Parser}
+\section{Syntax and Parser}
+The parser is realized with the \textbf{Menhir} parser generator, and is
+documented using \textbf{Obelisk}, which generates a clean text file
+containing the grammar documentation
+
+\lstinputlisting[style=txt]{grammar.txt}
+
+\begin{multicols}{2}
 
 \section{AST Optimization}
 Before being evaluated, AST expressions are analyzed and optimized by an
@@ -144,7 +158,7 @@ therefore does not need to be evaluated. For example, it is known that \texttt{5
 + 3 $\equiv$ 8} and \texttt{true \&\& (true || (false \&\& false)) $\equiv$
 true}. When a programmer writes a program, she or he may not want to do all the
 simple calculations before writing the program in which they appear in, we rely
-on machines to simplify those processes. Reducing constants before evalaution
+on machines to simplify those processes. Reducing constants before evaluation
 may seem unnecessary when writing a small program, but they do take away
 computation time, and if they appear inside of loops, it is a wise choice to
 simplify those constant expressions whose result is already known before it is
