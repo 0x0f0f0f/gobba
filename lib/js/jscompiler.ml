@@ -56,7 +56,7 @@ let rec compile (e : expr) : string =
   | Letrec (ident, value, body) -> compile (Let([(ident, value)], body))
   | Letreclazy (_, _, _) ->  "throw \"NOT YET IMPLEMENTED\";"
   | Lambda (params, body) ->
-    "((" ^ String.concat ", " params ^") => " ^
+    "R.curry((" ^ String.concat ", " params ^") => " ^
     (compile body ) ^ ")"
   (* Function Application *)
   | Apply (f, expr_args) -> compile f  ^ tuple expr_args
