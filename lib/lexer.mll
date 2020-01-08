@@ -12,6 +12,9 @@
 }
 
 let digit = ['0'-'9']
+let frac = '.' digit*
+let exp = ['e' 'E'] ['-' '+']? digit+
+let float = digit* frac? exp?
 let alpha = ['a'-'z' 'A'-'Z']
 let symbol = alpha (alpha|digit|'_')*
 let int = '-'? ['0'-'9'] ['0'-'9']*
@@ -21,6 +24,7 @@ rule token = parse
   | white       { token lexbuf }
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
   | int         { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
+  | float       { FLOAT (float_of_string (Lexing.lexeme lexbuf))}
   | "()"        { UNIT }
   | "true"      { TRUE }
   | "false"     { FALSE }
@@ -49,6 +53,7 @@ rule token = parse
   | "||"        { OR }
   | "^"         { CONCATSTR }
   | "@"         { CONCATLST }
+  | "i"         { IMAG }
   | "+"         { PLUS }
   | "-"         { MINUS }
   | "*"         { TIMES }

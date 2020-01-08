@@ -6,7 +6,8 @@ module T = ANSITerminal
 
 (** Numerical Primitives *)
 
-let int_binop (x, y) (op : int -> int -> int) =
+(*//TODO fix *)
+let num_binop (x, y) (op : int -> int -> int) =
   let a = unpack_int x and b = unpack_int y in
   EvtInt (op a b)
 
@@ -35,7 +36,9 @@ let rec eval (e : expr) (opts : evalopts) : evt =
   let evaluated =
     match e with
     | Unit -> EvtUnit
-    | Integer n -> EvtInt n
+    | NumInt n -> EvtInt n
+    | NumFloat n -> EvtFloat n
+    | NumComplex n -> EvtComplex n
     | Boolean b -> EvtBool b
     | String s -> EvtString s
     | Symbol x -> lookup x opts
@@ -54,9 +57,9 @@ let rec eval (e : expr) (opts : evalopts) : evt =
           (List.map (fun (x, y) -> isvalidkey (eval x opts, eval y opts)) l)
       in
       EvtDict el
-    | Plus (x, y) -> int_binop (eval x opts, eval y opts) ( + )
-    | Sub (x, y) -> int_binop (eval x opts, eval y opts) ( - )
-    | Mult (x, y) -> int_binop (eval x opts, eval y opts) ( * )
+    | Plus (x, y) -> num_binop (eval x opts, eval y opts) ( + )
+    | Sub (x, y) -> num_binop (eval x opts, eval y opts) ( - )
+    | Mult (x, y) -> num_binop (eval x opts, eval y opts) ( * )
     | And (x, y) -> bool_binop (eval x opts, eval y opts) ( && )
     | Or (x, y) -> bool_binop (eval x opts, eval y opts) ( || )
     | Not x -> bool_unop (eval x opts) not

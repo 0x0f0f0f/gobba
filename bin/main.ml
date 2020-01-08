@@ -2,7 +2,7 @@ open Minicaml
 open Minicaml.Types
 open Cmdliner
 
-let run_minicaml verbose program printresult javascript nojsprelude =
+let run_minicaml verbose program printresult javascript prelude =
   let opts = {
     env = (Util.Dict.empty());
     verbosity = verbose;
@@ -13,7 +13,12 @@ let run_minicaml verbose program printresult javascript nojsprelude =
   | None -> Repl.repl {opts with printresult = true}
   | Some name -> if javascript
     then
-      print_string ((if nojsprelude then "" else (Jscompiler.jsprelude)) ^ (File.compile_file name))
+      let jscode = File.compile_file name in
+      print_string (match prelude with
+        | "no" -> jscode
+        | "prim" -> (Primitives.jsprelude) ^ jscode
+        | "lib" ->  "{" ^ Ramda.ramda ^ "}" ^ (Primitives.jsprelude) ^ jscode
+        | _ -> failwith "Invalid prelude type: " ^ prelude)
     else let _ = File.run_file name opts in ()
 
 let verbose =
@@ -29,17 +34,19 @@ let javascript =
   let doc = "If set, compile the program to JavaScript when reading a program from file" in
   Arg.(value & flag & info ["j"; "javascript"] ~doc)
 
-let nojsprelude =
-  let doc = "If set, and minicaml is compiling a program to JavaScript, do not
-  include the Javascript prelude" in
-  Arg.(value & flag & info ["nojsprelude"] ~doc)
+let prelude =
+  let doc = "If set, and minicaml is compiling a program to JavaScript, choose
+  which prelude to use. The value \"lib\" includes needed libraries and
+  primitives, the value \"prim\" will include only primitives, \"no\" will
+  not include a prelude in the program" in
+  Arg.(value & opt string "no" & info ["jsprelude"] ~doc)
 
 let program =
   let doc = "The program that will be run. If a program is not provided, launch a REPL shell" in
   Arg.(value & pos 0 (some string) None & info [] ~docv:"PROGRAM_FILE" ~doc)
 
 let run_minicaml_t = Term.(const run_minicaml $ verbose $ program $ print_exprs
-$ javascript $ nojsprelude)
+$ javascript $ prelude)
 
 let info =
   let doc = "a small, purely functional interpreted programming language " ^

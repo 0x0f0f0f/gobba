@@ -45,14 +45,14 @@ let test_map () =
 let test_foldl () =
   checkeval (Apply ((Symbol "foldl"),
                     [(Lambda (["acc"; "x"], (Plus ((Symbol "acc"), (Symbol "x")))));
-                     (Integer 0);
+                     (NumInt 0);
                      (Dict
-                        [((String "a"), (Integer 1)); ((String "b"), (Integer 2));
-                         ((String "c"), (Integer 3)); ((String "d"), (Integer 4))])
+                        [((String "a"), (NumInt 1)); ((String "b"), (NumInt 2));
+                         ((String "c"), (NumInt 3)); ((String "d"), (NumInt 4))])
                     ]
                    )) (EvtInt 10);
   checkevalfail (Apply (Symbol "foldl", [String "fail"; String "fail"; String
-                                           "Fail"; Integer 0]))
+                                           "Fail"; NumInt 0]))
 
 let test_filterkeys () =
   check ("filterkeys [\"apple\"] " ^ sample_dict)

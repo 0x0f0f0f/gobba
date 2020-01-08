@@ -3,7 +3,7 @@ open Util
 
 module A = Alcotest
 
-let sample_list = (List([String "hello"; String "world"; String "apple"; Integer 314]))
+let sample_list = (List([String "hello"; String "world"; String "apple"; NumInt 314]))
 let sample_list_evt = (EvtList([EvtString "hello"; EvtString "world"; EvtString "apple"; EvtInt 314]))
 
 let test_list () =
@@ -26,41 +26,41 @@ let test_cons () =
 
 let test_map () =
   checkeval (Apply ((Symbol "map"),
-                    [(Lambda (["x"], (Plus ((Integer 1), (Symbol "x")))));
-                     (List [Integer 1; Integer 2; Integer 3; Integer 4])]))
+                    [(Lambda (["x"], (Plus ((NumInt 1), (Symbol "x")))));
+                     (List [NumInt 1; NumInt 2; NumInt 3; NumInt 4])]))
     (EvtList [EvtInt 2; EvtInt 3; EvtInt 4; EvtInt 5]);
   checkevalfail (Apply (Symbol "map", [String "fail"; String "fail"; String
                                          "Fail"]));
-  checkevalfail (Apply (Symbol "map", [(Lambda (["x"], (Plus ((Integer 1),
+  checkevalfail (Apply (Symbol "map", [(Lambda (["x"], (Plus ((NumInt 1),
                                                               (Symbol "x"))))); (String "x")]))
 
 let test_foldl () =
   checkeval (Apply ((Symbol "foldl"),
                     [(Lambda (["acc"; "x"], (Plus ((Symbol "acc"), (Symbol "x")))));
-                     (Integer 0);
-                     (List [Integer 1; Integer 2; Integer 3; Integer 4])]))
+                     (NumInt 0);
+                     (List [NumInt 1; NumInt 2; NumInt 3; NumInt 4])]))
     (EvtInt 10);
   checkevalfail (Apply (Symbol "foldl", [String "fail"; String "fail"; String
-                                           "Fail"; Integer 0]));
-  checkevalfail (Apply (Symbol "foldl", [(Lambda (["x"], (Plus ((Integer 1),
-                                                                (Symbol "x"))))); (Integer 0); (String "x")]))
+                                           "Fail"; NumInt 0]));
+  checkevalfail (Apply (Symbol "foldl", [(Lambda (["x"], (Plus ((NumInt 1),
+                                                                (Symbol "x"))))); (NumInt 0); (String "x")]))
 
 let test_filter () =
   checkeval (Apply ((Symbol "filter"),
-                    [(Lambda (["x"], (Gt ((Symbol "x"), (Integer 3)))));
+                    [(Lambda (["x"], (Gt ((Symbol "x"), (NumInt 3)))));
                      (List
-                        [(Integer 1); (Integer 2); (Integer 3); (Integer 4); (Integer 5);
-                         (Integer 4); (Integer 3); (Integer 2); (Integer 1)])
+                        [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
+                         (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)])
                     ]))
     (EvtList [(EvtInt 4); (EvtInt 5); (EvtInt 4)]);
   checkevalfail (Apply ((Symbol "filter"),
-                        [(Lambda (["x"], (Gt ((Symbol "x"), (Integer 3)))));
+                        [(Lambda (["x"], (Gt ((Symbol "x"), (NumInt 3)))));
                          (List
-                            [(Integer 1); (Integer 2); (Integer 3); (Integer 4); (Integer 5);
-                             (Integer 4); (Integer 3); (Integer 2); (Integer 1)]); Integer 3
+                            [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
+                             (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)]); NumInt 3
                         ]));
   checkevalfail (Apply ((Symbol "filter"),
-                        [(Lambda (["x"], (Gt ((Symbol "x"), (Integer 3))))); Integer 3 ]))
+                        [(Lambda (["x"], (Gt ((Symbol "x"), (NumInt 3))))); NumInt 3 ]))
 
 let test_concat () =
   check ("[1] @ [2]") (EvtList [EvtInt 1; EvtInt 2])

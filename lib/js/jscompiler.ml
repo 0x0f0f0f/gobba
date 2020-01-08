@@ -14,10 +14,14 @@ let bool_unop x op =
 
 let comparison x y op = "(" ^ x ^ " " ^ op ^ " " ^ y ^ ")"
 
+let dummy = "throw \"NOT YET IMPLEMENTED\";"
+
 let rec compile (e : expr) : string =
   match e with
   | Unit -> "null"
-  | Integer n -> string_of_int n
+  | NumInt n -> string_of_int n
+  | NumFloat n -> string_of_float n
+  | NumComplex _ -> dummy
   | Boolean b -> string_of_bool b
   | String s -> "\"" ^ s ^ "\""
   | Symbol x -> x
@@ -52,9 +56,9 @@ let rec compile (e : expr) : string =
     compile alt ^ ")"
   | Let (assignments, body) ->
     "{\n" ^ compile_assignments assignments ^ "(" ^ compile body  ^ ")\n}"
-  | Letlazy (_, _) -> "throw \"NOT YET IMPLEMENTED\";"
+  | Letlazy (_, _) -> dummy
   | Letrec (ident, value, body) -> compile (Let([(ident, value)], body))
-  | Letreclazy (_, _, _) ->  "throw \"NOT YET IMPLEMENTED\";"
+  | Letreclazy (_, _, _) -> dummy
   | Lambda (params, body) ->
     "R.curry((" ^ String.concat ", " params ^") => " ^
     (compile body ) ^ ")"
@@ -65,7 +69,7 @@ let rec compile (e : expr) : string =
     "{ " ^ String.concat "; " (List.map (fun x -> compile x ) exprl) ^ " }"
   (* Pipe two functions together, creating a new function
      That uses the first functions's result as the second's first argument *)
-  | Pipe (_, _) -> "throw \"NOT YET IMPLEMENTED\";"
+  | Pipe (_, _) -> dummy
 and tuple elems  =
   "(" ^ (String.concat "," (List.map (fun x -> compile x ) elems)) ^ ")"
 and compile_assignments ass =
@@ -83,5 +87,3 @@ let rec compile_cmdlist cmdlist = match cmdlist with
       | Expr(e) -> compile (Optimizer.optimize e))
 
 let compile_program p = compile_cmdlist p
-
-let jsprelude = "{" ^ Ramda.ramda ^ "}" ^  Primitives.jsprelude

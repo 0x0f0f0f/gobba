@@ -2,12 +2,12 @@ open Types
 
 let rec optimize (e: expr) : expr = match e with
   (* Autoreduce constants *)
-  | Plus(Integer x, Integer y) -> Integer (x + y) 
-  | Sub(Integer x, Integer y) -> Integer (x - y)
-  | Mult(Integer x, Integer y) -> Integer (x * y)
-  | Eq(Integer x, Integer y) -> Boolean (x == y)
-  | Gt(Integer x, Integer y) -> Boolean (x > y)
-  | Lt(Integer x, Integer y) -> Boolean (x < y)
+  | Plus(NumInt x, NumInt y) -> NumInt (x + y) 
+  | Sub(NumInt x, NumInt y) -> NumInt (x - y)
+  | Mult(NumInt x, NumInt y) -> NumInt (x * y)
+  | Eq(NumInt x, NumInt y) -> Boolean (x == y)
+  | Gt(NumInt x, NumInt y) -> Boolean (x > y)
+  | Lt(NumInt x, NumInt y) -> Boolean (x < y)
   | Eq(x, y) -> Eq (optimize x, optimize y)
   | Gt(x, y) -> Gt (optimize x, optimize y)
   | Lt(x, y) -> Lt (optimize x, optimize y)

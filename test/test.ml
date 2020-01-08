@@ -9,7 +9,7 @@ let test_stack_underflow () =
    A.check_raises "stack overflow" (Failure "Stack overflow")
     (fun () -> let s = ref EmptyStack in
     while true do
-      s := push_stack !s (Integer 0)
+      s := push_stack !s (NumInt 0)
     done) *)
 
 (* let test_optimizer_1 = A.(check expr) *)

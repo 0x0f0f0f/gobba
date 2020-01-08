@@ -6,9 +6,9 @@
    ```ocaml
    (Letrec ("iter",
       (Lambda (["n"; "f"; "d"],
-         (IfThenElse ((Eq ((Symbol "n"), (Integer 0))), (Symbol "d"),
+         (IfThenElse ((Eq ((Symbol "n"), (NumInt 0))), (Symbol "d"),
             (Apply ((Symbol "iter"),
-               [(Sub ((Symbol "n"), (Integer 1)));
+               [(Sub ((Symbol "n"), (NumInt 1)));
                  (Apply ((Symbol "f"), [(Apply ((Symbol "f"), [(Symbol "d")]))]
                     ))
                  ]
@@ -23,13 +23,13 @@
                    ],
                  (Apply ((Symbol "iter"),
                     [(Apply ((Symbol "n"),
-                        [(Apply ((Symbol "itim"), [(Integer 1)]))]))
+                        [(Apply ((Symbol "itim"), [(NumInt 1)]))]))
                       ]
                     ))
                  ))
               )))
            ],
-         (Apply ((Symbol "power"), [(Integer 3); (Integer 2)]))))
+         (Apply ((Symbol "power"), [(NumInt 3); (NumInt 2)]))))
       ))
    ```
    Should be equal to
@@ -43,9 +43,9 @@
    ```ocaml
    (Letrec ("iter",
       (Lambda (["n"; "f"; "d"],
-         (IfThenElse ((Eq ((Symbol "n"), (Integer 0))), (Symbol "d"),
+         (IfThenElse ((Eq ((Symbol "n"), (NumInt 0))), (Symbol "d"),
             (Apply ((Symbol "iter"),
-               [(Sub ((Symbol "n"), (Integer 1))); (Symbol "f");
+               [(Sub ((Symbol "n"), (NumInt 1))); (Symbol "f");
                  (Apply ((Symbol "f"), [(Symbol "d")]))]
                ))
             ))
@@ -57,10 +57,10 @@
                  [("itim", (Lambda (["a"], (Mult ((Symbol "a"), (Symbol "i"))))))
                    ],
                  (Apply ((Symbol "iter"),
-                    [(Symbol "n"); (Symbol "itim"); (Integer 1)]))
+                    [(Symbol "n"); (Symbol "itim"); (NumInt 1)]))
                  ))
               )))
            ],
-         (Apply ((Symbol "power"), [(Integer 3); (Integer 19)]))))
+         (Apply ((Symbol "power"), [(NumInt 3); (NumInt 19)]))))
       ))
    ```

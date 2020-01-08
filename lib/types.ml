@@ -2,10 +2,16 @@
 type ide = string
 [@@deriving show, eq, ord]
 
+type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
+"%f+%fi" n.re n.im] [@equal (=)] [@compare compare]
+[@@deriving show { with_path = false }, eq, ord]
+
 (** The type representing Abstract Syntax Tree expressions *)
 type expr =
   | Unit
-  | Integer of int
+  | NumInt of int
+  | NumFloat of float
+  | NumComplex of complext
   | Boolean of bool
   | String of string
   | Symbol of ide
@@ -54,6 +60,8 @@ type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }, eq, o
 type evt =
   | EvtUnit
   | EvtInt of int         [@compare compare]
+  | EvtFloat of float     [@compare compare]
+  | EvtComplex of complext [@compare compare]
   | EvtBool of bool       [@equal (=)] [@compare compare]
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
@@ -83,6 +91,8 @@ let generate_prim_params n =
 
 let rec show_unpacked_evt e = match e with
   | EvtInt v -> string_of_int v
+  | EvtFloat v -> Printf.sprintf "%e" v
+  | EvtComplex n -> show_complext n
   | EvtBool v -> string_of_bool v
   | EvtString v -> "\"" ^ (String.escaped v) ^ "\""
   | EvtList l -> "[" ^ (String.concat "; " (List.map show_unpacked_evt l)) ^ "]"

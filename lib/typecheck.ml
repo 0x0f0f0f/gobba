@@ -8,6 +8,8 @@ let expect t e = if t = e
 
 let typecheck (x: evt) (t: string) = match x with
   | EvtInt _      -> expect t "int"
+  | EvtFloat _    -> expect t "float"
+  | EvtComplex _  -> expect t "complex"
   | EvtBool _     -> expect t "bool"
   | EvtString _   -> expect t "string"
   | EvtUnit       -> expect t "unit"

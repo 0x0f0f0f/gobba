@@ -4,6 +4,7 @@
 
 %token <string> SYMBOL
 %token <int> INTEGER
+%token <float> FLOAT
 %token <string> STRING
 %token UNIT
 %token TRUE FALSE
@@ -12,6 +13,7 @@
 %token OR
 %token CONCATSTR
 %token CONCATLST
+%token IMAG
 %token PLUS
 %token MINUS
 %token TIMES
@@ -167,6 +169,8 @@ ast_simple_expr:
   | s = STRING
   { String s }
   | n = INTEGER
-  { Integer n }
+  { NumInt n }
+  | n = FLOAT
+  { NumFloat n }
 
 %%
