@@ -1,5 +1,9 @@
 ## 0.3.3 2019-01-08
 - Rely on the [Ramda.js](https://ramdajs.com/) library for JS transpilation.
+  (Currently broken because of numerical primitives and a lack of a Complex
+  number solution for Javascript).
+- Full numerical tower comprising Integer (Natural) numbers, Floating Point (Real) numbers and
+  Complex numbers, with dynamic number-type infering arithmetical primitives.
 
 ## 0.3.2 2019-01-03
 ### Added 
