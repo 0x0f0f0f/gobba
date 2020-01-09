@@ -18,7 +18,7 @@
 %token MINUS
 %token TIMES
 %token DIV
-%token EQUAL
+%token EQUAL DIFFER
 %token GREATER GREATEREQUAL LESS LESSEQUAL
 %token IF THEN ELSE
 %token SEMI
@@ -120,6 +120,8 @@ ast_expr:
   { Div (e1, e2) }
   | e1 = ast_expr EQUAL e2 = ast_expr
   { Eq (e1, e2) }
+  | e1 = ast_expr DIFFER e2 = ast_expr
+  { Not(Eq (e1, e2)) }
   | e1 = ast_expr GREATER e2 = ast_expr
   { Gt (e1, e2) }
   | e1 = ast_expr LESS e2 = ast_expr

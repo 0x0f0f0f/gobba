@@ -27,6 +27,7 @@
              | <ast_expr> PLUS <ast_expr>
              | <ast_expr> MINUS <ast_expr>
              | <ast_expr> TIMES <ast_expr>
+             | <ast_expr> DIV <ast_expr>
              | <ast_expr> EQUAL <ast_expr>
              | <ast_expr> GREATER <ast_expr>
              | <ast_expr> LESS <ast_expr>
@@ -55,5 +56,8 @@
                     | FALSE
                     | STRING
                     | INTEGER
+                    | FLOAT
+                    | FLOAT CPLUS FLOAT
+                    | FLOAT CMIN FLOAT
 
 

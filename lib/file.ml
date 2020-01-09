@@ -28,7 +28,12 @@ let rec run_file_list cmdlst opts = match cmdlst with
   | [] -> []
 
 let run_file fn opts =
-  run_file_list (read_file parser fn) opts;;
+  try
+  run_file_list (read_file parser fn) opts
+  with
+  | Error err -> print_error err; []
+  | Sys.Break -> prerr_endline "Interrupted."; []
+  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); []
 
 let compile_file fn =
   (Jscompiler.compile_program (read_file parser fn)) ^ "\n"

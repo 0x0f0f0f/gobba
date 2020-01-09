@@ -59,6 +59,7 @@ rule token = parse
   | "-"         { MINUS }
   | "*"         { TIMES }
   | "/"         { DIV }
+  | "!="        { DIFFER }
   | "="         { EQUAL }
   | ">"         { GREATER }
   | "<"         { LESS }

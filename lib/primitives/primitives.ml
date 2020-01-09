@@ -7,6 +7,7 @@ let wrapprim table =
   (zip (fstl table) (List.map (fun (f, numargs) -> ((fun args _ _ -> f args), numargs)) (sndl table)))
 
 let table: (string * ((evt list -> (evt -> type_wrapper list -> evalopts -> evt) -> evalopts -> evt) * int)) list
-  = (wrapprim Numerical.table) @ (wrapprim Dictp.table) @ (wrapprim Listp.table) @ (wrapprim Stringp.table) @ Special.table
+  = (wrapprim Numerical.table) @ (wrapprim Iop.table) @ (wrapprim Dictp.table)
+  @ (wrapprim Listp.table) @ (wrapprim Stringp.table) @ Special.table
 
 let jsprelude =  Dictp.js ^ Listp.js ^ Special.js
