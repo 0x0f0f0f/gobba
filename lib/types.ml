@@ -20,6 +20,10 @@ type expr =
   | ConcatLists of expr * expr
   | ConcatStrings of expr * expr
   | Dict of (expr * expr) list
+  (* Numerical Operations *)
+  | Plus of (expr * expr)
+  | Sub of (expr * expr)
+  | Mult of (expr * expr)
   (* Boolean Operations *)
   | Eq of expr * expr
   | Gt of expr * expr
@@ -88,6 +92,7 @@ let generate_prim_params n =
 
 
 let rec show_unpacked_evt e = match e with
+  | EvtUnit -> "()"
   | EvtInt v -> string_of_int v
   | EvtFloat v -> Printf.sprintf "%f" v
   | EvtComplex n -> show_complext n
@@ -101,7 +106,6 @@ let rec show_unpacked_evt e = match e with
   | Closure (params, _, _) -> "(fun " ^ (String.concat " " params) ^ " -> ... )"
   | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"
   | PrimitiveAbstraction (name, numargs, _ ) -> name ^ " = " ^ "(fun " ^ (generate_prim_params numargs |> String.concat " ") ^ " -> ... )"
-  | _ -> show_evt e
 
 (** An environment of already evaluated values  *)
 type env_type = type_wrapper env_t

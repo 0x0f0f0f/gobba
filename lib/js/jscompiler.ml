@@ -39,6 +39,9 @@ let rec compile (e : expr) : string =
   | Dict l ->
     "{" ^
     (String.concat "," (List.map (fun (k,v) -> (compile k ) ^ ": " ^ (compile v )) l)) ^ "}"
+  | Plus (x, y) -> int_binop (compile x ) (compile y ) "+"
+  | Sub (x, y) ->  int_binop (compile x ) (compile y ) "-"
+  | Mult (x, y) -> int_binop (compile x ) (compile y ) "*"
   | And (x, y) ->  bool_binop (compile x ) (compile y ) "+"
   | Or (x, y) ->  int_binop (compile x ) (compile y ) "+"
   | Not x -> bool_unop (compile x ) "!"

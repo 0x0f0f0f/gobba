@@ -57,6 +57,12 @@ let rec eval (e : expr) (opts : evalopts) : evt =
           (List.map (fun (x, y) -> isvalidkey (eval x opts, eval y opts)) l)
       in
       EvtDict el
+    | Plus (x, y) -> let prim = (fun x -> (fst (Dict.get "add" Primitives.table)) x applyfun opts) in
+      prim [(eval x opts); (eval y opts)]
+    | Sub (x, y) -> let prim = (fun x -> (fst (Dict.get "sub" Primitives.table)) x applyfun opts) in
+      prim [(eval x opts); (eval y opts)]
+    | Mult (x, y) -> let prim = (fun x -> (fst (Dict.get "mult" Primitives.table)) x applyfun opts) in
+      prim [(eval x opts); (eval y opts)]
     | And (x, y) -> bool_binop (eval x opts, eval y opts) ( && )
     | Or (x, y) -> bool_binop (eval x opts, eval y opts) ( || )
     | Not x -> bool_unop (eval x opts) not
@@ -116,7 +122,7 @@ let rec eval (e : expr) (opts : evalopts) : evt =
     | Sequence exprl ->
       let rec unroll el =
         match el with
-        | [] -> failwith "fatal: empty command sequence"
+        | [] -> EvtUnit
         | [ x ] -> eval x opts
         | x :: xs ->
           let _ = eval x opts in

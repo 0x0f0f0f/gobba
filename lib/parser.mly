@@ -108,11 +108,11 @@ ast_expr:
   | e1 = ast_expr CONCATSTR e2 = ast_expr
   { ConcatStrings (e1, e2) }
   | e1 = ast_expr PLUS e2 = ast_expr
-  { Apply(Symbol "add", [e1; e2]) }
+  { Plus(e1, e2) }
   | e1 = ast_expr MINUS e2 = ast_expr
-  { Apply(Symbol "sub", [e1; e2]) }
+  { Sub (e1, e2) }
   | e1 = ast_expr TIMES e2 = ast_expr
-  { Apply(Symbol "mult", [e1; e2]) }
+  { Mult (e1, e2) }
   | e1 = ast_expr EQUAL e2 = ast_expr
   { Eq (e1, e2) }
   | e1 = ast_expr GREATER e2 = ast_expr
