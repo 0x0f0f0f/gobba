@@ -1,19 +1,18 @@
 open Types
 
 let rec optimize (e: expr) : expr = match e with
-  (* Autoreduce constants *)
-  | Plus(NumInt x, NumInt y) -> NumInt (x + y) 
-  | Sub(NumInt x, NumInt y) -> NumInt (x - y)
-  | Mult(NumInt x, NumInt y) -> NumInt (x * y)
   | Eq(NumInt x, NumInt y) -> Boolean (x == y)
   | Gt(NumInt x, NumInt y) -> Boolean (x > y)
   | Lt(NumInt x, NumInt y) -> Boolean (x < y)
   | Eq(x, y) -> Eq (optimize x, optimize y)
   | Gt(x, y) -> Gt (optimize x, optimize y)
   | Lt(x, y) -> Lt (optimize x, optimize y)
-  | Plus(x, y) ->  Plus (optimize x, optimize y)
-  | Sub(x, y) ->  Sub (optimize x, optimize y)
-  | Mult(x, y) -> Mult (optimize x, optimize y)
+  (* Operator left-associativity *)
+  | Apply(Symbol "add", [Apply (Symbol "add", xs); x]) ->
+    Apply(Symbol "add", (List.map optimize xs)@[optimize x])
+  | Apply(Symbol "mult", [Apply (Symbol "sub", xs); x]) ->
+    Apply(Symbol "mult", (List.map optimize xs)@[optimize x])
+  | Apply(Symbol s, ls) ->  Apply( Symbol s, (List.map optimize ls))
   | List(l) -> List(List.map optimize l)
   | Dict(d) -> Dict(List.map (fun (k, v) -> (optimize k, optimize v)) d)
   | Lambda(params, body) -> Lambda(params, optimize body)

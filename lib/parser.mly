@@ -5,6 +5,7 @@
 %token <string> SYMBOL
 %token <int> INTEGER
 %token <float> FLOAT
+%token CPLUS CMIN
 %token <string> STRING
 %token UNIT
 %token TRUE FALSE
@@ -13,7 +14,6 @@
 %token OR
 %token CONCATSTR
 %token CONCATLST
-%token IMAG
 %token PLUS
 %token MINUS
 %token TIMES
@@ -108,11 +108,11 @@ ast_expr:
   | e1 = ast_expr CONCATSTR e2 = ast_expr
   { ConcatStrings (e1, e2) }
   | e1 = ast_expr PLUS e2 = ast_expr
-  { Plus (e1, e2) }
+  { Apply(Symbol "add", [e1; e2]) }
   | e1 = ast_expr MINUS e2 = ast_expr
-  { Sub (e1, e2) }
+  { Apply(Symbol "sub", [e1; e2]) }
   | e1 = ast_expr TIMES e2 = ast_expr
-  { Mult (e1, e2) }
+  { Apply(Symbol "mult", [e1; e2]) }
   | e1 = ast_expr EQUAL e2 = ast_expr
   { Eq (e1, e2) }
   | e1 = ast_expr GREATER e2 = ast_expr
@@ -172,5 +172,8 @@ ast_simple_expr:
   { NumInt n }
   | n = FLOAT
   { NumFloat n }
-
+  | r = FLOAT CPLUS i = FLOAT
+  { NumComplex {Complex.re = r; Complex.im = i} }
+    | r = FLOAT CMIN i = FLOAT
+  { NumComplex {Complex.re = r; Complex.im = -1. *. i} }
 %%

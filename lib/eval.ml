@@ -57,9 +57,6 @@ let rec eval (e : expr) (opts : evalopts) : evt =
           (List.map (fun (x, y) -> isvalidkey (eval x opts, eval y opts)) l)
       in
       EvtDict el
-    | Plus (x, y) -> num_binop (eval x opts, eval y opts) ( + )
-    | Sub (x, y) -> num_binop (eval x opts, eval y opts) ( - )
-    | Mult (x, y) -> num_binop (eval x opts, eval y opts) ( * )
     | And (x, y) -> bool_binop (eval x opts, eval y opts) ( && )
     | Or (x, y) -> bool_binop (eval x opts, eval y opts) ( || )
     | Not x -> bool_unop (eval x opts) not

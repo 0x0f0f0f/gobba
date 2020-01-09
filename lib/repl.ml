@@ -79,9 +79,9 @@ let rec repl_loop opts  =
     loop ()
   with
   | End_of_file -> raise End_of_file
-  | Error err -> print_error err; loop ()
+  | Error err -> print_error err; repl_loop opts
   | Sys.Break -> prerr_endline "Interrupted.";
-  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); loop ()
+  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); repl_loop opts
 
 let repl opts =
   Sys.catch_break true;

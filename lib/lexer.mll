@@ -25,6 +25,8 @@ rule token = parse
   | '\n'        { Lexing.new_line lexbuf; token lexbuf }
   | int         { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
   | float       { FLOAT (float_of_string (Lexing.lexeme lexbuf))}
+  | ":+"        { CPLUS }
+  | ":-"        { CMIN }
   | "()"        { UNIT }
   | "true"      { TRUE }
   | "false"     { FALSE }
@@ -53,7 +55,6 @@ rule token = parse
   | "||"        { OR }
   | "^"         { CONCATSTR }
   | "@"         { CONCATLST }
-  | "i"         { IMAG }
   | "+"         { PLUS }
   | "-"         { MINUS }
   | "*"         { TIMES }

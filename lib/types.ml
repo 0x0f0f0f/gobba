@@ -20,10 +20,7 @@ type expr =
   | ConcatLists of expr * expr
   | ConcatStrings of expr * expr
   | Dict of (expr * expr) list
-  (* Numerical Operations *)
-  | Plus of expr * expr
-  | Sub of expr * expr
-  | Mult of expr * expr
+  (* Boolean Operations *)
   | Eq of expr * expr
   | Gt of expr * expr
   | Lt of expr * expr
@@ -85,13 +82,14 @@ and primitivet =
 
 
 (* Generate a list of parameter names to use in the primitive abstraction *)
-let generate_prim_params n = 
+let generate_prim_params n =
+  if n = 0 then ["..."] else
   Array.to_list(Array.make n 'a' |> Array.mapi (fun i c -> int_of_char c + i |> char_of_int |> Printf.sprintf "%c"))
 
 
 let rec show_unpacked_evt e = match e with
   | EvtInt v -> string_of_int v
-  | EvtFloat v -> Printf.sprintf "%e" v
+  | EvtFloat v -> Printf.sprintf "%f" v
   | EvtComplex n -> show_complext n
   | EvtBool v -> string_of_bool v
   | EvtString v -> "\"" ^ (String.escaped v) ^ "\""

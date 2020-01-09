@@ -23,6 +23,8 @@ let typecheck (x: evt) (t: string) = match x with
 (** Unpacking functions: extract a value or throw an err *)
 
 let unpack_int x = (match x with EvtInt i -> i | _ -> terr "int")
+let unpack_float x = (match x with EvtFloat i -> i | _ -> terr "float")
+let unpack_complex x = (match x with EvtComplex i -> i | _ -> terr "complex")
 let unpack_bool x = (match x with EvtBool i -> i | _ -> terr "bool")
 let unpack_string x = (match x with EvtString i -> i | _ -> terr "string")
 let unpack_list x = (match x with EvtList i -> i | _ -> terr "list")
