@@ -72,8 +72,18 @@ let sub args =
   | FFloat -> EvtFloat (unpack_float x -. unpack_float y)
   | FComplex -> EvtComplex (Complex.sub (unpack_complex x) (unpack_complex y))
 
+let div args =
+  let found, numlist = flattenNumList args in
+  let x, y = (match numlist with
+    | [x; y] -> (x, y)
+    | _ -> raise (WrongPrimitiveArgs)) in
+  match found with
+  | FInt -> EvtInt (unpack_int x / unpack_int y)
+  | FFloat -> EvtFloat (unpack_float x /. unpack_float y)
+  | FComplex -> EvtComplex (Complex.div (unpack_complex x) (unpack_complex y))
+
 
 let table = [
   ("flatnum", ((fun x -> flattenNumList x |> snd |> fun y -> EvtList y), 0));
-  ("add", (add, 0)); ("sub", (sub, 2)); ("mult", (mult, 0))
+  ("add", (add, 0)); ("sub", (sub, 2)); ("div", (div, 0)); ("mult", (mult, 0))
 ]

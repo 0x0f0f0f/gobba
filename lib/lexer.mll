@@ -58,11 +58,12 @@ rule token = parse
   | "+"         { PLUS }
   | "-"         { MINUS }
   | "*"         { TIMES }
+  | "/"         { DIV }
   | "="         { EQUAL }
   | ">"         { GREATER }
   | "<"         { LESS }
-  | ">="         { GREATEREQUAL }
-  | "<="         { LESSEQUAL }
+  | ">="        { GREATEREQUAL }
+  | "<="        { LESSEQUAL }
   | "not"       { NOT }
   | ">=>"       { PIPE }
   | ";"         { SEMI }

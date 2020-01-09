@@ -42,6 +42,7 @@ let rec compile (e : expr) : string =
   | Plus (x, y) -> int_binop (compile x ) (compile y ) "+"
   | Sub (x, y) ->  int_binop (compile x ) (compile y ) "-"
   | Mult (x, y) -> int_binop (compile x ) (compile y ) "*"
+  | Div (x, y) -> int_binop (compile x ) (compile y ) "/"
   | And (x, y) ->  bool_binop (compile x ) (compile y ) "+"
   | Or (x, y) ->  int_binop (compile x ) (compile y ) "+"
   | Not x -> bool_unop (compile x ) "!"

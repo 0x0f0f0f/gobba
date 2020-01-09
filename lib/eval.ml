@@ -61,6 +61,8 @@ let rec eval (e : expr) (opts : evalopts) : evt =
       prim [(eval x opts); (eval y opts)]
     | Sub (x, y) -> let prim = (fun x -> (fst (Dict.get "sub" Primitives.table)) x applyfun opts) in
       prim [(eval x opts); (eval y opts)]
+    | Div (x, y) -> let prim = (fun x -> (fst (Dict.get "div" Primitives.table)) x applyfun opts) in
+      prim [(eval x opts); (eval y opts)]
     | Mult (x, y) -> let prim = (fun x -> (fst (Dict.get "mult" Primitives.table)) x applyfun opts) in
       prim [(eval x opts); (eval y opts)]
     | And (x, y) -> bool_binop (eval x opts, eval y opts) ( && )

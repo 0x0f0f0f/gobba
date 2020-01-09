@@ -114,7 +114,7 @@ let test_pipe () =
   (EvtInt 56)
 
 let test_sequence () =
-  checkevalfail (Sequence([]));
+  checkeval (Sequence([])) EvtUnit;
   checkeval (Sequence([NumInt 1; NumInt 2])) (EvtInt 2)
 
 let test_lookup () =

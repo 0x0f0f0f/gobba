@@ -10,6 +10,7 @@ let rec optimize (e: expr) : expr = match e with
   | Plus(x, y) ->  Plus (optimize x, optimize y)
   | Sub(x, y) ->  Sub (optimize x, optimize y)
   | Mult(x, y) -> Mult (optimize x, optimize y)
+  | Div(x, y) -> Div (optimize x, optimize y)
   | Apply(Symbol s, ls) ->  Apply( Symbol s, (List.map optimize ls))
   | List(l) -> List(List.map optimize l)
   | Dict(d) -> Dict(List.map (fun (k, v) -> (optimize k, optimize v)) d)

@@ -50,7 +50,7 @@ module Dict = struct
     | ([], []) -> env
     | (i::ident_rest, v::value_rest) ->
       insertmany (insert env i v) ident_rest value_rest
-    | _ -> raise WrongBindList
+    | _ -> failwith "lists are not of equal length"
 end
 
 (** Helper function to take the first elements of a list *)

@@ -23,6 +23,7 @@ type expr =
   (* Numerical Operations *)
   | Plus of (expr * expr)
   | Sub of (expr * expr)
+  | Div of (expr * expr)
   | Mult of (expr * expr)
   (* Boolean Operations *)
   | Eq of expr * expr
@@ -144,8 +145,6 @@ type evalopts = {
 
 
 exception UnboundVariable of string
-exception TooManyArgs of string
-exception WrongBindList
 exception WrongPrimitiveArgs
 exception TypeError of string
 exception ListError of string

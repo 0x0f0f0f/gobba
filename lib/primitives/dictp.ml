@@ -6,7 +6,7 @@ open Util
 let insert_dict args =
   let (k, v, d) = (match args with
       | [k; v; d] -> (k, v, unpack_dict d)
-      | _ -> raise WrongBindList) in
+      | _ -> raise WrongPrimitiveArgs) in
   EvtDict (isvalidkey (k, v) :: (Dict.delete k d))
 
 

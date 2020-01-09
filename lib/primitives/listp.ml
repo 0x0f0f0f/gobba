@@ -2,14 +2,14 @@ open Types
 open Typecheck
 
 let head args  =
-  if List.length args > 1 then raise (TooManyArgs "head") else
+  if List.length args > 1 then raise WrongPrimitiveArgs else
     let ls= unpack_list (List.hd args) in
     (match ls with
      | [] -> raise (ListError "empty list")
      | v::_ -> v )
 
 let tail args =
-  if List.length args > 1 then raise (TooManyArgs "tail") else
+  if List.length args > 1 then raise WrongPrimitiveArgs else
     let ls= unpack_list (List.hd args) in
     (match ls with
      | [] -> raise (ListError "empty list")
@@ -18,7 +18,7 @@ let tail args =
 let mem args =
   let (elem, ls)= (match args with
       | [elem; ls] -> (elem, unpack_list ls)
-      | _ -> raise WrongBindList) in
+      | _ -> raise WrongPrimitiveArgs) in
   EvtBool(List.mem elem ls)
 
 let table = [

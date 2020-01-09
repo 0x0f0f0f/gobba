@@ -17,6 +17,7 @@
 %token PLUS
 %token MINUS
 %token TIMES
+%token DIV
 %token EQUAL
 %token GREATER GREATEREQUAL LESS LESSEQUAL
 %token IF THEN ELSE
@@ -43,7 +44,9 @@
 %nonassoc IF
 %left PLUS MINUS
 %left TIMES
+%left DIV
 %left PIPE
+
 
 %start file
 %type <Types.command list> file
@@ -113,6 +116,8 @@ ast_expr:
   { Sub (e1, e2) }
   | e1 = ast_expr TIMES e2 = ast_expr
   { Mult (e1, e2) }
+  | e1 = ast_expr DIV e2 = ast_expr
+  { Div (e1, e2) }
   | e1 = ast_expr EQUAL e2 = ast_expr
   { Eq (e1, e2) }
   | e1 = ast_expr GREATER e2 = ast_expr
