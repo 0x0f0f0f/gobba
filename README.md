@@ -181,7 +181,7 @@ unsafe $ good_function "hello!" ;;
 ```
 
 In the above example, you can clearly see how both the good and bad functions
-return the same result, but the bad one is clearly less concise and complex
+have the same goal, but the bad one is clearly less concise and complex
 compared to the "good" one. You can mix `unsafe` and `safe` how you like, but
 the suggestion is to move them as "outside" as you can, towards the toplevel
 and not inside nested expressions
