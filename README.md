@@ -161,7 +161,7 @@ possible, and to avoid using it inside of function bodies. This means keeping
 your code as purely functional as you can.
 ```ocaml
 (* Let's enable safeness globally *)
-safe
+safe ;;
 
 (* BAD STYLE! *)
 let bad_function = fun x ->
