@@ -21,7 +21,6 @@ let rec compile (e : expr) : string =
   | Unit -> "null"
   | NumInt n -> string_of_int n
   | NumFloat n -> string_of_float n
-  | NumComplex _ -> dummy
   | Boolean b -> string_of_bool b
   | String s -> "\"" ^ s ^ "\""
   | Symbol x -> x
@@ -57,9 +56,7 @@ let rec compile (e : expr) : string =
     compile alt ^ ")"
   | Let (assignments, body) ->
     "{\n" ^ compile_assignments assignments ^ "(" ^ compile body  ^ ")\n}"
-  | Letlazy (_, _) -> dummy
   | Letrec (ident, value, body) -> compile (Let([(ident, value)], body))
-  | Letreclazy (_, _, _) -> dummy
   | Lambda (params, body) ->
     "R.curry((" ^ String.concat ", " params ^") => " ^
     (compile body ) ^ ")"
@@ -70,7 +67,7 @@ let rec compile (e : expr) : string =
     "{ " ^ String.concat "; " (List.map (fun x -> compile x ) exprl) ^ " }"
   (* Pipe two functions together, creating a new function
      That uses the first functions's result as the second's first argument *)
-  | Pipe (_, _) -> dummy
+  | _ -> dummy
 and tuple elems  =
   "(" ^ (String.concat "," (List.map (fun x -> compile x ) elems)) ^ ")"
 and compile_assignments ass =
@@ -85,6 +82,6 @@ let rec compile_cmdlist cmdlist = match cmdlist with
   | x::xs -> (match x with
       | Def(assignments) -> "{ " ^ compile_assignments assignments ^ compile_cmdlist xs ^ "}"
       | Defrec(assignments) -> "{ " ^ compile_assignments assignments ^ compile_cmdlist xs ^ "}"
-      | Expr(e) -> compile (Optimizer.optimize e))
-
+      | Expr(e) -> compile (Optimizer.optimize e)
+      | _ -> dummy)
 let compile_program p = compile_cmdlist p

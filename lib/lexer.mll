@@ -42,6 +42,8 @@ rule token = parse
   | "rec"       { REC }
   | "->"        { LARROW }
   | "in"        { IN }
+  | "safe"      { SAFE }
+  | "unsafe"    { UNSAFE }
   | "["         { LSQUARE }
   | "]"         { RSQUARE }
   | "("         { LPAREN }
@@ -67,6 +69,7 @@ rule token = parse
   | "<="        { LESSEQUAL }
   | "not"       { NOT }
   | ">=>"       { PIPE }
+  | "$"         { DOLLAR }
   | ";"         { SEMI }
   | ";;"        { SEMISEMI }
   | symbol      { SYMBOL (Lexing.lexeme lexbuf) }

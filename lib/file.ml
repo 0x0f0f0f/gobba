@@ -23,8 +23,8 @@ let parser = Parser.file Lexer.token
 
 let rec run_file_list cmdlst opts = match cmdlst with
   | x::xs ->
-    let result, newenv = Repl.run_one x opts in
-    [result]::run_file_list xs {opts with env = newenv}
+    let result, newopts = Repl.run_one x opts in
+    [result]::run_file_list xs newopts
   | [] -> []
 
 let run_file fn opts =

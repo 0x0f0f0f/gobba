@@ -35,6 +35,10 @@ let run_one command opts =
       "AST equivalent" "\n%s"
       (show_command command) else ();
   match command with
+  | Topsafeness s ->
+    print_endline ("Unsafe primitives are now globally " ^ (if s then "disabled"
+    else "enabled") ^ "!");
+    (EvtUnit, { opts with safeness = s })
   | Expr e ->
     let optimized_ast = iterate_optimizer e in
     if optimized_ast = e then () else
@@ -44,36 +48,38 @@ let run_one command opts =
     if opts.verbosity >= 1 then print_message ~color:T.Green ~loc:(Nowhere) "Result"
         "\t%s" (show_evt evaluated) else ();
     if opts.printresult then print_endline (show_unpacked_evt evaluated) else ();
-    (evaluated,opts.env)
+    (evaluated, opts)
   | Def dl ->
     let (idel, vall) = unzip dl in
     let ovall = (List.map (iterate_optimizer) vall) in
     if ovall = vall then () else
     if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
         (show_command (Def(zip idel ovall))) else ();
-    (EvtUnit, Dict.insertmany opts.env idel (List.map
-                                      (fun x -> AlreadyEvaluated (eval x opts)) ovall))
+    let newenv = Dict.insertmany opts.env idel
+        (List.map (fun x -> AlreadyEvaluated (eval x opts)) ovall) in
+    (EvtUnit, { opts with env = newenv } )
   | Defrec dl ->
     let odl = (List.map (fun (i,v) -> (i, iterate_optimizer v)) dl) in
     if dl = odl then () else
     if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
         (show_command (Def(odl))) else ();
-    (EvtUnit, Dict.insertmany opts.env (fst (unzip odl))
-       (List.map
-          (fun (ident, value) ->
-             (match value with
-              | Lambda (params, fbody) ->
-                let rec_env = (Dict.insert opts.env ident
-                                 (AlreadyEvaluated (RecClosure(ident, params, fbody, opts.env))))
-                in AlreadyEvaluated (RecClosure(ident, params, fbody, rec_env))
-              | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
-          ) dl))
+    let newenv = Dict.insertmany opts.env (fst (unzip odl))
+        (List.map
+           (fun (ident, value) ->
+              (match value with
+               | Lambda (params, fbody) ->
+                 let rec_env = (Dict.insert opts.env ident
+                                  (AlreadyEvaluated (RecClosure(ident, params, fbody, opts.env))))
+                 in AlreadyEvaluated (RecClosure(ident, params, fbody, rec_env))
+               | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
+           ) dl) in
+    (EvtUnit, { opts with env = newenv } )
 
 let rec repl_loop opts  =
   let loop () =
     let cmd = read_toplevel (wrap_syntax_errors parser) () in
-    let _, newenv = run_one cmd opts in
-    let _ = repl_loop {opts with env = newenv} in ()
+    let _, newopts = run_one cmd opts in
+    let _ = repl_loop newopts in ()
   in
   try
     loop ()

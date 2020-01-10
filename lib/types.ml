@@ -9,6 +9,7 @@ type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
 (** The type representing Abstract Syntax Tree expressions *)
 type expr =
   | Unit
+  | Safeness of bool * expr
   | NumInt of int
   | NumFloat of float
   | NumComplex of complext
@@ -53,6 +54,7 @@ type command =
   | Expr of expr
   | Def of (ide * expr) list
   | Defrec of (ide * expr) list
+  | Topsafeness of bool
 [@@deriving show { with_path = false }, eq, ord]
 
 (** A purely functional environment type, parametrized *)
@@ -134,16 +136,17 @@ let depth_of_stack (s: stackframe) = match s with
   | StackValue(d, _, _) -> d
   | EmptyStack -> 0
 
-
+(** Options for the eval function *)
 type evalopts = {
   env: env_type;
   verbosity: int;
   stack: stackframe;
   printresult: bool;
+  safeness: bool
 }
 
 
-
+(** Exceptions *)
 exception UnboundVariable of string
 exception WrongPrimitiveArgs
 exception TypeError of string
@@ -151,3 +154,4 @@ exception ListError of string
 exception DictError of string
 exception SyntaxError of string
 exception FileNotFoundError of string
+exception UnallowedUnsafe of string

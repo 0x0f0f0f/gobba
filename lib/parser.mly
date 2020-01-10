@@ -32,6 +32,8 @@
 %token AND
 %token LET LAZY REC IN
 %token PIPE
+%token SAFE UNSAFE
+%token DOLLAR
 %token SEMISEMI
 %token EOF
 
@@ -76,18 +78,17 @@ def:
     { Defrec a }
 
 toplevel:
-  | l = separated_list(SEMI, ast_expr) EOF
+  | l = separated_list(SEMI, ast_expr) SEMISEMI? EOF
   { Expr(Sequence(l)) }
-  | l = separated_list(SEMI, ast_expr) SEMISEMI
-  { Expr(Sequence(l)) }
-  | d = def SEMISEMI
+  | d = def SEMISEMI? EOF
   { d }
-  | d = def EOF
-  { d }
-  | d = ast_expr SEMISEMI
+  | d = ast_expr SEMISEMI? EOF
   { Expr d }
-  | d = ast_expr EOF
-  { Expr d }
+  | UNSAFE SEMISEMI? EOF
+  { Topsafeness false }
+  | SAFE SEMISEMI? EOF
+  { Topsafeness false }
+
 
 assignment:
   | name = SYMBOL EQUAL value = ast_expr
@@ -163,8 +164,14 @@ ast_simple_expr:
   { Symbol var }
   | UNIT
   { Unit }
+  | DOLLAR e = ast_expr
+  { e }
   | LPAREN e = ast_expr RPAREN
   { e }
+  | SAFE e = ast_expr
+  { Safeness (true, e)}
+  | UNSAFE e = ast_expr
+  { Safeness (false, e)}
   | l = delimited(LSQUARE, separated_list(SEMI, ast_expr), RSQUARE)
   { List l }
   | l = delimited(LBRACKET, separated_list(COMMA, dict_value), RBRACKET)

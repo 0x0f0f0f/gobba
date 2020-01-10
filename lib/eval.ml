@@ -4,12 +4,7 @@ open Util
 open Typecheck
 module T = ANSITerminal
 
-(** Numerical Primitives *)
-
-(*//TODO fix *)
-let num_binop (x, y) (op : int -> int -> int) =
-  let a = unpack_int x and b = unpack_int y in
-  EvtInt (op a b)
+(** Boolean Primitives *)
 
 let bool_binop (x, y) (op : bool -> bool -> bool) =
   let a = unpack_bool x and b = unpack_bool y in
@@ -36,6 +31,7 @@ let rec eval (e : expr) (opts : evalopts) : evt =
   let evaluated =
     match e with
     | Unit -> EvtUnit
+    | Safeness (s, ee) -> eval ee { opts with safeness = s }
     | NumInt n -> EvtInt n
     | NumFloat n -> EvtFloat n
     | NumComplex n -> EvtComplex n
@@ -57,13 +53,13 @@ let rec eval (e : expr) (opts : evalopts) : evt =
           (List.map (fun (x, y) -> isvalidkey (eval x opts, eval y opts)) l)
       in
       EvtDict el
-    | Plus (x, y) -> let prim = (fun x -> (fst (Dict.get "add" Primitives.table)) x applyfun opts) in
+    | Plus (x, y) -> let prim = (fun x -> (Primitives.getfun "add") x applyfun opts) in
       prim [(eval x opts); (eval y opts)]
-    | Sub (x, y) -> let prim = (fun x -> (fst (Dict.get "sub" Primitives.table)) x applyfun opts) in
+    | Sub (x, y) -> let prim = (fun x -> (Primitives.getfun "sub") x applyfun opts) in
       prim [(eval x opts); (eval y opts)]
-    | Div (x, y) -> let prim = (fun x -> (fst (Dict.get "div" Primitives.table)) x applyfun opts) in
+    | Div (x, y) -> let prim = (fun x -> (Primitives.getfun "div") x applyfun opts) in
       prim [(eval x opts); (eval y opts)]
-    | Mult (x, y) -> let prim = (fun x -> (fst (Dict.get "mult" Primitives.table)) x applyfun opts) in
+    | Mult (x, y) -> let prim = (fun x -> (Primitives.getfun "mult") x applyfun opts) in
       prim [(eval x opts); (eval y opts)]
     | And (x, y) -> bool_binop (eval x opts, eval y opts) ( && )
     | Or (x, y) -> bool_binop (eval x opts, eval y opts) ( || )
@@ -150,7 +146,11 @@ let rec eval (e : expr) (opts : evalopts) : evt =
 
 (* Search for a value in the primitives table and environment *)
 and lookup (ident : ide) (opts : evalopts) : evt =
-  if Dict.exists ident Primitives.table then
+  if Dict.exists ident Primitives.unsafe_table then
+    (if opts.safeness then raise (UnallowedUnsafe ident)
+     else let _, numargs = Dict.get ident Primitives.unsafe_table in
+       PrimitiveAbstraction (ident, numargs, opts.env))
+  else if Dict.exists ident Primitives.table then
     let _, numargs = Dict.get ident Primitives.table in
     PrimitiveAbstraction (ident, numargs, opts.env)
   else lookup_env ident opts
@@ -220,6 +220,6 @@ and applyfun (closure : evt) (args : type_wrapper list) (opts : evalopts) : evt 
       Closure (missing_args, Apply (Symbol name, symprimargs), app_env)
     else
       (* Apply the primitive *)
-      let prim = (fun x -> (fst (Dict.get name Primitives.table)) x applyfun opts) in
+      let prim = (fun x -> (fst (Dict.get name Primitives.fulltable)) x applyfun opts) in
       prim evtargs
   | _ -> raise (TypeError "Cannot apply a non functional value")

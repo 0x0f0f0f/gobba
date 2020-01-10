@@ -7,7 +7,8 @@ let run_minicaml verbose program printresult javascript prelude =
     env = (Util.Dict.empty());
     verbosity = verbose;
     stack = EmptyStack;
-    printresult = printresult
+    printresult = printresult;
+    safeness = true;
   } in
   match program with
   | None -> Repl.repl {opts with printresult = true}

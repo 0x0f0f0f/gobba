@@ -4,6 +4,9 @@
   number solution for Javascript).
 - Full numerical tower comprising Integer (Natural) numbers, Floating Point (Real) numbers and
   Complex numbers, with dynamic number-type infering arithmetical primitives.
+- Switch between safe and unsafe primitives.
+- Simple I/O primitives for printing.
+- More examples and features descriptions in the README file.
 
 ## 0.3.2 2019-01-03
 ### Added 
