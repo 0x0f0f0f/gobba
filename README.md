@@ -199,6 +199,16 @@ f $ g $ h $ i 1 2 3
 ### Function pipes (reverse composition)
 You can redirect the result of a function to the first argument of another
 function using the `>=>` operator.
+```ocaml
+let sum_and_add_one = (fun x y -> x + y) >=> (fun z -> z + 1) ;;
+sum_and_add_one 2 3 (* Will output 6, because 2 + 3 is piped into z + 1*)
+```
+Yields the same result as normal composition:
+```
+let my_sum = (fun x y -> x + y) ;;
+let add_one = (fun z -> z + 1) ;;
+add_one (mysum 2 3)
+```
 
 ### Dictionaries
 ```ocaml
