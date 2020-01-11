@@ -9,7 +9,8 @@ let wrapprim table =
 let table: (string * ((evt list -> (evt -> type_wrapper list -> evalstate -> evt) -> evalstate -> evt) * int)) list
   = (wrapprim Numerical.table) @ (wrapprim Dictp.table)
   @ (wrapprim Listp.table) @ (wrapprim Stringp.table) @ Special.table
-
+  @ (wrapprim Typep.table)
+  
 let impure_table: (string * ((evt list -> (evt -> type_wrapper list -> evalstate -> evt) -> evalstate -> evt) * int)) list
   = (wrapprim Iop.table)
 

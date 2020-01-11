@@ -33,6 +33,7 @@ rule token = parse
   | '"'         { read_string (Buffer.create 17) lexbuf }
   | "fun"       { LAMBDA }
   | "lambda"    { LAMBDA }
+  | "λ"         { LAMBDA }
   | "if"        { IF }
   | "then"      { THEN }
   | "else"      { ELSE }

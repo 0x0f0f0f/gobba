@@ -3,14 +3,14 @@ type ide = string
 [@@deriving show, eq, ord]
 
 (** A type wrapper for complex numbers where equality, ordering
-and showing are defined *)
+    and showing are defined *)
 type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
-"%f+%fi" n.re n.im] [@equal (=)] [@compare compare]
+                    "%f+%fi" n.re n.im] [@equal (=)] [@compare compare]
 [@@deriving show { with_path = false }, eq, ord]
 
 (** A type representing if a computation is pure or not  *)
 type puret = Uncertain | Pure | Impure [@@deriving show { with_path = false },
-eq, ord]
+                                                   eq, ord]
 
 (** The type representing Abstract Syntax Tree expressions *)
 type expr =
@@ -65,6 +65,7 @@ type command =
 (** A purely functional environment type, parametrized *)
 type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }, eq, ord]
 
+
 (** A type that represents an evaluated (reduced) value *)
 type evt =
   | EvtUnit
@@ -91,12 +92,35 @@ and type_wrapper =
 and primitivet =
   (ide * int * (type_wrapper env_t) * puret)
 [@@deriving show { with_path = false }]
+(** A type containing information about types *)
+and typeinfo =
+  | TUnit
+  | TBool
+  | TNumber
+  | TInt
+  | TFloat
+  | TComplex
+  | TString
+  | TList
+  | TDict
+  | TLambda
 
+let show_tinfo t = match t with
+  | TUnit   -> "unit"
+  | TBool   -> "bool"
+  | TNumber -> "number"
+  | TInt    -> "int"
+  | TFloat  -> "float"
+  | TComplex -> "complex"
+  | TString -> "string"
+  | TList -> "list"
+  | TDict -> "dict"
+  | TLambda -> "fun"
 
 (* Generate a list of parameter names to use in the primitive abstraction *)
 let generate_prim_params n =
   if n = 0 then ["..."] else
-  Array.to_list(Array.make n 'a' |> Array.mapi (fun i c -> int_of_char c + i |> char_of_int |> Printf.sprintf "%c"))
+    Array.to_list(Array.make n 'a' |> Array.mapi (fun i c -> int_of_char c + i |> char_of_int |> Printf.sprintf "%c"))
 
 
 let rec show_unpacked_evt e = match e with
@@ -107,7 +131,7 @@ let rec show_unpacked_evt e = match e with
   | EvtBool v -> string_of_bool v
   | EvtString v -> "\"" ^ (String.escaped v) ^ "\""
   | EvtList l -> "[" ^ (String.concat "; " (List.map show_unpacked_evt l)) ^ "]"
-  | EvtDict d -> "{" ^ 
+  | EvtDict d -> "{" ^
                  (String.concat ", " 
                     (List.map (fun (x,y) -> show_unpacked_evt x ^ ":" ^ show_unpacked_evt y) d)) 
                  ^ "}"
