@@ -88,14 +88,3 @@ let table = [
   ("foldl", (foldl, 3));
   ("filter", (filter, 2));
 ]
-
-let js = {|
-const map = R.map;
-function map2 (fn, list1, list2) {
-  if(list1.length != list2.length) { throw "lists have different length" }
-  if(R.isEmpty(list1) && R.isEmpty(list2)) return [];
-  return R.concat([fn(head(list1), head(list2))], (map2(fn, tail(list1), tail(list2))))
-}
-const foldl = R.reduce;
-const filter = R.filter;
-|}

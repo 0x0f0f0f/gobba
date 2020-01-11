@@ -174,7 +174,6 @@ type evalstate = {
   purity: puret;
 }
 
-
 (** Exceptions *)
 exception UnboundVariable of string
 exception WrongPrimitiveArgs

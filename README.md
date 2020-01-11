@@ -1,4 +1,4 @@
-![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml2)
+![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master)
 # minicaml 
 
 **minicaml** is a small, purely functional interpreted programming language. I

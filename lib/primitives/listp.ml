@@ -26,9 +26,3 @@ let table = [
   ("tail", (tail, 1));
   ("mem", (mem, 2))
 ]
-
-let js = {|
-const head = R.head;
-const tail = R.tail;
-const mem = R.includes;
-|}

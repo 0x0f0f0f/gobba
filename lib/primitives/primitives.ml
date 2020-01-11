@@ -16,6 +16,4 @@ let impure_table: (string * ((evt list -> (evt -> type_wrapper list -> evalstate
 
 let fulltable = impure_table @ table
 
-let jsprelude =  Dictp.js ^ Listp.js ^ Special.js
-
 let getfun f = (fst (Dict.get f table))

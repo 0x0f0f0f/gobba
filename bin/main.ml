@@ -16,10 +16,10 @@ let run_minicaml verbose program printresult javascript prelude =
     then
       let jscode = File.compile_file name in
       print_string (match prelude with
-        | "no" -> jscode
-        | "prim" -> (Primitives.jsprelude) ^ jscode
-        | "lib" ->  "{" ^ Ramda.ramda ^ "}" ^ (Primitives.jsprelude) ^ jscode
-        | _ -> failwith "Invalid prelude type: " ^ prelude)
+          | "no" -> jscode
+          | "prim" -> (Primitives.jsprelude) ^ jscode
+          | "lib" ->  "{" ^ Ramda.ramda ^ "}" ^ (Primitives.jsprelude) ^ jscode
+          | _ -> failwith "Invalid prelude type: " ^ prelude)
     else let _ = File.run_file name state in ()
 
 let verbose =
@@ -47,16 +47,13 @@ let program =
   Arg.(value & pos 0 (some string) None & info [] ~docv:"PROGRAM_FILE" ~doc)
 
 let run_minicaml_t = Term.(const run_minicaml $ verbose $ program $ print_exprs
-$ javascript $ prelude)
+                           $ javascript $ prelude)
 
 let info =
-  let doc = "a small, purely functional interpreted programming language " ^
-            "with a didactical purpose. It is based on the Prof. Gianluigi Ferrari and " ^
-            "Prof. Francesca Levi's minicaml, an evaluation example to show students " ^
-            "attending the Programming 2 course at the University of Pisa how interpreters " ^
-            "work. It is an interpreted language with a Caml-like syntax, featuring " ^
-            "interchangeable eager and lazy evaluation, a didactical REPL " ^
-            "that shows each AST expression and each evaluation step. " in
+  let doc =  String.map (fun c -> if c = '\n' then ' ' else c )
+      {| minicaml is a small, purely functional interpreted programming language. Parsing
+and lexing are done with menhir and ocamllex The REPL can show each reduction
+step that is done in evaluating an expression.|} in
   let man = [
     `S Manpage.s_bugs;
     `P "Email bug reports to <sudo-woodo3@protonmail.com>"

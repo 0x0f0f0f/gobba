@@ -48,11 +48,3 @@ let table = [
   ("getkey", (getkey, 2));
   ("filterkeys", (filterkeys, 2))
 ]
-
-let js = {|
-const insert = R.assoc;
-const remove = R.dissoc;
-const haskey = R.has;
-const getkey = R.prop;
-const filterkeys = R.pick;
-|}
