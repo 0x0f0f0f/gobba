@@ -1,7 +1,6 @@
 open Types
 open Eval
 open Util
-open Interface
 open Optimizer
 
 let read_one parser str =
@@ -69,13 +68,13 @@ let run_one command state =
                  let rec_env = (Dict.insert state.env ident
                                   (AlreadyEvaluated (RecClosure(ident, params, fbody, state.env))))
                  in AlreadyEvaluated (RecClosure(ident, params, fbody, rec_env))
-               | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
+               | _ -> traise "Cannot define recursion on non-functional values")
            ) dl) in
     (EvtUnit, { state with env = newenv } )
 
 let rec repl_loop state  =
   let loop () =
-    let cmd = read_toplevel (wrap_syntax_errors parser) () in
+    let cmd = read_toplevel parser () in
     let _, newstate = run_one cmd state in
     let _ = repl_loop newstate in ()
   in
@@ -83,9 +82,9 @@ let rec repl_loop state  =
     loop ()
   with
   | End_of_file -> raise End_of_file
-  | Error err -> print_error err; repl_loop state
+  | InternalError err -> print_error err; repl_loop state
   | Sys.Break -> prerr_endline "Interrupted."; repl_loop state
-  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); repl_loop state
+  | e -> print_error (Nowhere, (Fatal (Printexc.to_string e))); repl_loop state
 
 let repl state =
   Sys.catch_break true;

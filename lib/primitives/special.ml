@@ -6,7 +6,7 @@ open Util
 (** Map a function over an iterable structure *)
 let map args applyfun state =
   let f, s =
-    match args with [ f; s ] -> (f, s) | _ -> raise WrongPrimitiveArgs
+    match args with [ f; s ] -> (f, s) | _ -> iraise WrongPrimitiveArgs
   in
   stcheck (typeof f) TLambda;
   match s with
@@ -26,7 +26,7 @@ let map2 args applyfun state =
   let f, s1, s2 =
     match args with
     | [ f; s1; s2 ] -> (f, s1, s2)
-    | _ -> raise WrongPrimitiveArgs
+    | _ -> iraise WrongPrimitiveArgs
   in
   stcheck (typeof f) TLambda;
   match s1 with
@@ -43,7 +43,7 @@ let foldl args applyfun state =
   let f, a, s =
     match args with
     | [ f; ac; s ] -> (f, ac, s)
-    | _ -> raise WrongPrimitiveArgs
+    | _ -> iraise WrongPrimitiveArgs
   in
   stcheck (typeof f) TLambda;
   match s with
@@ -64,7 +64,7 @@ let filter args applyfun state =
   let p, s =
     match args with
     | [ p; s ] -> (p, s)
-    | _ -> raise WrongPrimitiveArgs
+    | _ -> iraise WrongPrimitiveArgs
   in
   stcheck (typeof p) TLambda;
   match s with

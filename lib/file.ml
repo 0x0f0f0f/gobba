@@ -1,23 +1,22 @@
-open Interface
 open Types
 
 (** Parse the contents from a file, using a given [parser]. *)
 let read_file parser fn =
   try
-    if not (Sys.file_exists fn) then raise (FileNotFoundError fn) else
+    if not (Sys.file_exists fn) then iraise (FileNotFoundError fn) else
       let fh = open_in fn in
       let lex = Lexing.from_channel fh in
       lex.Lexing.lex_curr_p <- {lex.Lexing.lex_curr_p with Lexing.pos_fname = fn};
       try
-        let terms = wrap_syntax_errors parser lex in
+        let terms = parser lex in
         close_in fh;
         terms
       with
       (* Close the file in case of any parsing errors. *)
-        Error err -> close_in fh ; raise (Error err)
+        e -> close_in fh ; iraise (SyntaxError (Printexc.to_string e))
   with
   (* Any errors when opening or closing a file are fatal. *)
-    Sys_error msg -> fatal_error "%s" msg
+    Sys_error msg -> iraise (Fatal msg)
 
 let parser = Parser.file Lexer.token
 
@@ -31,9 +30,6 @@ let run_file fn state =
   try
   run_file_list (read_file parser fn) state
   with
-  | Error err -> print_error err; []
+  | InternalError err -> print_error err; []
   | Sys.Break -> prerr_endline "Interrupted."; []
-  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); []
-
-let compile_file fn =
-  (Jscompiler.compile_program (read_file parser fn)) ^ "\n"
+  | e -> print_error (Nowhere, Fatal (Printexc.to_string e)); []

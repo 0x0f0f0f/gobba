@@ -1,3 +1,5 @@
+module T = ANSITerminal
+
 (** A value identifier*)
 type ide = string
 [@@deriving show, eq, ord]
@@ -174,12 +176,66 @@ type evalstate = {
   purity: puret;
 }
 
+type location =
+  | Location of Lexing.position * Lexing.position (** delimited location *)
+  | Nowhere (** no location *)
+
+let location_of_lex lex =
+  Location (Lexing.lexeme_start_p lex, Lexing.lexeme_end_p lex)
+
 (** Exceptions *)
-exception UnboundVariable of string
-exception WrongPrimitiveArgs
-exception TypeError of string
-exception ListError of string
-exception DictError of string
-exception SyntaxError of string
-exception FileNotFoundError of string
-exception PurityError of string
+type internalerrort =
+  | Fatal of string
+  | WrongPrimitiveArgs
+  | TypeError of string
+  | UnboundVariable of string
+  | ListError of string
+  | DictError of string
+  | FileNotFoundError of string
+  | PurityError of string
+  | SyntaxError of string
+[@@deriving show { with_path = false }]
+
+(** Exception [Error (loc, err, msg)] indicates an error of type [err] with error message
+    [msg], occurring at location [loc]. *)
+exception InternalError of (location * internalerrort)
+
+(** Utility function to raise a syntax error quickly *)
+let sraise l msg = raise (InternalError ((location_of_lex l), SyntaxError msg))
+
+(** Utility function to raise an internal error without a location*)
+let iraise e = raise (InternalError (Nowhere, e))
+
+(** Utility function to raise a type error without a location*)
+let traise msg = raise (InternalError (Nowhere, TypeError msg))
+
+
+let print_location loc ppf =
+  match loc with
+  | Nowhere ->
+    Format.fprintf ppf "unknown location"
+  | Location (begin_pos, end_pos) ->
+    let begin_char = begin_pos.Lexing.pos_cnum - begin_pos.Lexing.pos_bol in
+    let end_char = end_pos.Lexing.pos_cnum - begin_pos.Lexing.pos_bol in
+    let begin_line = begin_pos.Lexing.pos_lnum in
+    let filename = begin_pos.Lexing.pos_fname in
+
+    if String.length filename != 0 then
+      Format.fprintf ppf "file %S, line %d, charaters %d-%d" filename begin_line begin_char end_char
+    else
+      Format.fprintf ppf "line %d, characters %d-%d" (begin_line - 1) begin_char end_char
+
+(** Print a message at a given location [loc] of message type [msg_type]. *)
+let print_message ?color:(color=T.Default) ?(loc=Nowhere) msg_type =
+  match loc with
+  | Location _ ->
+    T.eprintf [T.Foreground color] "%s" (Format.asprintf "%s at %t:@\n" msg_type (print_location loc));
+    Format.kfprintf (fun ppf -> Format.fprintf ppf "@.") Format.err_formatter
+  | Nowhere ->
+    T.eprintf [T.Foreground color] "%s: " msg_type ;
+    Format.kfprintf (fun ppf -> Format.fprintf ppf "@.") Format.err_formatter
+
+(** Print the caught error *)
+let print_error (loc, err) = print_message ~color:T.Red ~loc "Error" "%s" (show_internalerrort err)
+
+

@@ -1,6 +1,6 @@
 open Types
 
-let terr e f = raise (TypeError ("expected a value of type: " ^ e ^ ", found a value of type: " ^ f ))
+let terr e f = traise ("expected a value of type: " ^ e ^ ", found a value of type: " ^ f )
 
 let typeof e = match e with
   | EvtUnit -> TUnit
@@ -31,14 +31,14 @@ let isvalidkey (x, y) = ((match x with
     | EvtInt _ -> x
     | EvtBool _ -> x
     | EvtString _ -> x
-    | _ -> failwith "value not allowed as dictionary key"), y)
+    | _ -> traise "value not allowed as dictionary key"), y)
 
 let rec infer_numbert low ls = match ls with
   | [] -> low
   | (EvtComplex _)::_ -> TComplex
   | (EvtInt _)::xs -> infer_numbert low xs
   | (EvtFloat _)::xs -> infer_numbert TFloat xs
-  | (_)::_ -> raise (TypeError "value is not a number in arithmetical operator")
+  | (_)::_ -> traise "value is not a number in arithmetical operator"
 
 let cast_numbert lowerto num = match lowerto with
   | TInt -> num
@@ -46,13 +46,13 @@ let cast_numbert lowerto num = match lowerto with
       | EvtInt x -> EvtFloat(float_of_int x)
       | EvtFloat x -> EvtFloat x
       | EvtComplex x -> EvtComplex x
-      | _ -> raise (TypeError "not a number"))
+      | _ -> traise "not a number")
   | TComplex -> (match num with
       | EvtInt x -> EvtComplex {re = float_of_int x; im = 0.}
       | EvtFloat x -> EvtComplex {re = x; im = 0.}
       | EvtComplex x -> EvtComplex x
-      | _ -> raise (TypeError "not a number"))
-  | _ -> raise (TypeError "cannot cast to a non-numerical type")
+      | _ -> traise "not a number")
+  | _ -> traise "cannot cast to a non-numerical type"
 
 (** Accept a list of numbers and flatten out their
     kind on the numerical tower hierarchy *)
@@ -93,7 +93,7 @@ let rec sinfer (e: expr) : typeinfo = match e with
     (stcheck (sinfer a) TNumber);
     (stcheck (sinfer b) TNumber);
     TNumber
-  | _ -> raise (TypeError "Could not infer type!")
+  | _ -> traise "Could not infer type!"
 
 (** Unpacking functions: extract a value or throw an err *)
 

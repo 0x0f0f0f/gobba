@@ -5,4 +5,4 @@ let rec hanoi = fun n a b c ->
     hanoi (n - 1) c b a
   ) else ();;
 
-impure $ hanoi 4 1 2 3;;
+impure $ hanoi 10 1 2 3;;

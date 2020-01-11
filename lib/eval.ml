@@ -1,5 +1,4 @@
 open Types
-open Interface
 open Util
 open Typecheck
 module T = ANSITerminal
@@ -15,7 +14,7 @@ let bool_unop x (op : bool -> bool) =
   EvtBool (op a)
 
 let uniqueorfail l =
-  if Dict.dup_exists l then raise (DictError "Duplicate key in dictionary")
+  if Dict.dup_exists l then iraise (DictError "Duplicate key in dictionary")
   else l
 
 (** Evaluate an expression in an environment *)
@@ -33,7 +32,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
     | Unit -> EvtUnit
     | Purity (n, ee) ->
       if state.purity = Pure && n = Impure then
-          raise (PurityError "Cannot enter an impure contest from a strictly pure one")
+          iraise (PurityError "Cannot enter an impure contest from a strictly pure one")
       else eval ee { state with purity = n }
     | NumInt n -> EvtInt n
     | NumFloat n -> EvtFloat n
@@ -97,7 +96,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
           in
           eval body { state with env = rec_env }
         | _ ->
-          raise (TypeError "Cannot define recursion on non-functional values")
+          traise "Cannot define recursion on non-functional values"
       )
     | Letreclazy (ident, value, body) -> (
         match value with
@@ -105,7 +104,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
           let rec_env = Dict.insert state.env ident (LazyExpression value) in
           eval body { state with env = rec_env }
         | _ ->
-          raise (TypeError "Cannot define recursion on non-functional values")
+          traise "Cannot define recursion on non-functional values"
       )
     | Lambda (params, body) -> Closure (params, body, state.env)
     (* Function Application *)
@@ -157,7 +156,7 @@ and lookup_env (ident : ide) (state : evalstate) : evt =
   if ident = "" then failwith "invalid identifier"
   else
     match state.env with
-    | [] -> raise (UnboundVariable ident)
+    | [] -> iraise (UnboundVariable ident)
     | (i, LazyExpression e) :: env_rest ->
       if ident = i then eval e state
       else lookup_env ident { state with env = env_rest }
@@ -218,9 +217,9 @@ and applyfun (closure : evt) (args : type_wrapper list) (state : evalstate) : ev
     else
       (* Apply the primitive *)
     if state.purity = Pure || state.purity = Uncertain && ispure = Impure then
-      raise
+      iraise
         (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
     else
       let prim = (fun x -> (fst (Dict.get name Primitives.fulltable)) x applyfun state) in
       prim evtargs
-  | _ -> raise (TypeError "Cannot apply a non functional value")
+  | _ -> traise "Cannot apply a non functional value"

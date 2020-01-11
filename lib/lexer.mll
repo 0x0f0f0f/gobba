@@ -75,12 +75,12 @@ rule token = parse
   | ";;"        { SEMISEMI }
   | symbol      { SYMBOL (Lexing.lexeme lexbuf) }
   | eof         { EOF }
-  | _           { raise (SyntaxError ("Unexpected symbol " ^ Lexing.lexeme lexbuf))}
+  | _           { sraise lexbuf ("Unexpected symbol " ^ Lexing.lexeme lexbuf) }
 and comments level = parse
   | "*)"        { if level = 0 then token lexbuf else comments (level - 1) lexbuf}
   | "(*"        { comments (level + 1) lexbuf }
   | _           { comments level lexbuf }
-  | eof         { raise (SyntaxError ("Unterminated comment"))}
+  | eof         { sraise lexbuf "Unterminated comment"}
 and read_string buf = parse
   | '"'         { STRING (Buffer.contents buf) }
   | '\\' '/'    { Buffer.add_char buf '/'; read_string buf lexbuf }
@@ -94,6 +94,5 @@ and read_string buf = parse
   | '\\' '"'    { Buffer.add_char buf '"'; read_string buf lexbuf }
   | [^ '"' '\\']+
   { Buffer.add_string buf (Lexing.lexeme lexbuf); read_string buf lexbuf }
-  | _
-  { raise (SyntaxError ("Illegal string character: " ^ Lexing.lexeme lexbuf)) }
-  | eof         { raise (SyntaxError ("Unterminated string")) }
+  | _           { sraise lexbuf ("Illegal string character: " ^ Lexing.lexeme lexbuf) }
+  | eof         { sraise lexbuf "Unterminated string" }

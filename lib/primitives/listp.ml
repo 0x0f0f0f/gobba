@@ -2,23 +2,23 @@ open Types
 open Typecheck
 
 let head args  =
-  if List.length args > 1 then raise WrongPrimitiveArgs else
+  if List.length args > 1 then iraise WrongPrimitiveArgs else
     let ls= unpack_list (List.hd args) in
     (match ls with
-     | [] -> raise (ListError "empty list")
+     | [] -> iraise (ListError "empty list")
      | v::_ -> v )
 
 let tail args =
-  if List.length args > 1 then raise WrongPrimitiveArgs else
+  if List.length args > 1 then iraise WrongPrimitiveArgs else
     let ls= unpack_list (List.hd args) in
     (match ls with
-     | [] -> raise (ListError "empty list")
+     | [] -> iraise (ListError "empty list")
      | _::r -> EvtList r)
 
 let mem args =
   let (elem, ls)= (match args with
       | [elem; ls] -> (elem, unpack_list ls)
-      | _ -> raise WrongPrimitiveArgs) in
+      | _ -> iraise WrongPrimitiveArgs) in
   EvtBool(List.mem elem ls)
 
 let table = [
