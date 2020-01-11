@@ -1,25 +1,16 @@
 ![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master)
 # minicaml 
 
-**minicaml** is a small, purely functional interpreted programming language with
-a didactical purpose. I wrote **minicaml** for the **Programming 2** course at
-the University of Pisa, taught by Professors Gianluigi Ferrari and Francesca
-Levi. It is based on the teachers'
-[minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml), an
-evaluation example to show how interpreters work. It is an interpreted subset of
-Caml, with eager and lazy evaluation. I have added a simple parser and lexer
-made with menhir and ocamllex ([learn
+**minicaml** is a small, purely functional interpreted programming language. I
+wrote **minicaml** for the **Programming 2** course at the University of Pisa,
+taught by Professors Gianluigi Ferrari and Francesca Levi. It is based on the
+teachers' [minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml),
+an evaluation example to show how interpreters work. Parsing and lexing are done
+with menhir and ocamllex ([learn
 more](https://v1.realworldocaml.org/v1/en/html/parsing-with-ocamllex-and-menhir.html)).
-I have also added a simple REPL that show each reduction step that is done in
-evaluating an expression. I'd like to implement a simple compiler and abstract
-machine for this project.
-
-**minicaml's purpose is to help students get a grasp of how interpreters and
-programming languages work**.
-
-* Recursive functions and closures
-* ocamllex and menhir lexer and parser
-* Extendable with (relative) ease
+The REPL can show each reduction step that is done in evaluating an expression.
+I'd also like in the near future to implement a compiler and abstract machine
+for this project.
 
 ## Installation
 To install, you need to have `opam` (OCaml's package manager) and a recent OCaml
@@ -128,63 +119,10 @@ functions is supported. The keyword `fun` is interchangeable with `lambda`.
 let rec fib = fun n -> if n < 2 then n else (fib (n - 1)) + fib (n - 2)
 ```
 
-### Toggle between safe and unsafe environments in code for I/O
-You can choose to enable or disable unsafe primitives explicitely, inside an
-expression or globally in the toplevel by using the `safe` and `unsafe`
-keywords. An unsafe primitive is a primitive that has side effects, such as
-direct memory access and I/O access. If you try running
-```ocaml
-print 2
-```
-Without enabling unsafe first, it yields
-```
-Error: Minicaml.Types.UnallowedUnsafe("print")
-```
-
-To enable unsafe primitives you can wrap an expression inside of an `unsafe`
-statement, or just type `unsafe` alone in the toplevel to enable unsafe globally (not
-recommended for a purely functional programming style!)
-
-```
-unsafe (print 2)
-```
-Will correctly print the number `2`.
-
 ### Printing
-The unsafe primitives `print` and `print_endline` automatically call `show` on a
+The impure primitives `print` and `print_endline` automatically call `show` on a
 value. The difference between them is that `print_endline` automatically adds a
 newline at the end of the line.
-
-### A recommandation for writing safe/unsafe code
-It is good practice to reduce the use of the `safe`/`unsafe` keywords as much as
-possible, and to avoid using it inside of function bodies. This means keeping
-your code as purely functional as you can.
-```ocaml
-(* Let's enable safeness globally *)
-safe ;;
-
-(* BAD STYLE! *)
-let bad_function = fun x ->
-    unsafe (
-        let mystring = "I am a bad function because i am using unsafe! Also: " ^ x in
-        print mystring;
-    );;
-
-let bad = bad_function "hello!" ;;
-(* The above will not error and may cause side effects *)
-
-(* GOOD AND CONCISE STYLE! *)
-let good_function = fun x -> print ("I am a good function! Also: " ^ x) ;;
-let good = good_function "hello!" ;;
-(* The above will error, because it causes side effects! Here's a good way of calling it*)
-unsafe $ good_function "hello!" ;;
-```
-
-In the above example, you can clearly see how both the good and bad functions
-have the same goal, but the bad one is clearly less concise and complex
-compared to the "good" one. You can mix `unsafe` and `safe` how you like, but
-the suggestion is to move them as "outside" as you can, towards the toplevel
-and not inside nested expressions
 
 ### Haskell-like dollar syntax
 Too many parens?
@@ -195,6 +133,51 @@ Is equivalent to
 ```haskell
 f $ g $ h $ i 1 2 3
 ```
+
+### Toggle between pure and impure environments in code for I/O
+You can choose to enable or disable impure primitives explicitely, inside an
+expression by wrapping it into the `pure` and `impure` statements. They must be
+followed by an expression. An expression contained in an `impure` statement is a
+computation that calls primitives that have side effects, such as direct memory
+access or I/O access.
+
+It is good practice to reduce the use of the `pure`/`impure` keywords as much as
+possible, and to avoid using it inside of function bodies. This means keeping
+your code as purely functional as you can.
+```ocaml
+let bad_function = fun x ->
+    impure (
+        let mystring =
+        "I am a bad impure function! Also: " ^ x in
+        print_endline mystring
+    );;
+
+let good_function = fun x ->
+    print_endline ("I am a good function! Also: " ^ x) ;;
+
+bad_function "hello!" ;;
+(* The above statement is causing side effects but will not error*)
+
+good_function "hello!" ;;
+(* The above will error, because it is trying to execute
+an impure computation in a pure environment
+Here's a good way of calling it *)
+impure $ good_function "hello!" ;;
+
+(* You can specify that you DO NOT want to compute impure
+expressions by using the pure statement *)
+pure $ good_function "henlo world!" ;;
+(* The above will error because
+it contains an impure computation*)
+pure $ bad_function "ciao mondo!" ;;
+(* The above will error because a pure contest
+does not allow nesting an impure contest inside *)
+```
+
+A good way of structuring your code is keeping `pure`/`impure` statements as
+external from expressions as you can (towards the top level). By default, the
+interpreter is in a `uncertain` state, it means that it will allow the execution
+of `impure` statements
 
 ### Function pipes (reverse composition)
 You can redirect the result of a function to the first argument of another

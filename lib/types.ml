@@ -2,14 +2,20 @@
 type ide = string
 [@@deriving show, eq, ord]
 
+(** A type wrapper for complex numbers where equality, ordering
+and showing are defined *)
 type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
 "%f+%fi" n.re n.im] [@equal (=)] [@compare compare]
 [@@deriving show { with_path = false }, eq, ord]
 
+(** A type representing if a computation is pure or not  *)
+type puret = Uncertain | Pure | Impure [@@deriving show { with_path = false },
+eq, ord]
+
 (** The type representing Abstract Syntax Tree expressions *)
 type expr =
   | Unit
-  | Safeness of bool * expr
+  | Purity of puret * expr
   | NumInt of int
   | NumFloat of float
   | NumComplex of complext
@@ -54,7 +60,6 @@ type command =
   | Expr of expr
   | Def of (ide * expr) list
   | Defrec of (ide * expr) list
-  | Topsafeness of bool
 [@@deriving show { with_path = false }, eq, ord]
 
 (** A purely functional environment type, parametrized *)
@@ -84,7 +89,7 @@ and type_wrapper =
 [@@deriving show { with_path = false }]
 (* Primitive abstraction type *)
 and primitivet =
-  (ide * int * (type_wrapper env_t))
+  (ide * int * (type_wrapper env_t) * puret)
 [@@deriving show { with_path = false }]
 
 
@@ -108,7 +113,7 @@ let rec show_unpacked_evt e = match e with
                  ^ "}"
   | Closure (params, _, _) -> "(fun " ^ (String.concat " " params) ^ " -> ... )"
   | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"
-  | PrimitiveAbstraction (name, numargs, _ ) -> name ^ " = " ^ "(fun " ^ (generate_prim_params numargs |> String.concat " ") ^ " -> ... )"
+  | PrimitiveAbstraction (name, numargs, _ , _) -> name ^ " = " ^ "(fun " ^ (generate_prim_params numargs |> String.concat " ") ^ " -> ... )"
 
 (** An environment of already evaluated values  *)
 type env_type = type_wrapper env_t
@@ -136,13 +141,13 @@ let depth_of_stack (s: stackframe) = match s with
   | StackValue(d, _, _) -> d
   | EmptyStack -> 0
 
-(** Options for the eval function *)
-type evalopts = {
+(** Options for the eval function, includes *)
+type evalstate = {
   env: env_type;
   verbosity: int;
   stack: stackframe;
   printresult: bool;
-  safeness: bool
+  pureness: puret;
 }
 
 
@@ -154,4 +159,4 @@ exception ListError of string
 exception DictError of string
 exception SyntaxError of string
 exception FileNotFoundError of string
-exception UnallowedUnsafe of string
+exception PurityError of string

@@ -18,11 +18,11 @@ let float = digit* frac? exp?
 let alpha = ['a'-'z' 'A'-'Z']
 let symbol = alpha (alpha|digit|'_')*
 let int = '-'? ['0'-'9'] ['0'-'9']*
-let white = [' ' '\t' '\r']
+let white = [' ' '\t' '\r' '\n']
 
 rule token = parse
   | white       { token lexbuf }
-  | '\n'        { Lexing.new_line lexbuf; token lexbuf }
+  | "(*"        { comments 0 lexbuf }
   | int         { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
   | float       { FLOAT (float_of_string (Lexing.lexeme lexbuf))}
   | ":+"        { CPLUS }
@@ -42,8 +42,8 @@ rule token = parse
   | "rec"       { REC }
   | "->"        { LARROW }
   | "in"        { IN }
-  | "safe"      { SAFE }
-  | "unsafe"    { UNSAFE }
+  | "pure"      { PURE }
+  | "impure"    { IMPURE }
   | "["         { LSQUARE }
   | "]"         { RSQUARE }
   | "("         { LPAREN }
@@ -74,9 +74,13 @@ rule token = parse
   | ";;"        { SEMISEMI }
   | symbol      { SYMBOL (Lexing.lexeme lexbuf) }
   | eof         { EOF }
-  | _           { raise (SyntaxError ("Unexpected symbol" ^ Lexing.lexeme lexbuf))}
-
-and read_string buf = parse 
+  | _           { raise (SyntaxError ("Unexpected symbol " ^ Lexing.lexeme lexbuf))}
+and comments level = parse
+  | "*)"        { if level = 0 then token lexbuf else comments (level - 1) lexbuf}
+  | "(*"        { comments (level + 1) lexbuf }
+  | _           { comments level lexbuf }
+  | eof         { raise (SyntaxError ("Unterminated comment"))}
+and read_string buf = parse
   | '"'         { STRING (Buffer.contents buf) }
   | '\\' '/'    { Buffer.add_char buf '/'; read_string buf lexbuf }
   | '\\' '\\'    { Buffer.add_char buf '\\'; read_string buf lexbuf }

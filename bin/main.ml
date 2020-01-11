@@ -3,15 +3,15 @@ open Minicaml.Types
 open Cmdliner
 
 let run_minicaml verbose program printresult javascript prelude =
-  let opts = {
+  let state = {
     env = (Util.Dict.empty());
     verbosity = verbose;
     stack = EmptyStack;
     printresult = printresult;
-    safeness = true;
+    pureness = Uncertain;
   } in
   match program with
-  | None -> Repl.repl {opts with printresult = true}
+  | None -> Repl.repl {state with printresult = true}
   | Some name -> if javascript
     then
       let jscode = File.compile_file name in
@@ -20,7 +20,7 @@ let run_minicaml verbose program printresult javascript prelude =
         | "prim" -> (Primitives.jsprelude) ^ jscode
         | "lib" ->  "{" ^ Ramda.ramda ^ "}" ^ (Primitives.jsprelude) ^ jscode
         | _ -> failwith "Invalid prelude type: " ^ prelude)
-    else let _ = File.run_file name opts in ()
+    else let _ = File.run_file name state in ()
 
 let verbose =
   let doc = "If 1, Print AST to stderr after expressions " ^

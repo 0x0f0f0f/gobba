@@ -30,67 +30,63 @@ let rec read_lines_until ic del =
   then line
   else line ^ (read_lines_until ic del)
 
-let run_one command opts =
-  if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow
+let run_one command state =
+  if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow
       "AST equivalent" "\n%s"
       (show_command command) else ();
   match command with
-  | Topsafeness s ->
-    print_endline ("Unsafe primitives are now globally " ^ (if s then "disabled"
-    else "enabled") ^ "!");
-    (EvtUnit, { opts with safeness = s })
   | Expr e ->
     let optimized_ast = iterate_optimizer e in
     if optimized_ast = e then () else
-    if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
+    if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
         (show_expr optimized_ast) else ();
-    let evaluated = eval optimized_ast opts in
-    if opts.verbosity >= 1 then print_message ~color:T.Green ~loc:(Nowhere) "Result"
+    let evaluated = eval optimized_ast state in
+    if state.verbosity >= 1 then print_message ~color:T.Green ~loc:(Nowhere) "Result"
         "\t%s" (show_evt evaluated) else ();
-    if opts.printresult then print_endline (show_unpacked_evt evaluated) else ();
-    (evaluated, opts)
+    if state.printresult then print_endline (show_unpacked_evt evaluated) else ();
+    (evaluated, state)
   | Def dl ->
     let (idel, vall) = unzip dl in
     let ovall = (List.map (iterate_optimizer) vall) in
     if ovall = vall then () else
-    if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
+    if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
         (show_command (Def(zip idel ovall))) else ();
-    let newenv = Dict.insertmany opts.env idel
-        (List.map (fun x -> AlreadyEvaluated (eval x opts)) ovall) in
-    (EvtUnit, { opts with env = newenv } )
+    let newenv = Dict.insertmany state.env idel
+        (List.map (fun x -> AlreadyEvaluated (eval x state)) ovall) in
+    (EvtUnit, { state with env = newenv } )
   | Defrec dl ->
     let odl = (List.map (fun (i,v) -> (i, iterate_optimizer v)) dl) in
     if dl = odl then () else
-    if opts.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
+    if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
         (show_command (Def(odl))) else ();
-    let newenv = Dict.insertmany opts.env (fst (unzip odl))
+    let newenv = Dict.insertmany state.env (fst (unzip odl))
         (List.map
            (fun (ident, value) ->
               (match value with
                | Lambda (params, fbody) ->
-                 let rec_env = (Dict.insert opts.env ident
-                                  (AlreadyEvaluated (RecClosure(ident, params, fbody, opts.env))))
+                 let rec_env = (Dict.insert state.env ident
+                                  (AlreadyEvaluated (RecClosure(ident, params, fbody, state.env))))
                  in AlreadyEvaluated (RecClosure(ident, params, fbody, rec_env))
                | _ -> raise (TypeError "Cannot define recursion on non-functional values"))
            ) dl) in
-    (EvtUnit, { opts with env = newenv } )
+    (EvtUnit, { state with env = newenv } )
 
-let rec repl_loop opts  =
+let rec repl_loop state  =
   let loop () =
     let cmd = read_toplevel (wrap_syntax_errors parser) () in
-    let _, newopts = run_one cmd opts in
-    let _ = repl_loop newopts in ()
+    let _, newstate = run_one cmd state in
+    let _ = repl_loop newstate in ()
   in
   try
     loop ()
   with
   | End_of_file -> raise End_of_file
-  | Error err -> print_error err; repl_loop opts
+  | Error err -> print_error err; repl_loop state
   | Sys.Break -> prerr_endline "Interrupted.";
-  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); repl_loop opts
+  | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); repl_loop state
 
-let repl opts =
+let repl state =
   Sys.catch_break true;
   try
-    let _ = repl_loop opts in ()
+    let _ = repl_loop state in ()
   with End_of_file -> prerr_endline "Goodbye!"; ()

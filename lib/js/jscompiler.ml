@@ -67,7 +67,7 @@ let rec compile (e : expr) : string =
     "{ " ^ String.concat "; " (List.map (fun x -> compile x ) exprl) ^ " }"
   (* Pipe two functions together, creating a new function
      That uses the first functions's result as the second's first argument *)
-  | _ -> dummy
+  | _ -> dummy 
 and tuple elems  =
   "(" ^ (String.concat "," (List.map (fun x -> compile x ) elems)) ^ ")"
 and compile_assignments ass =
@@ -83,5 +83,5 @@ let rec compile_cmdlist cmdlist = match cmdlist with
       | Def(assignments) -> "{ " ^ compile_assignments assignments ^ compile_cmdlist xs ^ "}"
       | Defrec(assignments) -> "{ " ^ compile_assignments assignments ^ compile_cmdlist xs ^ "}"
       | Expr(e) -> compile (Optimizer.optimize e)
-      | _ -> dummy)
+      (* | _ -> dummy *) )
 let compile_program p = compile_cmdlist p

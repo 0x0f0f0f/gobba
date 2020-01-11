@@ -63,10 +63,10 @@ let syntax_error ?loc msg = error ~kind:"Syntax error" ?loc msg
 let wrap_syntax_errors parser lex =
   try parser lex
   with
-  | Failure _ ->
-    syntax_error ~loc:(location_of_lex lex) "unrecognised symbol"
-  | _ ->
-    syntax_error ~loc:(location_of_lex lex) ("syntax error")
+  | Types.SyntaxError a  ->
+    syntax_error ~loc:(location_of_lex lex) (Scanf.format_from_string a "")
+  | e ->
+    syntax_error ~loc:(location_of_lex lex) (Scanf.format_from_string (Printexc.to_string e) "")
 
 let print_position lexbuf =
   let pos = lexbuf.lex_curr_p in

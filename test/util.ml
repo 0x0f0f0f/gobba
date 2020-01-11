@@ -6,7 +6,7 @@ open Util
 
 module A = Alcotest
 
-let opts = {
+let state = {
   env = (Dict.empty ());
   verbosity = 0;
   printresult = false;
@@ -28,17 +28,17 @@ let checkparsefail exp = A.check_raises exp (Failure("syntax error"))
   (fun () -> try let _ = (parse exp) in () with _ -> failwith "syntax error")
 
 let checkeval exp expected = A.(check bool) (show_expr exp) true (equal_evt
-(eval exp opts) expected)
+(eval exp state) expected)
 
 let checkevalfail exp = A.(check_raises) (show_expr exp)
-(Failure("evaluation error")) (fun () -> try let _ = (eval exp opts) in () with _ -> failwith "evaluation error")
+(Failure("evaluation error")) (fun () -> try let _ = (eval exp state) in () with _ -> failwith "evaluation error")
 
-let check exp expected = A.(check bool) exp true (equal_evt (eval (parse exp) opts) expected)
+let check exp expected = A.(check bool) exp true (equal_evt (eval (parse exp) state) expected)
 
 let checkfail exp  = A.(check_raises) exp (Failure("evaluation error"))
-(fun () -> try let _ = (eval (parse exp) opts) in () with _ -> failwith "evaluation error")
+(fun () -> try let _ = (eval (parse exp) state) in () with _ -> failwith "evaluation error")
 
 let examples_path = Sys.getenv "MINICAML_EXAMPLES"
 
 let checkprogram fn expected = A.(check bool) fn true (equal_evt (last (last
-(File.run_file (Filename.concat examples_path fn) opts))) expected)
+(File.run_file (Filename.concat examples_path fn) state))) expected)

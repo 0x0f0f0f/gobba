@@ -21,15 +21,15 @@ let read_file parser fn =
 
 let parser = Parser.file Lexer.token
 
-let rec run_file_list cmdlst opts = match cmdlst with
+let rec run_file_list cmdlst state = match cmdlst with
   | x::xs ->
-    let result, newopts = Repl.run_one x opts in
-    [result]::run_file_list xs newopts
+    let result, newstate = Repl.run_one x state in
+    [result]::run_file_list xs newstate
   | [] -> []
 
-let run_file fn opts =
+let run_file fn state =
   try
-  run_file_list (read_file parser fn) opts
+  run_file_list (read_file parser fn) state
   with
   | Error err -> print_error err; []
   | Sys.Break -> prerr_endline "Interrupted."; []
