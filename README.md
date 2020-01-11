@@ -1,4 +1,4 @@
-![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master)
+![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml2)
 # minicaml 
 
 **minicaml** is a small, purely functional interpreted programming language. I
@@ -141,7 +141,7 @@ followed by an expression. An expression contained in an `impure` statement is a
 computation that calls primitives that have side effects, such as direct memory
 access or I/O access.
 
-It is good practice to reduce the use of the `pure`/`impure` keywords as much as
+It is good practice to reduce the use of the `pure/impure` keywords as much as
 possible, and to avoid using it inside of function bodies. This means keeping
 your code as purely functional as you can.
 ```ocaml
@@ -170,11 +170,11 @@ pure $ good_function "henlo world!" ;;
 (* The above will error because
 it contains an impure computation*)
 pure $ bad_function "ciao mondo!" ;;
-(* The above will error because a pure contest
-does not allow nesting an impure contest inside *)
+(* The above will error because a pure context
+does not allow nesting an impure context inside *)
 ```
 
-A good way of structuring your code is keeping `pure`/`impure` statements as
+A good way of structuring your code is keeping `pure/impure` statements as
 external from expressions as you can (towards the top level). By default, the
 interpreter is in a `uncertain` state, it means that it will allow the execution
 of `impure` statements
@@ -184,7 +184,8 @@ You can redirect the result of a function to the first argument of another
 function using the `>=>` operator.
 ```ocaml
 let sum_and_add_one = (fun x y -> x + y) >=> (fun z -> z + 1) ;;
-sum_and_add_one 2 3 (* Will output 6, because 2 + 3 is piped into z + 1*)
+sum_and_add_one 2 3
+(* Will output 6, because 2 + 3 is piped into z + 1*)
 ```
 Yields the same result as normal composition:
 ```ocaml
