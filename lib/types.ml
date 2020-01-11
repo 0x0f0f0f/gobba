@@ -147,7 +147,7 @@ type evalstate = {
   verbosity: int;
   stack: stackframe;
   printresult: bool;
-  pureness: puret;
+  purity: puret;
 }
 
 

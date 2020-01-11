@@ -3,9 +3,9 @@ open Util
 
 module A = Alcotest
 
-let test_fibonacci () = checkprogram "fibonacci.ml" (EvtInt 55)
+let test_fibonacci () = checkprogram "fibonacci.mini" (EvtInt 55)
 
-let test_matrix () = checkprogram "matrixmult.ml" (EvtList [EvtList
+let test_matrix () = checkprogram "matrixmult.mini" (EvtList [EvtList
 [EvtInt 9; EvtInt 12; EvtInt 15]; EvtList [EvtInt 19; EvtInt 26; EvtInt 33];
 EvtList [EvtInt 29; EvtInt 40; EvtInt 51]])
 

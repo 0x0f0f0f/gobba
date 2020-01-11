@@ -32,9 +32,9 @@ let rec eval (e : expr) (state : evalstate) : evt =
     match e with
     | Unit -> EvtUnit
     | Purity (n, ee) ->
-      if state.pureness = Pure && n = Impure then
+      if state.purity = Pure && n = Impure then
           raise (PurityError "Cannot enter an impure contest from a strictly pure one")
-      else eval ee { state with pureness = n }
+      else eval ee { state with purity = n }
     | NumInt n -> EvtInt n
     | NumFloat n -> EvtFloat n
     | NumComplex n -> EvtComplex n
@@ -147,9 +147,9 @@ let rec eval (e : expr) (state : evalstate) : evt =
 and lookup (ident : ide) (state : evalstate) : evt =
   if Dict.exists ident Primitives.fulltable then
     let _, numargs = Dict.get ident Primitives.fulltable in
-    let pureness =
+    let purity =
     if Dict.exists ident Primitives.impure_table then Impure else Pure in
-    PrimitiveAbstraction (ident, numargs, state.env, pureness)
+    PrimitiveAbstraction (ident, numargs, state.env, purity)
   else lookup_env ident state
 
 (* Search for a value in an environment *)
@@ -217,7 +217,7 @@ and applyfun (closure : evt) (args : type_wrapper list) (state : evalstate) : ev
       Closure (missing_args, Apply (Symbol name, symprimargs), app_env)
     else
       (* Apply the primitive *)
-    if state.pureness = Pure || state.pureness = Uncertain && ispure = Impure then
+    if state.purity = Pure || state.purity = Uncertain && ispure = Impure then
       raise
         (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
     else

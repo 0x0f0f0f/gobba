@@ -8,7 +8,7 @@ let run_minicaml verbose program printresult javascript prelude =
     verbosity = verbose;
     stack = EmptyStack;
     printresult = printresult;
-    pureness = Uncertain;
+    purity = Uncertain;
   } in
   match program with
   | None -> Repl.repl {state with printresult = true}

@@ -123,7 +123,7 @@ let test_lookup () =
   checkeval (Letlazy(["a", NumInt 1; "b", NumInt 2], Symbol "a")) (EvtInt 1)
 
 let test_primitive_abstraction () = 
-   check "head"  (PrimitiveAbstraction ("head", 1, []));
+   check "head"  (PrimitiveAbstraction ("head", 1, [], Pure));
    check "head [1]" (EvtInt 1);
    check "insert 3" (Closure (["b"; "c"],
    (Apply ((Symbol "insert"), [(Symbol "a"); (Symbol "b"); (Symbol "c")])),

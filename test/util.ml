@@ -11,6 +11,7 @@ let state = {
   verbosity = 0;
   printresult = false;
   stack = EmptyStack;
+  purity = Uncertain;
 }
 
 let quickcase (descr, case) = A.test_case descr `Quick case
