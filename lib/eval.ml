@@ -132,7 +132,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
       (* Convert a list of identifiers to a list of symbols *)
       let syml l = List.map (fun x -> Symbol x) l in
       let f1 = eval e1 state and f2 = eval e2 state in
-      typecheck f2 "fun";
+      stcheck (typeof f2) TLambda;
       let _, params1, _, _ = unpack_anyfun f1 in
       Closure (params1, Apply (e2, [ Apply (e1, syml params1) ]), state.env)
   in

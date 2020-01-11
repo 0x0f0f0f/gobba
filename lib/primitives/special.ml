@@ -8,7 +8,7 @@ let map args applyfun state =
   let f, s =
     match args with [ f; s ] -> (f, s) | _ -> raise WrongPrimitiveArgs
   in
-  typecheck f "fun";
+  stcheck (typeof f) TLambda;
   match s with
   | EvtList x ->
     EvtList
@@ -28,7 +28,7 @@ let map2 args applyfun state =
     | [ f; s1; s2 ] -> (f, s1, s2)
     | _ -> raise WrongPrimitiveArgs
   in
-  typecheck f "fun";
+  stcheck (typeof f) TLambda;
   match s1 with
   | EvtList x ->
     let y = unpack_list s2 in
@@ -45,7 +45,7 @@ let foldl args applyfun state =
     | [ f; ac; s ] -> (f, ac, s)
     | _ -> raise WrongPrimitiveArgs
   in
-  typecheck f "fun";
+  stcheck (typeof f) TLambda;
   match s with
   | EvtList x ->
     List.fold_left
@@ -66,7 +66,7 @@ let filter args applyfun state =
     | [ p; s ] -> (p, s)
     | _ -> raise WrongPrimitiveArgs
   in
-  typecheck p "fun";
+  stcheck (typeof p) TLambda;
   match s with
   | EvtList x ->
     EvtList

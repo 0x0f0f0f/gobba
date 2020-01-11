@@ -43,7 +43,11 @@ let run_one command state =
     let evaluated = eval optimized_ast state in
     if state.verbosity >= 1 then print_message ~color:T.Green ~loc:(Nowhere) "Result"
         "\t%s" (show_evt evaluated) else ();
-    if state.printresult then print_endline (show_unpacked_evt evaluated) else ();
+    if state.printresult then
+      print_endline 
+        ("result: " ^ (show_unpacked_evt evaluated)
+         ^ " - " ^ (show_tinfo (Typecheck.typeof evaluated)))
+    else ();
     (evaluated, state)
   | Def dl ->
     let (idel, vall) = unzip dl in

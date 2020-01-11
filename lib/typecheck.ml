@@ -2,11 +2,6 @@ open Types
 
 let terr e f = raise (TypeError ("expected a value of type: " ^ e ^ ", found a value of type: " ^ f ))
 
-let expect e f = if f = e
-  then ()
-  else if e = "number" && f = "int" || f = "float" || f = "complex" then ()
-  else terr e f
-
 let typeof e = match e with
   | EvtUnit -> TUnit
   | EvtInt _ -> TInt
@@ -19,21 +14,6 @@ let typeof e = match e with
   | Closure (_, _, _) -> TLambda
   | RecClosure (_, _, _, _) -> TLambda
   | PrimitiveAbstraction (_, _, _ , _) -> TLambda
-
-
-(* Dynamic typechecking *)
-let typecheck (x: evt) (t: string) = match x with
-  | EvtInt _      -> expect t "int"
-  | EvtFloat _    -> expect t "float"
-  | EvtComplex _  -> expect t "complex"
-  | EvtBool _     -> expect t "bool"
-  | EvtString _   -> expect t "string"
-  | EvtUnit       -> expect t "unit"
-  | EvtList _     -> expect t "list"
-  | EvtDict _     -> expect t "dict"
-  | Closure _     -> expect t "fun"
-  | RecClosure _  -> expect t "fun"
-  | PrimitiveAbstraction _  -> expect t "fun"
 
 (* Static typechecking *)
 let stcheck (e: typeinfo) (f: typeinfo) =

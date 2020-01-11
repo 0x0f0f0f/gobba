@@ -5,7 +5,7 @@ type ide = string
 (** A type wrapper for complex numbers where equality, ordering
     and showing are defined *)
 type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
-                    "%f+%fi" n.re n.im] [@equal (=)] [@compare compare]
+                    "%f:+%f" n.re n.im] [@equal (=)] [@compare compare]
 [@@deriving show { with_path = false }, eq, ord]
 
 (** A type representing if a computation is pure or not  *)
