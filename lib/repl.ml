@@ -8,15 +8,13 @@ let read_one parser str =
   parser (Lexing.from_string (str ^ "\n"))
 
 let read_toplevel parser () =
-  let prompt = "> "
-  and prompt_more = "> " in
-  print_string prompt ;
-  let str = ref (read_line ()) in
-  while String.length !str > 0 && !str.[String.length !str - 1] == '\\' do
-    print_string prompt_more ;
-    str := String.sub !str 0 (String.length !str - 1) ^ "\n" ^ (read_line ())
-  done ;
-  parser (Lexing.from_string (!str ^ "\n"))
+  let prompt = "> " in
+  let str = Ocamline.read
+    ~prompt:prompt
+    ~brackets:[('(', ')'); ('[',']');  ('{','}')]
+    ~strings:['"']
+    ";;" in
+  parser (Lexing.from_string (str))
 
 let parser = Parser.toplevel Lexer.token
 
@@ -86,7 +84,7 @@ let rec repl_loop state  =
   with
   | End_of_file -> raise End_of_file
   | Error err -> print_error err; repl_loop state
-  | Sys.Break -> prerr_endline "Interrupted.";
+  | Sys.Break -> prerr_endline "Interrupted."; repl_loop state
   | e -> print_error (Nowhere, "Error", (Printexc.to_string e)); repl_loop state
 
 let repl state =
