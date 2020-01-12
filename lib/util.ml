@@ -1,13 +1,13 @@
-open Types
+module Dict = struct
+  type ('a, 'b)  t = ('a * 'b) list [@@deriving show { with_path = false }, eq, ord]
 
-module Dict = struct 
   (** Search for duplicates *)
   let rec dup_exists = function
     | [] -> false
     | hd::tl -> List.exists ((=) hd) tl || dup_exists tl
 
   (** Generate an empty dictionary *)
-  let empty : unit -> env_type = fun _ -> []
+  let empty = fun _ -> []
 
   (** Search for duplicates in a list of key-value pairs *)
   (* let rec dup_exists = function

@@ -64,9 +64,6 @@ type command =
   | Defrec of (ide * expr) list
 [@@deriving show { with_path = false }, eq, ord]
 
-(** A purely functional environment type, parametrized *)
-type 'a env_t = (string * 'a) list [@@deriving show { with_path = false }, eq, ord]
-
 
 (** A type that represents an evaluated (reduced) value *)
 type evt =
@@ -78,22 +75,29 @@ type evt =
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
   | EvtDict of (evt * evt) list [@equal (=)]
-  | Closure of ide list * expr * (type_wrapper env_t) [@equal (=)]
+  | Closure of ide list * expr * env_type [@equal (=)]
   (** RecClosure keeps the function name in the constructor for recursion *)
-  | RecClosure of ide * ide list * expr * (type_wrapper env_t) [@equal (=)]
+  | RecClosure of ide * ide list * expr * env_type [@equal (=)]
   (** Abstraction that permits treating primitives as closures *)
   | PrimitiveAbstraction of primitivet
 [@@deriving show { with_path = false }, eq, ord]
+
 (* Wrapper type that allows both AST expressions and
    evaluated expression for lazy evaluation *)
 and type_wrapper =
   | LazyExpression of expr
   | AlreadyEvaluated of evt
 [@@deriving show { with_path = false }]
+
 (* Primitive abstraction type *)
 and primitivet =
-  (ide * int * (type_wrapper env_t) * puret)
+  (ide * int * env_type * puret)
 [@@deriving show { with_path = false }]
+
+(* An environment of already evaluated values  *)
+and env_type = (ide, type_wrapper) Util.Dict.t [@@deriving show { with_path = false }, eq, ord]
+
+
 (** A type containing information about types *)
 and typeinfo =
   | TUnit
@@ -141,8 +145,6 @@ let rec show_unpacked_evt e = match e with
   | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"
   | PrimitiveAbstraction (name, numargs, _ , _) -> name ^ " = " ^ "(fun " ^ (generate_prim_params numargs |> String.concat " ") ^ " -> ... )"
 
-(** An environment of already evaluated values  *)
-type env_type = type_wrapper env_t
 
 (** A recursive type representing a stacktrace frame *)
 type stackframe =
