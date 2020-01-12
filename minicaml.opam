@@ -7,7 +7,7 @@ dev-repo: "git+https://github.com/0x0f0f0f/minicaml.git"
 license: "MIT"
 synopsis: "A simple, didactical, purely functional programming language"
 description: "A simple, didactical, purely functional programming language written for the programming 2 course at the University of Pisa, extended with a simple parser made with Menhir and ocamllex"
-doc: "https://github.com/0x0f0f0f/minicaml"
+doc: "https://0x0f0f0f.github.io/minicaml"
 
 build: [
   ["dune" "build" "-p" name "-j" jobs]

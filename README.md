@@ -12,6 +12,9 @@ The REPL can show each reduction step that is done in evaluating an expression.
 I'd also like in the near future to implement a compiler and abstract machine
 for this project.
 
+## Documentation
+The internal documentation is available [here](https://0x0f0f0f.github.io/minicaml). 
+
 ## Installation
 To install, you need to have `opam` (OCaml's package manager) and a recent OCaml
 distribution installed on your system.
