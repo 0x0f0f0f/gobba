@@ -42,9 +42,9 @@ let filterkeys args =
   EvtDict(Dict.filter kll ed)
 
 let table = [
-  ("insert", (insert_dict, 3));
-  ("remove", (delete_dict, 2));
-  ("haskey", (haskey, 2));
-  ("getkey", (getkey, 2));
-  ("filterkeys", (filterkeys, 2))
+  ("insert", (insert_dict, 3, Pure));
+  ("remove", (delete_dict, 2, Pure));
+  ("haskey", (haskey, 2, Pure));
+  ("getkey", (getkey, 2, Pure));
+  ("filterkeys", (filterkeys, 2, Pure))
 ]

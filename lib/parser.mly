@@ -144,16 +144,15 @@ ast_expr:
   | LET REC LAZY name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
   { Letreclazy (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
-  { Lambda (params, body) }
+  { List.fold_right (fun p e -> (Lambda(p, e))) params body }
   | e1 = ast_expr PIPE e2 = ast_expr
-  { Pipe(e1, e2) }
-
+  { (replacebody e1 (Apply (e2, (findbody e1)))) }
 
 ast_app_expr:
   | e = ast_simple_expr
   { e }
-  | e1 = ast_app_expr args = ast_simple_expr+
-  { Apply (e1, args)}
+  | e1 = ast_app_expr arg = ast_simple_expr
+  { Apply (e1, arg)}
 
 ast_simple_expr:
   | var = SYMBOL

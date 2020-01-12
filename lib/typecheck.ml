@@ -13,7 +13,6 @@ let typeof e = match e with
   | EvtDict _ -> TDict
   | Closure (_, _, _) -> TLambda
   | RecClosure (_, _, _, _) -> TLambda
-  | PrimitiveAbstraction (_, _, _ , _) -> TLambda
 
 (* Static typechecking *)
 let stcheck (e: typeinfo) (f: typeinfo) =

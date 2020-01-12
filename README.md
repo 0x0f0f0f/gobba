@@ -13,7 +13,7 @@ I'd also like in the near future to implement a compiler and abstract machine
 for this project.
 
 ## Documentation
-The internal documentation is available [here](https://0x0f0f0f.github.io/minicaml). 
+The internal documentation is available [here](https://0x0f0f0f.github.io/minicaml).
 
 ## Installation
 To install, you need to have `opam` (OCaml's package manager) and a recent OCaml
@@ -117,10 +117,27 @@ x + 3 ;;
 ### Functions and recursion
 For parsing simplicity, only the OCaml anonymous function style of declaring
 functions is supported. The keyword `fun` is interchangeable with `lambda`.  
+The `rec` keyword specifies recursion and is needed for a function to be able to
+call itself, because it creates a closure binding its name to its own environment.
 ```ocaml
 (fun x -> x + 1) 1;;
 let rec fib = fun n -> if n < 2 then n else (fib (n - 1)) + fib (n - 2)
 ```
+
+Functions are abstracted into a single parameter chain of functions, and they
+can be partially applied:
+
+```ocaml
+(fun x y z -> x + y + z) = (fun x -> fun y -> fun z -> x + y + z) ;;
+(* result: true - bool - This is true!! *)
+
+let f = (fun x y z -> x + y + z) in f 1 2 3 ;;
+(* result: 6 - int - Function application *)
+
+let f = (fun x y z -> x + y + z) in f 1 2 ;;
+(* result: (fun z -> ... ) - fun - Partial application *)
+```
+
 
 ### Printing
 The impure primitives `print` and `print_endline` automatically call `show` on a

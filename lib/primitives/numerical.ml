@@ -63,6 +63,9 @@ let div args =
 
 
 let table = [
-  ("flatnum", ((fun x -> flatten_numbert_list x |> snd |> fun y -> EvtList y), 0));
-  ("add", (add, 0)); ("sub", (sub, 2)); ("div", (div, 0)); ("mult", (mult, 0))
+  ("flatnum", ((fun x -> flatten_numbert_list x |> snd |> fun y -> EvtList y), 0, Pure));
+  ("add", (add, 0, Pure));
+  ("mult", (mult, 0, Pure));
+  ("sub", (sub, 2, Pure));
+  ("div", (div, 2, Pure))
 ]

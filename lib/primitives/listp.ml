@@ -22,7 +22,7 @@ let mem args =
   EvtBool(List.mem elem ls)
 
 let table = [
-  ("head", (head, 1));
-  ("tail", (tail, 1));
-  ("mem", (mem, 2))
+  ("head", (head, 1, Pure));
+  ("tail", (tail, 1, Pure));
+  ("mem", (mem, 2, Pure))
 ]

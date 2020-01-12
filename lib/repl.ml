@@ -13,7 +13,7 @@ let read_toplevel parser () =
     ~brackets:[('(', ')'); ('[',']');  ('{','}')]
     ~strings:['"']
     ";;" in
-  parser (Lexing.from_string (str))
+  parser (Lexing.from_string (str ^ "\n"))
 
 let parser = Parser.toplevel Lexer.token
 

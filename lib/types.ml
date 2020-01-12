@@ -50,11 +50,24 @@ type expr =
   | Letlazy of (ide * expr) list * expr
   | Letrec of ide * expr * expr
   | Letreclazy of ide * expr * expr
-  | Lambda of ide list * expr
-  | Apply of expr * expr list
+  | Lambda of ide * expr
+  | Apply of expr * expr
+  | ApplyPrimitive of ide * int * puret * expr list
   | Sequence of expr list
-  | Pipe of expr * expr
 [@@deriving show { with_path = false }, eq, ord]
+
+(** Function that finds a nested lambda body *)
+let rec findbody l = match l with
+  | Lambda(p, b) -> Lambda(p, findbody b)
+  | other -> other
+(** Function that finds and replaces a (nested) lambda body *)
+let rec replacebody l newbody = match l with
+  | Lambda(p, b) -> Lambda(p, replacebody b newbody)
+  | _ -> newbody
+(** Function that creates a list with the params of a nested lambda*)
+let rec findparams l = match l with
+  | Lambda(p, b) -> p::(findparams b)
+  | _ -> []
 
 (** A type useful for evaluating files, stating if a command is
     an expression or simply a "global" declaration (appended to environment) *)
@@ -75,11 +88,10 @@ type evt =
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
   | EvtDict of (evt * evt) list [@equal (=)]
-  | Closure of ide list * expr * env_type [@equal (=)]
+  | Closure of ide * expr * env_type [@equal (=)]
   (** RecClosure keeps the function name in the constructor for recursion *)
-  | RecClosure of ide * ide list * expr * env_type [@equal (=)]
+  | RecClosure of ide * ide * expr * env_type [@equal (=)]
   (** Abstraction that permits treating primitives as closures *)
-  | PrimitiveAbstraction of primitivet
 [@@deriving show { with_path = false }, eq, ord]
 
 (* Wrapper type that allows both AST expressions and
@@ -87,11 +99,6 @@ type evt =
 and type_wrapper =
   | LazyExpression of expr
   | AlreadyEvaluated of evt
-[@@deriving show { with_path = false }]
-
-(* Primitive abstraction type *)
-and primitivet =
-  (ide * int * env_type * puret)
 [@@deriving show { with_path = false }]
 
 (* An environment of already evaluated values  *)
@@ -140,9 +147,8 @@ let rec show_unpacked_evt e = match e with
                  (String.concat ", " 
                     (List.map (fun (x,y) -> show_unpacked_evt x ^ ":" ^ show_unpacked_evt y) d)) 
                  ^ "}"
-  | Closure (params, _, _) -> "(fun " ^ (String.concat " " params) ^ " -> ... )"
-  | RecClosure (name, params, _, _) -> name ^ " = (rec fun " ^ (String.concat " " params) ^ " -> ... )"
-  | PrimitiveAbstraction (name, numargs, _ , _) -> name ^ " = " ^ "(fun " ^ (generate_prim_params numargs |> String.concat " ") ^ " -> ... )"
+  | Closure (param, body, _) -> "(fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
+  | RecClosure (name, param, body, _) -> name ^ " = (rec fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
 
 
 (** A recursive type representing a stacktrace frame *)

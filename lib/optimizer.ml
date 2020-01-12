@@ -11,7 +11,7 @@ let rec optimize (e: expr) : expr = match e with
   | Sub(x, y) ->  Sub (optimize x, optimize y)
   | Mult(x, y) -> Mult (optimize x, optimize y)
   | Div(x, y) -> Div (optimize x, optimize y)
-  | Apply(Symbol s, ls) ->  Apply( Symbol s, (List.map optimize ls))
+  | Apply(a, b) ->  Apply(optimize a, optimize b)
   | List(l) -> List(List.map optimize l)
   | Dict(d) -> Dict(List.map (fun (k, v) -> (optimize k, optimize v)) d)
   | Lambda(params, body) -> Lambda(params, optimize body)
@@ -19,7 +19,6 @@ let rec optimize (e: expr) : expr = match e with
   | Letlazy(declarations, body) -> optimize_let declarations body true
   | Letrec(ident, dec, body) -> Letrec(ident, optimize dec, optimize body)
   | Letreclazy(ident, dec, body) -> Letreclazy(ident, optimize dec, optimize body)
-  | Apply(func, params) -> Apply(func, (List.map optimize params))
   (* Propositional Calculus optimizations *)
   | And(Boolean x, Boolean y) -> Boolean (x && y)
   | Or(Boolean x, Boolean y) -> Boolean (x || y)

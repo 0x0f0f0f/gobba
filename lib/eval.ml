@@ -106,14 +106,21 @@ let rec eval (e : expr) (state : evalstate) : evt =
         | _ ->
           traise "Cannot define recursion on non-functional values"
       )
-    | Lambda (params, body) -> Closure (params, body, state.env)
+    | Lambda (param, body) -> Closure (param, body, state.env)
     (* Function Application *)
-    | Apply (f, expr_args) ->
+    | Apply (f, arg) ->
       let closure = eval f state in
-      let args =
-        List.map (fun x -> AlreadyEvaluated (eval x state)) expr_args
-      in
-      applyfun closure args state
+      let earg = AlreadyEvaluated (eval arg state) in
+      applyfun closure earg state
+    | ApplyPrimitive (name, numparams, purity, args) ->
+      if List.length args != numparams then (iraise (Fatal "Primitive Application Error"))
+      else if state.purity = Pure || state.purity = Uncertain && purity = Impure then
+        iraise
+          (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
+      else
+      let eargs = List.map (fun x -> eval x state) args in
+      let prim = fst3 (Dict.get name Primitives.table) in
+      prim eargs
     (* Eval a sequence of expressions but return the last *)
     | Sequence exprl ->
       let rec unroll el =
@@ -125,15 +132,6 @@ let rec eval (e : expr) (state : evalstate) : evt =
           unroll xs
       in
       unroll exprl
-    (* Pipe two functions together, creating a new function
-       That uses the first functions's result as the second's first argument *)
-    | Pipe (e1, e2) ->
-      (* Convert a list of identifiers to a list of symbols *)
-      let syml l = List.map (fun x -> Symbol x) l in
-      let f1 = eval e1 state and f2 = eval e2 state in
-      stcheck (typeof f2) TLambda;
-      let _, params1, _, _ = unpack_anyfun f1 in
-      Closure (params1, Apply (e2, [ Apply (e1, syml params1) ]), state.env)
   in
   if state.verbosity >= 2 then
     print_message ~color:T.Cyan ~loc:Nowhere "Evaluates to at depth" "%d\n%s\n"
@@ -144,11 +142,15 @@ let rec eval (e : expr) (state : evalstate) : evt =
 
 (* Search for a value in the primitives table and environment *)
 and lookup (ident : ide) (state : evalstate) : evt =
-  if Dict.exists ident Primitives.fulltable then
-    let _, numargs = Dict.get ident Primitives.fulltable in
-    let purity =
-    if Dict.exists ident Primitives.impure_table then Impure else Pure in
-    PrimitiveAbstraction (ident, numargs, state.env, purity)
+  if Dict.exists ident Primitives.table then
+    let _, numparams, purity = Dict.get ident Primitives.table in
+    (* Generate a closure abstraction from a primitive *)
+    let primargs = generate_prim_params numparams in
+    let symprimargs = List.map (fun x -> Symbol x) primargs in
+    let cbody = List.fold_right (fun p e -> Lambda(p, e) ) primargs (ApplyPrimitive(ident, numparams, purity, symprimargs)) in
+    eval cbody state
+  else if Dict.exists ident Primitives.stdlib_table then
+    eval (Dict.get ident Primitives.stdlib_table) state
   else lookup_env ident state
 
 (* Search for a value in an environment *)
@@ -163,63 +165,20 @@ and lookup_env (ident : ide) (state : evalstate) : evt =
     | (i, AlreadyEvaluated e) :: env_rest ->
       if ident = i then e else lookup_env ident { state with env = env_rest }
 
-and applyfun (closure : evt) (args : type_wrapper list) (state : evalstate) : evt =
-  (* Evaluate the arguments and unpack the evt encapsuled in them *)
-  let args =
-    List.map
-      (fun x ->
-         match x with
-         | AlreadyEvaluated _ -> x
-         | LazyExpression y -> AlreadyEvaluated (eval y state))
-      args
-  in
-  let evtargs =
-    List.map
-      (fun x ->
-         match x with
-         | AlreadyEvaluated y -> y
-         | LazyExpression _ ->
-           failwith "FATAL ERROR: this should have never happened")
-      args
-  in
-  let p_length = List.length args in
+and applyfun (closure : evt) (arg : type_wrapper) (state : evalstate) : evt =
+  (* Evaluate the argument and unpack the evt encapsuled in them *)
   match closure with
-  | Closure (params, body, decenv) ->
-    (* Use static scoping *)
-    if List.compare_lengths params args > 0 then
-      (* curry *)
-      let applied_env = Dict.insertmany decenv (take p_length params) args in
-      Closure (drop p_length params, body, applied_env)
-    else
+  | Closure (param, body, decenv) ->
       (* apply the function *)
-      let application_env = Dict.insertmany decenv params args in
+      let application_env = Dict.insert decenv param arg in
       eval body { state with env = application_env }
   (* Apply a recursive function *)
-  | RecClosure (name, params, body, decenv) ->
+  | RecClosure (name, param, body, decenv) ->
     let rec_env = Dict.insert decenv name (AlreadyEvaluated closure) in
-    if List.compare_lengths params args > 0 then
-      (* curry *)
-      let applied_env = Dict.insertmany rec_env (take p_length params) args in
-      RecClosure (name, drop p_length params, body, applied_env)
-    else
-      (* apply the function *)
-      let application_env = Dict.insertmany rec_env params args in
-      eval body { state with env = application_env }
-  | PrimitiveAbstraction (name, numargs, decenv, ispure) ->
-    if numargs > p_length then
-      (* curry *)
-      let primargs = generate_prim_params numargs in
-      let symprimargs = List.map (fun x -> Symbol x) primargs in
-      let missing_args = drop p_length primargs
-      and ihavethose_args = take p_length primargs in
-      let app_env = Dict.insertmany decenv ihavethose_args args in
-      Closure (missing_args, Apply (Symbol name, symprimargs), app_env)
-    else
-      (* Apply the primitive *)
-    if state.purity = Pure || state.purity = Uncertain && ispure = Impure then
-      iraise
-        (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
-    else
-      let prim = (fun x -> (fst (Dict.get name Primitives.fulltable)) x applyfun state) in
-      prim evtargs
+    let application_env = Dict.insert rec_env param arg in
+    eval body { state with env = application_env }
+    (* Generate a closure abstraction from a primitive *)
+
+
+
   | _ -> traise "Cannot apply a non functional value"

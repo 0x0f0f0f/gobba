@@ -9,6 +9,6 @@ let typeofp args =
   EvtString (show_tinfo (typeof (List.hd args)))
 
 let table = [
-  ("typeof", (typeofp, 1));
+  ("typeof", (typeofp, 1, Pure));
 ]
 

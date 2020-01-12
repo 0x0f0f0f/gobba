@@ -34,9 +34,9 @@ let show args =
   | _ -> iraise WrongPrimitiveArgs
 
 let table = [
-  ("^", (concat, 2));
-  ("concat", (concat, 2));
-  ("show", (show, 1));
-  ("string_from_value", (show, 1));
+  ("^", (concat, 2, Pure));
+  ("concat", (concat, 2, Pure));
+  ("show", (show, 1, Pure));
+  ("string_from_value", (show, 1, Pure));
 ]
 

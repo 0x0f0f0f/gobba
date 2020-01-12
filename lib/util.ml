@@ -72,6 +72,10 @@ let last l = List.hd (drop ((List.length l) - 1) l)
 let fst (a, _) = a
 let snd (_, a) = a
 
+let fst3 (a, _, _) = a
+let snd3 (_, a, _) = a
+let thd3 (_, _, a) = a
+
 let fstl l = List.map fst l
 let sndl l = List.map snd l
 
