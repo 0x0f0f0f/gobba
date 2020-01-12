@@ -97,7 +97,6 @@ and primitivet =
 (* An environment of already evaluated values  *)
 and env_type = (ide, type_wrapper) Util.Dict.t [@@deriving show { with_path = false }, eq, ord]
 
-
 (** A type containing information about types *)
 and typeinfo =
   | TUnit
