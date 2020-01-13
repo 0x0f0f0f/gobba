@@ -15,7 +15,7 @@ let typeof e = match e with
   | RecClosure (_, _, _, _) -> TLambda
 
 (* Static typechecking *)
-let stcheck (e: typeinfo) (f: typeinfo) =
+let stcheck (f: typeinfo) (e: typeinfo) =
   match e with
   | TNumber -> (match f with
       | TInt -> ()

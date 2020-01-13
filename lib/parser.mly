@@ -31,7 +31,7 @@
 %token LPAREN RPAREN
 %token AND
 %token LET LAZY REC IN
-%token PIPE
+%token PIPE COMPOSE
 %token PURE IMPURE
 %token DOLLAR
 %token SEMISEMI
@@ -144,9 +144,11 @@ ast_expr:
   | LET REC LAZY name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
   { Letreclazy (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
-  { List.fold_right (fun p e -> (Lambda(p, e))) params body }
-  | e1 = ast_expr PIPE e2 = ast_expr
-  { (replacebody e1 (Apply (e2, (findbody e1)))) }
+  { lambda_from_paramlist params body }
+  | e1 = ast_expr COMPOSE e2 = ast_expr
+  { Compose(e1, e2) }
+  | e1 = ast_expr PIPE  e2 = ast_expr
+  { Compose(e2, e1) }
 
 ast_app_expr:
   | e = ast_simple_expr

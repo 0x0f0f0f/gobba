@@ -10,14 +10,14 @@ let test_list () =
   checkeval sample_list sample_list_evt
 
 let test_head () =
-  checkeval (Apply(Symbol "head", [sample_list])) (EvtString "hello");
-  checkevalfail (Apply(Symbol "head", [List([]); List([])]));
-  checkevalfail (Apply(Symbol "head", [List([])]))
+  checkeval (Apply(Symbol "head", sample_list)) (EvtString "hello");
+  checkevalfail (apply_from_exprlist [List([]); List([])] (Symbol "tail"));
+  checkevalfail (apply_from_exprlist [List([])] (Symbol "tail"))
 
 let test_tail () =
-  checkeval (Apply(Symbol "tail", [sample_list])) (EvtList([EvtString "world"; EvtString "apple"; EvtInt 314]));
-  checkevalfail (Apply(Symbol "tail", [List([]); List([])]));
-  checkevalfail (Apply(Symbol "tail", [List([])]))
+  checkeval (Apply(Symbol "tail", sample_list)) (EvtList([EvtString "world"; EvtString "apple"; EvtInt 314]));
+  checkevalfail (apply_from_exprlist [List([]); List([])] (Symbol "tail"));
+  checkevalfail (Apply(Symbol "tail", List([])))
 
 let test_cons () =
   checkeval (Cons(String "hello", List [])) (EvtList [EvtString "hello"]);
@@ -25,42 +25,39 @@ let test_cons () =
                                                                       "hello"; EvtString "world"])
 
 let test_map () =
-  checkeval (Apply ((Symbol "map"),
-                    [(Lambda (["x"], (Plus ((NumInt 1), (Symbol "x")))));
-                     (List [NumInt 1; NumInt 2; NumInt 3; NumInt 4])]))
+  checkeval (apply_from_exprlist
+               [(Lambda ("x", (Plus ((NumInt 1), (Symbol "x")))));
+                (List [NumInt 1; NumInt 2; NumInt 3; NumInt 4])] (Symbol "map"))
     (EvtList [EvtInt 2; EvtInt 3; EvtInt 4; EvtInt 5]);
-  checkevalfail (Apply (Symbol "map", [String "fail"; String "fail"; String
-                                         "Fail"]));
-  checkevalfail (Apply (Symbol "map", [(Lambda (["x"], (Plus ((NumInt 1),
-                                                              (Symbol "x"))))); (String "x")]))
+  checkevalfail (apply_from_exprlist [String "fail"; String "fail"; String
+                                        "Fail"] (Symbol "map"));
+  checkevalfail (apply_from_exprlist [(Lambda ("x", (Plus ((NumInt 1),
+                                                           (Symbol "x"))))); (String "x")] (Symbol "map"))
 
 let test_foldl () =
-  checkeval (Apply ((Symbol "foldl"),
-                    [(Lambda (["acc"; "x"], (Plus ((Symbol "acc"), (Symbol "x")))));
-                     (NumInt 0);
-                     (List [NumInt 1; NumInt 2; NumInt 3; NumInt 4])]))
+  check "foldl (fun acc x -> acc + x) 0 [1;2;3;4]"
     (EvtInt 10);
-  checkevalfail (Apply (Symbol "foldl", [String "fail"; String "fail"; String
-                                           "Fail"; NumInt 0]));
-  checkevalfail (Apply (Symbol "foldl", [(Lambda (["x"], (Plus ((NumInt 1),
-                                                                (Symbol "x"))))); (NumInt 0); (String "x")]))
+  checkfail "foldl \"fail\" \"fail\" \"fail\" 0";
+  checkfail "foldl (fun x -> 1 + x) 0 \"x\""
 
 let test_filter () =
-  checkeval (Apply ((Symbol "filter"),
-                    [(Lambda (["x"], (Gt ((Symbol "x"), (NumInt 3)))));
-                     (List
-                        [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
-                         (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)])
-                    ]))
+  checkeval
+    (apply_from_exprlist
+       [(Lambda ("x", (Gt ((Symbol "x"), (NumInt 3)))));
+        (List
+           [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
+            (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)])
+       ] (Symbol "filter"))
     (EvtList [(EvtInt 4); (EvtInt 5); (EvtInt 4)]);
-  checkevalfail (Apply ((Symbol "filter"),
-                        [(Lambda (["x"], (Gt ((Symbol "x"), (NumInt 3)))));
-                         (List
-                            [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
-                             (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)]); NumInt 3
-                        ]));
-  checkevalfail (Apply ((Symbol "filter"),
-                        [(Lambda (["x"], (Gt ((Symbol "x"), (NumInt 3))))); NumInt 3 ]))
+  checkevalfail
+    (apply_from_exprlist
+       [(Lambda ("x", (Gt ((Symbol "x"), (NumInt 3)))));
+        (List
+           [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
+            (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)]); NumInt 3
+       ] (Symbol "filter"));
+  checkevalfail
+    (apply_from_exprlist [(Lambda ("x", (Gt ((Symbol "x"), (NumInt 3))))); NumInt 3 ] (Symbol "filter"))
 
 let test_concat () =
   check ("[1] @ [2]") (EvtList [EvtInt 1; EvtInt 2])

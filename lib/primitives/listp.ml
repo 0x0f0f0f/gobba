@@ -1,5 +1,6 @@
 open Types
 open Typecheck
+open Util
 
 let head args  =
   if List.length args > 1 then iraise WrongPrimitiveArgs else
@@ -7,6 +8,18 @@ let head args  =
     (match ls with
      | [] -> iraise (ListError "empty list")
      | v::_ -> v )
+
+let length args  =
+  if List.length args > 1 then iraise WrongPrimitiveArgs else
+    let ls= unpack_list (List.hd args) in
+    EvtInt(List.length ls)
+
+let getat args =
+  let at, ls = (match args with
+      | [EvtInt a; EvtList l] -> (a,l)
+      | _ -> iraise WrongPrimitiveArgs) in
+  if List.length ls <= at then iraise IndexOutOfBounds
+  else List.hd (drop at ls)
 
 let tail args =
   if List.length args > 1 then iraise WrongPrimitiveArgs else
@@ -24,5 +37,7 @@ let mem args =
 let table = [
   ("head", (head, 1, Pure));
   ("tail", (tail, 1, Pure));
-  ("mem", (mem, 2, Pure))
+  ("mem", (mem, 2, Pure));
+  ("length", (length, 2, Pure));
+  ("at", (getat, 2, Pure));
 ]

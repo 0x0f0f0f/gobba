@@ -43,17 +43,9 @@ let test_map () =
   checkfail "map \"fail\" \"fail\" \"fail\"" 
 
 let test_foldl () =
-  checkeval (Apply ((Symbol "foldl"),
-                    [(Lambda (["acc"; "x"], (Plus ((Symbol "acc"), (Symbol "x")))));
-                     (NumInt 0);
-                     (Dict
-                        [((String "a"), (NumInt 1)); ((String "b"), (NumInt 2));
-                         ((String "c"), (NumInt 3)); ((String "d"), (NumInt 4))])
-                    ]
-                   )) (EvtInt 10);
-  checkevalfail (Apply (Symbol "foldl", [String "fail"; String "fail"; String
-                                           "Fail"; NumInt 0]))
-
+  check "foldl (fun acc x -> x + acc) 10 {\"a\": 1, \"b\": 2, \"c\": 3, \"d\": 4}" (EvtInt 10);
+  checkfail "foldl \"fail\" \"fail\"  \"fail\" 0"
+  
 let test_filterkeys () =
   check ("filterkeys [\"apple\"] " ^ sample_dict)
     (EvtDict [(EvtString "apple", EvtInt 314)]);

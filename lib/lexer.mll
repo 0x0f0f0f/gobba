@@ -70,6 +70,7 @@ rule token = parse
   | "<="        { LESSEQUAL }
   | "not"       { NOT }
   | ">=>"       { PIPE }
+  | "<=<"       { COMPOSE }
   | "$"         { DOLLAR }
   | ";"         { SEMI }
   | ";;"        { SEMISEMI }

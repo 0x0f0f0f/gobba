@@ -53,12 +53,13 @@ type expr =
   | Lambda of ide * expr
   | Apply of expr * expr
   | ApplyPrimitive of ide * int * puret * expr list
+  | Compose of expr * expr
   | Sequence of expr list
 [@@deriving show { with_path = false }, eq, ord]
 
 (** Function that finds a nested lambda body *)
 let rec findbody l = match l with
-  | Lambda(p, b) -> Lambda(p, findbody b)
+  | Lambda(_, b) ->  findbody b
   | other -> other
 (** Function that finds and replaces a (nested) lambda body *)
 let rec replacebody l newbody = match l with
@@ -68,6 +69,15 @@ let rec replacebody l newbody = match l with
 let rec findparams l = match l with
   | Lambda(p, b) -> p::(findparams b)
   | _ -> []
+
+(** Creates a nested Lambda from a list of params*)
+let lambda_from_paramlist l body = List.fold_right (fun p e -> Lambda (p, e)) l body
+
+(** Creates a nested Apply from a list of expressions*)
+let apply_from_exprlist l f = List.fold_left (fun e p -> Apply (e, p)) f l
+
+(** Creates a list of Symbol from a list of string*)
+let symbols_from_strings l = List.map (fun x -> Symbol x) l
 
 (** A type useful for evaluating files, stating if a command is
     an expression or simply a "global" declaration (appended to environment) *)
@@ -150,6 +160,11 @@ let rec show_unpacked_evt e = match e with
   | Closure (param, body, _) -> "(fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
   | RecClosure (name, param, body, _) -> name ^ " = (rec fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
 
+(** Function that creates a list with the params of a nested lambda in a Closure *)
+let findevtparams l = match l with
+  | Closure(p, b, _) -> p::(findparams b)
+  | RecClosure(_, p, b, _) -> p::(findparams b)
+  | _ -> []
 
 (** A recursive type representing a stacktrace frame *)
 type stackframe =
@@ -194,6 +209,7 @@ let location_of_lex lex =
 type internalerrort =
   | Fatal of string
   | WrongPrimitiveArgs
+  | IndexOutOfBounds
   | TypeError of string
   | UnboundVariable of string
   | ListError of string

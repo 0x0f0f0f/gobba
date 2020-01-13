@@ -107,6 +107,12 @@ let rec eval (e : expr) (state : evalstate) : evt =
           traise "Cannot define recursion on non-functional values"
       )
     | Lambda (param, body) -> Closure (param, body, state.env)
+    | Compose (f1, f2) ->
+      let ef1 = eval f1 state and ef2 = eval f2 state in
+      stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
+      let params2 = findevtparams ef1 in
+      let appl2 = apply_from_exprlist (symbols_from_strings params2) f2 in
+      eval (lambda_from_paramlist params2 (Apply (f1, appl2))) state
     (* Function Application *)
     | Apply (f, arg) ->
       let closure = eval f state in
