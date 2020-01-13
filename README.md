@@ -219,8 +219,9 @@ let add_one = (fun z -> z + 1) ;;
 
 ### Dictionaries
 ```ocaml
-let n = {"hola": 1, "mondo": 2} ;;
+let n = {hola: 1, mondo: 2} ;;
 let m = insert "newkey" 123 n ;;
+m = {newkey: 123, hola: 1, mondo: 2} (* => true *)
 haskey "newkey" m (* => true *)
 map (fun x -> x + 1) m
 (* => {"newkey":124, "hola":2, "mondo":3} *)

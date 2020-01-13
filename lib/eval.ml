@@ -52,7 +52,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
     | Dict l ->
       let el =
         uniqueorfail
-          (List.map (fun (x, y) -> isvalidkey (eval x state, eval y state)) l)
+          (List.map (fun (x, y) -> (x, eval y state)) l)
       in
       EvtDict el
     | Plus (x, y) ->  Numericalp.add [(eval x state); (eval y state)]
@@ -184,7 +184,4 @@ and applyfun (closure : evt) (arg : type_wrapper) (state : evalstate) : evt =
     let application_env = Dict.insert rec_env param arg in
     eval body { state with env = application_env }
     (* Generate a closure abstraction from a primitive *)
-
-
-
   | _ -> traise "Cannot apply a non functional value"

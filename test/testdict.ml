@@ -3,25 +3,23 @@ open Util
 
 module A = Alcotest
 
-let sample_dict = "{\"hello\":\"world\", \"apple\":314}"
+let sample_dict = "{hello:\"world\", apple:314}"
 
 let test_dict () =
-  check sample_dict (EvtDict([(EvtString
-                                 "hello", EvtString "world"); (EvtString "apple", EvtInt 314)]));
-  check "{true:\"true\"}" (EvtDict([EvtBool true, EvtString "true"]));
-  checkfail "{\"hello\":\"world\", \"hello\":\"world\", \"apple\":314}";
+  check sample_dict (EvtDict([("hello", EvtString "world"); ( "apple", EvtInt 314)]));
+  check "{trueval:\"true\"}" (EvtDict(["trueval", EvtString "true"]));
+  checkfail "{hello:\"world\", hello:\"world\", apple:314}";
   checkfail "{(fun x -> x):1}"
 
 let test_insert () =
-  check ("insert 123 456 " ^ sample_dict)
-    (EvtDict([(EvtInt 123, EvtInt 456);(EvtString
-                                          "hello", EvtString "world"); (EvtString "apple", EvtInt 314)]));
+  check ("insert \"abc\" 456 " ^ sample_dict)
+    (EvtDict([("abc", EvtInt 456);("hello", EvtString "world"); ("apple", EvtInt 314)]));
   check ("insert \"hello\" 123 " ^ sample_dict)
-    (EvtDict([(EvtString "hello", EvtInt 123); (EvtString "apple", EvtInt 314)]));
+    (EvtDict([("hello", EvtInt 123); ("apple", EvtInt 314)]));
   checkfail ("insert \"doesntexist\" 123 " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_remove () =
-  check ("remove \"hello\"" ^ sample_dict) (EvtDict([(EvtString "apple", EvtInt 314)]));
+  check ("remove \"hello\"" ^ sample_dict) (EvtDict([("apple", EvtInt 314)]));
   checkfail ("remove \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict);
   checkfail ("remove \"doesntexist\"" ^ sample_dict)
 
@@ -36,10 +34,10 @@ let test_getkey () =
   checkfail ("getkey \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_map () =
-  check "map (fun x -> x + 1) {\"a\":1,\"b\":2,\"c\":3,\"d\":4}" 
+  check "map (fun x -> x + 1) {a:1,b:2,c:3,d:4}"
     (EvtDict
-       [((EvtString "a"), (EvtInt 2)); ((EvtString "b"), (EvtInt 3));
-        ((EvtString "c"), (EvtInt 4)); ((EvtString "d"), (EvtInt 5))]);
+       [(("a"), (EvtInt 2)); (("b"), (EvtInt 3));
+        (("c"), (EvtInt 4)); (("d"), (EvtInt 5))]);
   checkfail "map \"fail\" \"fail\" \"fail\""
 
 let test_foldl () =
@@ -48,12 +46,12 @@ let test_foldl () =
   
 let test_filterkeys () =
   check ("filterkeys [\"apple\"] " ^ sample_dict)
-    (EvtDict [(EvtString "apple", EvtInt 314)]);
+    (EvtDict [("apple", EvtInt 314)]);
   checkfail ("filterkeys \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_filter () =
-  check "filter (fun x -> x > 3) {\"a\":1,\"b\":2,\"c\":3,\"d\":4}" 
-    (EvtDict [((EvtString "d"), (EvtInt 4))])
+  check "filter (fun x -> x > 3) {a:1,b:2,c:3,d:4}"
+    (EvtDict [(("d"), (EvtInt 4))])
 
 let test_suite = List.map quickcase [
     ("evaluate dictionary", test_dict);

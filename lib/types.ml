@@ -1,4 +1,5 @@
 module T = ANSITerminal
+module D = Util.Dict
 
 (** A value identifier*)
 type ide = string
@@ -11,8 +12,8 @@ type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
 [@@deriving show { with_path = false }, eq, ord]
 
 (** A type representing if a computation is pure or not  *)
-type puret = Uncertain | Pure | Impure | Numerical [@@deriving show { with_path = false },
-                                                   eq, ord]
+type puret = Uncertain | Pure | Impure | Numerical
+[@@deriving show { with_path = false }, eq, ord]
 
 let isuncertain x = x = Uncertain
 let isnumerical x = x = Numerical
@@ -20,6 +21,8 @@ let isstrictlypure x = x = Pure
 let isimpure x = x = Impure
 let ispure x = not (isimpure x)
 
+(** Contains info about a primitive *)
+type primitiveinfo = (ide * int * puret) [@@deriving show { with_path = false }, eq, ord]
 
 (** The type representing Abstract Syntax Tree expressions *)
 type expr =
@@ -35,7 +38,7 @@ type expr =
   | Cons of expr * expr
   | ConcatLists of expr * expr
   | ConcatStrings of expr * expr
-  | Dict of (expr * expr) list
+  | Dict of (ide * expr) list
   (* Numerical Operations *)
   | Plus of (expr * expr)
   | Sub of (expr * expr)
@@ -104,7 +107,7 @@ type evt =
   | EvtBool of bool       [@equal (=)] [@compare compare]
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
-  | EvtDict of (evt * evt) list [@equal (=)]
+  | EvtDict of (ide * evt) list [@equal (=)]
   | Closure of ide * expr * env_type [@equal (=)]
   (** RecClosure keeps the function name in the constructor for recursion *)
   | RecClosure of ide * ide * expr * env_type [@equal (=)]
@@ -119,7 +122,7 @@ and type_wrapper =
 [@@deriving show { with_path = false }]
 
 (* An environment of already evaluated values  *)
-and env_type = (ide, type_wrapper) Util.Dict.t [@@deriving show { with_path = false }, eq, ord]
+and env_type = (ide, type_wrapper) D.t [@@deriving show { with_path = false }, eq, ord]
 
 (** A type containing information about types *)
 and typeinfo =
@@ -162,7 +165,7 @@ let rec show_unpacked_evt e = match e with
   | EvtList l -> "[" ^ (String.concat "; " (List.map show_unpacked_evt l)) ^ "]"
   | EvtDict d -> "{" ^
                  (String.concat ", " 
-                    (List.map (fun (x,y) -> show_unpacked_evt x ^ ":" ^ show_unpacked_evt y) d)) 
+                    (List.map (fun (x,y) -> x ^ ":" ^ show_unpacked_evt y) d))
                  ^ "}"
   | Closure (param, body, _) -> "(fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
   | RecClosure (name, param, body, _) -> name ^ " = (rec fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
@@ -172,6 +175,9 @@ let findevtparams l = match l with
   | Closure(p, b, _) -> p::(findparams b)
   | RecClosure(_, p, b, _) -> p::(findparams b)
   | _ -> []
+
+(** A type representing a primitive *)
+type primitive = Primitive of (evt list -> evt) * primitiveinfo
 
 (** A recursive type representing a stacktrace frame *)
 type stackframe =

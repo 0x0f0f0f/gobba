@@ -88,7 +88,7 @@ assignment:
   { (name, value) }
 
 dict_value:
-  | key = ast_expr COLON value = ast_expr
+  | key = SYMBOL COLON value = ast_expr
   { (key, value) }
 
 ast_expr:

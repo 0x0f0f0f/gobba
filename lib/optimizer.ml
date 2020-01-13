@@ -13,7 +13,7 @@ let rec optimize (e: expr) : expr = match e with
   | Div(x, y) -> Div (optimize x, optimize y)
   | Apply(a, b) ->  Apply(optimize a, optimize b)
   | List(l) -> List(List.map optimize l)
-  | Dict(d) -> Dict(List.map (fun (k, v) -> (optimize k, optimize v)) d)
+  | Dict(d) -> Dict(List.map (fun (k, v) -> (k, optimize v)) d)
   | Lambda(params, body) -> Lambda(params, optimize body)
   | Let(declarations, body) -> optimize_let declarations body false
   | Letlazy(declarations, body) -> optimize_let declarations body true
