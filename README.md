@@ -199,7 +199,7 @@ external from expressions as you can (towards the top level). By default, the
 interpreter is in a `uncertain` state, it means that it will allow the execution
 of `impure` statements
 
-### Function pipes (reverse composition)
+### Function pipes (reverse composition) and composition
 You can redirect the result of a function to the first argument of another
 function using the `>=>` operator.
 ```ocaml
@@ -211,7 +211,10 @@ Yields the same result as normal composition:
 ```ocaml
 let my_sum = (fun x y -> x + y) ;;
 let add_one = (fun z -> z + 1) ;;
-add_one (mysum 2 3)
+(add_one <=< my_sum) 2 3 = add_one (my_sum 2 3) ;;
+(* The operator <=< means compose *)
+(add_one <=< my_sum) = (my_sum >=> add_one) ;;
+(* This is also true! *)
 ```
 
 ### Dictionaries
