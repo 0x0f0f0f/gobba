@@ -11,8 +11,15 @@ type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
 [@@deriving show { with_path = false }, eq, ord]
 
 (** A type representing if a computation is pure or not  *)
-type puret = Uncertain | Pure | Impure [@@deriving show { with_path = false },
+type puret = Uncertain | Pure | Impure | Numerical [@@deriving show { with_path = false },
                                                    eq, ord]
+
+let isuncertain x = x = Uncertain
+let isnumerical x = x = Numerical
+let isstrictlypure x = x = Pure
+let isimpure x = x = Impure
+let ispure x = not (isimpure x)
+
 
 (** The type representing Abstract Syntax Tree expressions *)
 type expr =

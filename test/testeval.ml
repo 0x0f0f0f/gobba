@@ -19,31 +19,39 @@ let test_apply () =
   checkeval (Let(["f", plus_one], (Apply(Symbol "f", NumInt 1)))) (EvtInt 2);
   checkevalfail (Let(["f", plus_one], (Apply (Apply (Symbol "f", NumInt 1), NumInt 2))));
   checkevalfail (Apply(NumInt 5, NumInt 5))
+
 let test_curry () =
-  checkeval (Let ([("f", (Lambda ("x", (Lambda("y", Plus ((Symbol "x"), (Symbol "y")))))))],
+  checkeval (Let ([("f", (Lambda ("x", (Lambda ("y", Plus ((Symbol "x"), (Symbol "y")))))))],
                   (Apply ((Symbol "f"), (NumInt 3)))))
     (Closure ("y", (Plus ((Symbol "x"), (Symbol "y"))),
               [("x", (AlreadyEvaluated (EvtInt 3)))]));
-  check ("let rec fib = " ^ fib ^ " in fib 2")
-    (RecClosure ("fib", "n",
-                 (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))), (Symbol "n"),
-                              (Plus (
-                                  (Plus ((Symbol "a"),
-                                         (Apply ((Symbol "fib"), (Sub ((Symbol "n"), (NumInt 1))))))),
-                                  (Apply ((Symbol "fib"), (Sub ((Symbol "n"), (NumInt 2)))))))
-                             )),
-                 [("a", (AlreadyEvaluated (EvtInt 2)));
-                  ("fib",
-                   (AlreadyEvaluated
-                      (RecClosure ("fib", "n",
-                                   (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))), (Symbol "n"),
-                                                (Plus (
-                                                    (Plus ((Symbol "a"),
-                                                           (Apply ((Symbol "fib"), (Sub ((Symbol "n"), (NumInt 1))))))),
-                                                    (Apply ((Symbol "fib"), (Sub ((Symbol "n"), (NumInt 2)))))))
-                                               )), []))))
-                 ]
-                ))
+  check ("let rec fibacc = fun a n -> if n < 2 then a + n else (fibacc a (n - 1)) + (fibacc a (n - 2)) in fibacc 2 ")
+(Closure ("n",
+   (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))),
+      (Plus ((Symbol "a"), (Symbol "n"))),
+      (Plus
+         ((Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+             (Sub ((Symbol "n"), (NumInt 1))))),
+          (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+             (Sub ((Symbol "n"), (NumInt 2)))))))
+      )),
+   [("a", (AlreadyEvaluated (EvtInt 2)));
+     ("fibacc",
+      (AlreadyEvaluated
+         (RecClosure ("fibacc", "a",
+            (Lambda ("n",
+               (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))),
+                  (Plus ((Symbol "a"), (Symbol "n"))),
+                  (Plus
+                     ((Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                         (Sub ((Symbol "n"), (NumInt 1))))),
+                      (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                         (Sub ((Symbol "n"), (NumInt 2)))))))
+                  ))
+               )),
+            []))))
+     ]
+   ))
 
 let test_let () =
   checkeval (Let(["f", NumInt 5], Symbol "f")) (EvtInt 5);

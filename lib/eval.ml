@@ -31,8 +31,8 @@ let rec eval (e : expr) (state : evalstate) : evt =
     match e with
     | Unit -> EvtUnit
     | Purity (n, ee) ->
-      if state.purity = Pure && n = Impure then
-          iraise (PurityError "Cannot enter an impure contest from a strictly pure one")
+      if isstrictlypure state.purity && isimpure n then
+          iraise (PurityError "Cannot enter an impure context from a strictly pure one")
       else eval ee { state with purity = n }
     | NumInt n -> EvtInt n
     | NumFloat n -> EvtFloat n
@@ -55,10 +55,10 @@ let rec eval (e : expr) (state : evalstate) : evt =
           (List.map (fun (x, y) -> isvalidkey (eval x state, eval y state)) l)
       in
       EvtDict el
-    | Plus (x, y) ->  Numerical.add [(eval x state); (eval y state)]
-    | Sub (x, y) -> Numerical.sub [(eval x state); (eval y state)]
-    | Div (x, y) -> Numerical.div [(eval x state); (eval y state)]
-    | Mult (x, y) -> Numerical.mult [(eval x state); (eval y state)]
+    | Plus (x, y) ->  Numericalp.add [(eval x state); (eval y state)]
+    | Sub (x, y) ->   Numericalp.sub [(eval x state); (eval y state)]
+    | Div (x, y) ->   Numericalp.div [(eval x state); (eval y state)]
+    | Mult (x, y) ->  Numericalp.mult [(eval x state); (eval y state)]
     | And (x, y) -> bool_binop (eval x state, eval y state) ( && )
     | Or (x, y) -> bool_binop (eval x state, eval y state) ( || )
     | Not x -> bool_unop (eval x state) not
@@ -120,7 +120,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
       applyfun closure earg state
     | ApplyPrimitive (name, numparams, purity, args) ->
       if List.length args != numparams then (iraise (Fatal "Primitive Application Error"))
-      else if state.purity = Pure || state.purity = Uncertain && purity = Impure then
+      else if ispure state.purity && isimpure purity then
         iraise
           (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
       else
@@ -152,8 +152,8 @@ and lookup (ident : ide) (state : evalstate) : evt =
     let _, numparams, purity = Dict.get ident Primitives.table in
     (* Generate a closure abstraction from a primitive *)
     let primargs = generate_prim_params numparams in
-    let symprimargs = List.map (fun x -> Symbol x) primargs in
-    let cbody = List.fold_right (fun p e -> Lambda(p, e) ) primargs (ApplyPrimitive(ident, numparams, purity, symprimargs)) in
+    let symprimargs = symbols_from_strings primargs in
+    let cbody = lambda_from_paramlist primargs (ApplyPrimitive(ident, numparams, purity, symprimargs)) in
     eval cbody state
   else if Dict.exists ident Primitives.stdlib_table then
     eval (Dict.get ident Primitives.stdlib_table) state

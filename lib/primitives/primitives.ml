@@ -1,7 +1,7 @@
 open Util
 open Types
 
-let table = Numerical.table @ Dictp.table
+let table = Numericalp.table @ Dictp.table
   @ Listp.table @ Stringp.table
   @ Typep.table @ Iop.table
 
