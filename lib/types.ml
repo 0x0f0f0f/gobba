@@ -215,6 +215,7 @@ let location_of_lex lex =
 (** Exceptions *)
 type internalerrort =
   | Fatal of string
+  | InternalFailure of string
   | WrongPrimitiveArgs
   | IndexOutOfBounds
   | TypeError of string

@@ -156,7 +156,7 @@ and lookup (ident : ide) (state : evalstate) : evt =
     let cbody = lambda_from_paramlist primargs (ApplyPrimitive(ident, numparams, purity, symprimargs)) in
     eval cbody state
   else if Dict.exists ident Primitives.stdlib_table then
-    eval (Dict.get ident Primitives.stdlib_table) state
+    (Dict.get ident Primitives.stdlib_table)
   else lookup_env ident state
 
 (* Search for a value in an environment *)

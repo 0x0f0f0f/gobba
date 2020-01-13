@@ -40,7 +40,7 @@ let test_map () =
     (EvtDict
        [((EvtString "a"), (EvtInt 2)); ((EvtString "b"), (EvtInt 3));
         ((EvtString "c"), (EvtInt 4)); ((EvtString "d"), (EvtInt 5))]);
-  checkfail "map \"fail\" \"fail\" \"fail\"" 
+  checkfail "map \"fail\" \"fail\" \"fail\""
 
 let test_foldl () =
   check "foldl (fun acc x -> x + acc) 10 {\"a\": 1, \"b\": 2, \"c\": 3, \"d\": 4}" (EvtInt 10);

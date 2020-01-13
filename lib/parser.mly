@@ -18,8 +18,7 @@
 %token MINUS
 %token TIMES
 %token DIV
-%token EQUAL DIFFER
-%token GREATER GREATEREQUAL LESS LESSEQUAL
+%token EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
 %token IF THEN ELSE
 %token SEMI
 %token LSQUARE RSQUARE
@@ -38,17 +37,15 @@
 %token EOF
 
 /* Associativity of operators */
-%nonassoc EQUAL
-%nonassoc LAMBDA
-%nonassoc LARROW
-%nonassoc ELSE
-%nonassoc THEN
-%nonassoc IF
+
+%left PIPE
+%nonassoc LAMBDA LARROW
+%nonassoc IF THEN ELSE
+%left LAND OR
 %left PLUS MINUS
 %left TIMES
 %left DIV
-%left PIPE
-
+%left EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
 
 %start file
 %type <Types.command list> file
@@ -107,6 +104,10 @@ ast_expr:
   { ConcatLists (e1, e2) }
   | e1 = ast_expr CONCATSTR e2 = ast_expr
   { ConcatStrings (e1, e2) }
+  | e1 = ast_expr LAND e2 = ast_expr
+  { And (e1, e2)}
+  | e1 = ast_expr OR e2 = ast_expr
+  { Or (e1, e2)}
   | e1 = ast_expr PLUS e2 = ast_expr
   { Plus(e1, e2) }
   | e1 = ast_expr MINUS e2 = ast_expr
@@ -127,10 +128,6 @@ ast_expr:
   { Ge (e1, e2) }
   | e1 = ast_expr LESSEQUAL e2 = ast_expr
   { Le (e1, e2) }
-  | e1 = ast_expr LAND e2 = ast_expr
-  { And (e1, e2)}
-  | e1 = ast_expr OR e2 = ast_expr
-  { Or (e1, e2)}
   | IF g = ast_expr THEN b = ast_expr ELSE e = ast_expr
   { IfThenElse (g, b, e)}
   | LET a = separated_list(AND, assignment) IN body = ast_expr

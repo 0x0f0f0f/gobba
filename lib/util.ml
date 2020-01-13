@@ -44,6 +44,14 @@ module Dict = struct
       then (k, v)::(filter kl xs)
       else (filter kl xs)
 
+  let rec getkeys l = match l with
+  | [] -> []
+  | (k, _)::xs -> k::(getkeys xs)
+
+  let rec getvalues l = match l with
+  | [] -> []
+  | (_, v)::xs -> v::(getvalues xs)
+
   (** Insert a list of keys and a list of values in a dictionary *)
   let rec insertmany env ident_list value_list =
     match (ident_list, value_list) with
