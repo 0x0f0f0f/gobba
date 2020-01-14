@@ -15,10 +15,7 @@ let rec optimize (e: expr) : expr = match e with
   | List(l) -> List(List.map optimize l)
   | Dict(d) -> Dict(List.map (fun (k, v) -> (k, optimize v)) d)
   | Lambda(params, body) -> Lambda(params, optimize body)
-  | Let(declarations, body) -> optimize_let declarations body false
-  | Letlazy(declarations, body) -> optimize_let declarations body true
-  | Letrec(ident, dec, body) -> Letrec(ident, optimize dec, optimize body)
-  | Letreclazy(ident, dec, body) -> Letreclazy(ident, optimize dec, optimize body)
+  | Let(declarations, body) -> optimize_let declarations body
   (* Propositional Calculus optimizations *)
   | And(Boolean x, Boolean y) -> Boolean (x && y)
   | Or(Boolean x, Boolean y) -> Boolean (x || y)
@@ -52,15 +49,16 @@ let rec optimize (e: expr) : expr = match e with
     else if og = Boolean false then optimize iffalse
     else IfThenElse(og, optimize iftrue, optimize iffalse)
   | _ -> e
-and optimize_let declarations body islazy =
-  let od = List.map (fun (i, v) -> (i, optimize v)) declarations in
+
+and optimize_let declarations body =
+  let od = List.map (fun (l, i, v) -> (l, i, optimize v)) declarations in
   let ob = optimize body in
   if List.length od = 1 then
-    let (ident, value) = List.hd od in
+    let (_, ident, value) = List.hd od in
     if ob = Symbol ident
     then optimize value
-    else if islazy then Letlazy(od, ob) else Let(od, ob)
-  else if islazy then Letlazy(od, ob) else Let(od, ob)
+    else Let(od, ob)
+  else Let(od, ob)
 
 (** Apply the optimizer again and again on an expression until it
     is fully reduced and ready to be evaluated *)

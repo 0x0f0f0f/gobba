@@ -53,9 +53,11 @@ let test_curry () =
              ))
 
 let test_let () =
-  checkeval (Let(["f", NumInt 5], Symbol "f")) (EvtInt 5);
-  checkeval (Letlazy(["f", NumInt 5], Symbol "f")) (EvtInt 5);
-  checkevalfail (Letrec("f", NumInt 5, Symbol "f"));
+  checkeval (Let([false, "f", NumInt 5], Symbol "f")) (EvtInt 5);
+  checkeval (Let([true "f", NumInt 5], Symbol "f")) (EvtInt 5);
+  check "let fib = fun n -> if n < 2 then n else fib (n - 1) + fib (n - 2) and fiba =  fun n -> if n < 2 then n else fib (n - 1) + fiba (n - 2) in fiba 10"
+    (EvtInt 55);
+  checkevalfail (Let([false, "f", NumInt 5], Symbol "f"));
   checkevalfail (Letreclazy("f", NumInt 5, Symbol "f"))
 
 let test_arithmetic () =

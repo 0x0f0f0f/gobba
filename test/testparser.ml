@@ -57,14 +57,14 @@ let test_random_hell () =
                [(NumInt 0);
                 (Sequence
                    [(List []); (List []); (List [(NumInt 1)]);
-                    (Letrec ("f",
+                    (Let ([false, "f",
                              (Lambda ("n",
                                       (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))),
                                                    (Symbol "n"),
                                                    (Apply ((Symbol "f"),
                                                            (Sub ((Symbol "n"), (NumInt 1)))))
                                                   ))
-                                     )),
+                                     ))],
                              (Apply ((Symbol "f"), (NumInt 3)))))
                    ])
                ])
@@ -74,30 +74,30 @@ let test_random_hell () =
 
 let test_misc_functions () =
   checkparse
-    "let rec fib = fun n -> if n < 2 then n else fib (n - 1) + fib (n - 2) in fib 5"
-    (Letrec ("fib",
+    "let fib = fun n -> if n < 2 then n else fib (n - 1) + fib (n - 2) in fib 5"
+    (Let([false, "fib",
              (Lambda ("n",
                       (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))), (Symbol "n"),
                                    (Plus ((Apply ((Symbol "fib"), (Sub ((Symbol "n"), (NumInt 1))))),
                                           (Apply ((Symbol "fib"), (Sub ((Symbol "n"), (NumInt 2)))))))
                                   ))
-                     )),
+                     ))],
              (Apply ((Symbol "fib"), (NumInt 5)))));
-  checkparse "let rec fact = fun n -> if n < 2 then n else n * fact (n - 1) in fact 20"
-    (Letrec ("fact",
+  checkparse "let lazy fact = fun n -> if n < 2 then n else n * fact (n - 1) in fact 20"
+    (Let ([true, "fact",
              (Lambda ("n",
                       (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))), (Symbol "n"),
                                    (Mult ((Symbol "n"),
                                           (Apply ((Symbol "fact"), (Sub ((Symbol "n"), (NumInt 1)))))))
                                   ))
-                     )),
+                     ))],
              (Apply ((Symbol "fact"), (NumInt 20)))))
 
 let test_pipeline () =
   checkparse
-    "((let rec fib = fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2)) in fib) >=> (fun x -> x + 1)) "
+    "((let fib = fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2)) in fib) >=> (fun x -> x + 1)) "
    (Compose ((Lambda ("x", (Plus ((Symbol "x"), (NumInt 1))))),
-      (Letrec ("fib",
+      (Let ("fib",
          (Lambda ("n",
             (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))), (Symbol "n"),
                (Plus

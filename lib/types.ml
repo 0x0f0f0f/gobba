@@ -12,14 +12,19 @@ type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
 [@@deriving show { with_path = false }, eq, ord]
 
 (** A type representing if a computation is pure or not  *)
-type puret = Uncertain | Pure | Impure | Numerical
+type puret =  Impure | Uncertain | Pure | Numerical
 [@@deriving show { with_path = false }, eq, ord]
 
 let isuncertain x = x = Uncertain
 let isnumerical x = x = Numerical
-let isstrictlypure x = x = Pure
+let isstrictlypure x = x = Pure || x = Numerical
 let isimpure x = x = Impure
 let ispure x = not (isimpure x)
+
+(** A type containing directives information *)
+type directive =
+  | Setpurity of puret
+[@@deriving show,eq,ord]
 
 (** Contains a primitive's name, number of arguments and pureness *)
 type primitiveinfo = (ide * int * puret) [@@deriving show { with_path = false }, eq, ord]
@@ -56,10 +61,7 @@ type expr =
   | Not of expr
   (* Control flow and functions *)
   | IfThenElse of expr * expr * expr
-  | Let of (ide * expr) list * expr
-  | Letlazy of (ide * expr) list * expr
-  | Letrec of ide * expr * expr
-  | Letreclazy of ide * expr * expr
+  | Let of (bool * ide * expr) list * expr
   | Lambda of ide * expr
   | Apply of expr * expr
   | ApplyPrimitive of primitiveinfo * expr list
@@ -92,9 +94,9 @@ let symbols_from_strings l = List.map (fun x -> Symbol x) l
 (** A type useful for evaluating files, stating if a command is
     an expression or simply a "global" declaration (appended to environment) *)
 type command =
+  | Directive of directive
   | Expr of expr
-  | Def of (ide * expr) list
-  | Defrec of (ide * expr) list
+  | Def of (bool * ide * expr) list
 [@@deriving show { with_path = false }, eq, ord]
 
 
@@ -108,9 +110,8 @@ type evt =
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
   | EvtDict of (ide * evt) list [@equal (=)]
-  | Closure of ide * expr * env_type * puret [@equal (=)]
-  (** RecClosure keeps the function name in the constructor for recursion *)
-  | RecClosure of ide * ide * expr * env_type * puret [@equal (=)]
+  (** Recursion is achieved by keeping an optional function name in the constructor *)
+  | Closure of ide option * ide * expr * env_type  [@equal (=)]
   (** Abstraction that permits treating primitives as closures *)
 [@@deriving show { with_path = false }, eq, ord]
 
@@ -135,7 +136,7 @@ and typeinfo =
   | TString
   | TList
   | TDict
-  | TLambda of puret
+  | TLambda
 
 let show_tinfo t = match t with
   | TUnit   -> "unit"
@@ -147,7 +148,7 @@ let show_tinfo t = match t with
   | TString -> "string"
   | TList -> "list"
   | TDict -> "dict"
-  | TLambda p -> (show_puret p) ^ " fun"
+  | TLambda -> "fun"
 
 (* Generate a list of parameter names to use in the primitive abstraction *)
 let generate_prim_params n =
@@ -167,13 +168,12 @@ let rec show_unpacked_evt e = match e with
                  (String.concat ", " 
                     (List.map (fun (x,y) -> x ^ ":" ^ show_unpacked_evt y) d))
                  ^ "}"
-  | Closure (param, body, _, _) -> "(fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
-  | RecClosure (name, param, body, _, _) -> name ^ " = (rec fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
+  | Closure (name, param, body, _) ->
+    (match name with | Some x -> x | None -> "") ^ "(fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
 
 (** Function that creates a list with the params of a nested lambda in a Closure *)
 let findevtparams l = match l with
-  | Closure(p, b, _, _) -> p::(findparams b)
-  | RecClosure(_, p, b, _, _) -> p::(findparams b)
+  | Closure(_, p, b, _) -> p::(findparams b)
   | _ -> []
 
 (** A type representing a primitive *)
@@ -191,6 +191,17 @@ let get_primitive_function x = match x with
 let get_primitive_info x = match x with
   Primitive (_, i) -> i
 
+(** Generate a lambda from a primitive *)
+let lambda_from_primitive prim =
+    let name, numparams, purity = get_primitive_info prim in
+    (* Generate a closure abstraction from a primitive *)
+    let primargs = generate_prim_params numparams in
+    let symprimargs = symbols_from_strings primargs in
+    let lambdas = lambda_from_paramlist primargs (ApplyPrimitive((name, numparams, purity), symprimargs)) in
+    lambdas
+
+(** An environment type containing identifier - purity couples *)
+type purityenv_type = (ide, puret) Util.Dict.t
 
 (** A recursive type representing a stacktrace frame *)
 type stackframe =
@@ -218,6 +229,7 @@ let depth_of_stack (s: stackframe) = match s with
 (** Options for the eval function, includes *)
 type evalstate = {
   env: env_type;
+  purityenv: purityenv_type;
   verbosity: int;
   stack: stackframe;
   printresult: bool;

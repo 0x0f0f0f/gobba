@@ -6,6 +6,7 @@ let run_minicaml verbose program printresult =
   Printexc.record_backtrace true; 
   let state = {
     env = (Util.Dict.empty());
+    purityenv = (Util.Dict.empty());
     verbosity = verbose;
     stack = EmptyStack;
     printresult = printresult;

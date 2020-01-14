@@ -6,10 +6,10 @@ let parser = Parser.toplevel Lexer.token
 to be used as functions in the standard library. An empty environment is used
 since primitives in the standard library should not be able to access external values
 TODO: compute at compile time *)
-let closurize name str purity =
+let closurize name str =
    try
       (match (parser (Lexing.from_string (str ^ "\n"))) with
-      | Expr(Lambda(p, body)) -> Closure(p, body, [], purity)
+      | Expr(Lambda(p, body)) -> AlreadyEvaluated (Closure (Some name, p, body, []))
       | _ -> failwith "standard library definition error")
    with
    | e -> failwith ("standard library definition error in " ^ name ^ ": \n" ^
@@ -17,7 +17,7 @@ let closurize name str purity =
 
 let mapstr =
 {| fun f l ->
-   let rec aux = fun f l ->
+   let aux = fun f l ->
       (if l = [] then l else (f (head l))::(aux f (tail l))) in
    if typeof l = "list" then aux f l
    else if typeof l = "dict" then
@@ -29,13 +29,13 @@ let mapstr =
 let filterstr =
 {| fun pred l ->
    if typeof l = "list" then
-       let rec aux = fun f l ->
+       let aux = fun f l ->
       (if l = [] then l else if f (head l) then
          (head l)::(aux f (tail l))
          else (aux f (tail l))) in
       aux pred l
    else if typeof l = "dict" then
-      let rec aux = fun f kl vl acc ->
+      let aux = fun f kl vl acc ->
          if kl = [] && vl = [] then acc
          else if f (head vl) then
             aux f (tail kl) (tail vl) (insert (head kl) (head vl) acc)
@@ -45,6 +45,6 @@ let filterstr =
 |}
 
 let table =
-  [("map", closurize "map" mapstr Pure);
-   ("filter", closurize "filter" filterstr Pure );
+  [("map", (Pure, closurize "map" mapstr));
+   ("filter", (Pure, closurize "filter" filterstr));
   ]

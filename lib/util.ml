@@ -31,11 +31,11 @@ module Dict = struct
       then true
       else exists ks xs
 
-  (** Search and Dict.get a key's value (first match) in a list of key-value pairs *)
+  (** Search and get a key's value (first match) in a list of key-value pairs *)
   let rec get ks l = match l with
-    | [] -> failwith "not found"
+    | [] -> None
     | (k, v)::xs -> if k = ks
-      then v
+      then Some v
       else get ks xs
 
   let rec filter kl l = match l with
@@ -87,9 +87,17 @@ let thd3 (_, _, a) = a
 let fstl l = List.map fst l
 let sndl l = List.map snd l
 
+let fst3l l = List.map fst3 l
+let snd3l l = List.map snd3 l
+let thd3l l = List.map thd3 l
+
 (** Helper function to unzip a list of couples *)
 let unzip l = if l = [] then ([], []) else
     (fstl l, sndl l)
+
+(** Helper function to unzip a list of triples *)
+let unzip3 l = if l = [] then ([], [], []) else
+    (fst3l l, snd3l l, thd3l l)
 
 (* Zip together two lists with in single list of couples *)
 let rec zip l1 l2 =
@@ -98,5 +106,11 @@ let rec zip l1 l2 =
   | (x::xs, y::ys) -> (x,y)::(zip xs ys)
   | _ -> failwith "lists are not of equal length"
 
+(* Zip together two lists with in single list of couples *)
+let rec zip3 l1 l2 l3 =
+  match (l1, l2, l3) with
+  | ([], [], []) -> []
+  | (x::xs, y::ys, z::zs) -> (x,y,z)::(zip3 xs ys zs)
+  | _ -> failwith "lists are not of equal length"
 
 

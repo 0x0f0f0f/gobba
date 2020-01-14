@@ -8,7 +8,7 @@
 %token CPLUS CMIN
 %token <string> STRING
 %token UNIT
-%token TRUE FALSE
+%token <bool> BOOLEAN
 %token NOT
 %token LAND
 %token OR
@@ -34,6 +34,7 @@
 %token PURE IMPURE
 %token DOLLAR
 %token SEMISEMI
+%token HASH
 %token EOF
 
 /* Associativity of operators */
@@ -71,10 +72,10 @@ file:
 def:
   | LET a = separated_list(AND, assignment)
     { Def a }
-  | LET REC a = separated_list(AND, assignment)
-    { Defrec a }
 
 toplevel:
+  | HASH d = directive
+  { Directive d }
   | l = separated_list(SEMI, ast_expr) SEMISEMI? EOF
   { Expr(Sequence(l)) }
   | d = def SEMISEMI? EOF
@@ -82,10 +83,15 @@ toplevel:
   | d = ast_expr SEMISEMI? EOF
   { Expr d }
 
+directive:
+  | PURE { Setpurity Pure }
+  | IMPURE { Setpurity Impure }
 
 assignment:
   | name = SYMBOL EQUAL value = ast_expr
-  { (name, value) }
+  { (false, name, value) }
+  | LAZY name = SYMBOL EQUAL value = ast_expr
+  { (true, name, value) }
 
 dict_value:
   | key = SYMBOL COLON value = ast_expr
@@ -132,14 +138,6 @@ ast_expr:
   { IfThenElse (g, b, e)}
   | LET a = separated_list(AND, assignment) IN body = ast_expr
   { Let (a, body) }
-  | LET REC name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
-  { Letrec (name, value, body) }
-  | LET LAZY a = separated_list(AND, assignment) IN body = ast_expr
-  { Letlazy (a, body) }
-  | LET LAZY REC name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
-  { Letreclazy (name, value, body) }
-  | LET REC LAZY name = SYMBOL EQUAL value = ast_expr IN body = ast_expr
-  { Letreclazy (name, value, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
   { lambda_from_paramlist params body }
   | e1 = ast_expr COMPOSE e2 = ast_expr
@@ -170,10 +168,8 @@ ast_simple_expr:
   { List l }
   | l = delimited(LBRACKET, separated_list(COMMA, dict_value), RBRACKET)
   { Dict l }
-  | TRUE
-  { Boolean true }
-  | FALSE
-  { Boolean false }
+  | b = BOOLEAN
+  { Boolean b }
   | s = STRING
   { String s }
   | n = INTEGER

@@ -1,4 +1,4 @@
-let rec mapn = fun f lists ->
+let mapn = fun f lists ->
   if (not (lists = [])) then
     if mem [] lists then
      []

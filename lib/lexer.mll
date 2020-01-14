@@ -25,11 +25,12 @@ rule token = parse
   | "(*"        { comments 0 lexbuf }
   | int         { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
   | float       { FLOAT (float_of_string (Lexing.lexeme lexbuf))}
+  | "#"         { HASH }
   | ":+"        { CPLUS }
   | ":-"        { CMIN }
   | "()"        { UNIT }
-  | "true"      { TRUE }
-  | "false"     { FALSE }
+  | "true"      { BOOLEAN true }
+  | "false"     { BOOLEAN false }
   | '"'         { read_string (Buffer.create 17) lexbuf }
   | "fun"       { LAMBDA }
   | "lambda"    { LAMBDA }

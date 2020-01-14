@@ -17,31 +17,20 @@ let uniqueorfail l =
   if Dict.dup_exists l then iraise (DictError "Duplicate key in dictionary")
   else l
 
-let checkstrictpurity current newp = if isstrictlypure current && isimpure newp then
-  iraise (PurityError "Cannot enter an impure context from a strictly pure one")
-  else ()
-
-let checkpurity current newp = if ispure current && isimpure newp then
-  iraise (PurityError "Cannot enter an impure context from a strictly pure one")
-  else ()
-
 (** Evaluate an expression in an environment *)
-let rec eval ?knownpurity:(knownpurity=None) (e : expr) (state : evalstate) : evt =
+let rec eval (e : expr) (state : evalstate) : evt =
   let state = { state with stack = push_stack state.stack e } in
-  let epurity = match knownpurity with
-    | Some p -> p
-    | None -> infer_purity e Primitives.table [] state.env in
+
   if state.verbosity >= 2 then
     print_message ~color:T.Blue ~loc:Nowhere "Reduction at depth"
-      "%d\n%s Expression:\n%s"
-      (depth_of_stack state.stack) (show_puret epurity)
-      (show_expr e)
+      "%d\nExpression:\n%s"
+      (depth_of_stack state.stack) (show_expr e)
   else ();
-  checkstrictpurity state.purity epurity;
   let evaluated =
     match e with
     | Unit -> EvtUnit
-    | Purity (n, ee) -> eval ee { state with purity = n }
+    | Purity (allowed, ee) ->
+      eval ee { state with purity = allowed }
     | NumInt n -> EvtInt n
     | NumFloat n -> EvtFloat n
     | NumComplex n -> EvtComplex n
@@ -79,46 +68,13 @@ let rec eval ?knownpurity:(knownpurity=None) (e : expr) (state : evalstate) : ev
       let g = unpack_bool (eval guard state) in
       if g then eval first state else eval alt state
     | Let (assignments, body) ->
-      let evaluated_assignments =
-        List.map
-          (fun (_, value) -> AlreadyEvaluated (eval value state) )
-          assignments
-      and identifiers = fstl assignments in
-      let new_env =
-        Dict.insertmany state.env identifiers evaluated_assignments
-      in
-      eval ~knownpurity:(Some epurity) body { state with env = new_env }
-    | Letlazy (assignments, body) ->
-      let identifiers = fstl assignments in
-      let new_env =
-        Dict.insertmany state.env identifiers
-          (List.map (fun (_, value) -> LazyExpression value) assignments)
-      in
-      eval ~knownpurity:(Some epurity) body { state with env = new_env }
-    | Letrec (ident, value, body) -> (
-        match value with
-        | Lambda (params, fbody) ->
-          let rec_env =
-            Dict.insert state.env ident
-              (AlreadyEvaluated (RecClosure (ident, params, fbody, state.env, epurity)))
-          in
-          eval ~knownpurity:(Some epurity) body { state with env = rec_env }
-        | _ ->
-          traise "Cannot define recursion on non-functional values"
-      )
-    | Letreclazy (ident, value, body) -> (
-        match value with
-        | Lambda (_, _) ->
-          let rec_env = Dict.insert state.env ident (LazyExpression value) in
-          eval  ~knownpurity:(Some epurity) body { state with env = rec_env }
-        | _ ->
-          traise "Cannot define recursion on non-functional values"
-      )
+      let new_env = eval_assignment_list assignments state in
+      eval body { state with env = new_env }
     | Lambda (param, body) ->
-      Closure (param, body, state.env, epurity)
+      Closure (None, param, body, state.env)
     | Compose (f2, f1) ->
       let ef1 = eval f1 state and ef2 = eval f2 state in
-      stcheck (typeof ef1) (TLambda Uncertain); stcheck (typeof ef2) (TLambda Uncertain);
+      stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
       let params1 = findevtparams ef1 in
       let appl1 = apply_from_exprlist (symbols_from_strings params1) f1 in
       eval (lambda_from_paramlist params1 (Apply (f2, appl1))) state
@@ -127,14 +83,11 @@ let rec eval ?knownpurity:(knownpurity=None) (e : expr) (state : evalstate) : ev
       let closure = eval f state in
       let earg = (AlreadyEvaluated ((eval arg state))) in
       applyfun closure earg state
-    | ApplyPrimitive ((name, numparams, purity), args) ->
-      if List.length args != numparams then (iraise (Fatal "Primitive Application Error"))
-      else if ispure state.purity && isimpure purity then
-        iraise
-          (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
-      else
+    | ApplyPrimitive ((name, _, _), args) ->
       let eargs = List.map (fun x -> eval x state) args in
-      let prim = get_primitive_function (Dict.get name Primitives.table) in
+      let prim = get_primitive_function (match (Dict.get name Primitives.ocaml_table) with
+        | None -> iraise (Fatal "Unbound primitive. This should never happen")
+        | Some p -> p) in
       prim eargs
     (* Eval a sequence of expressions but return the last *)
     | Sequence exprl ->
@@ -157,40 +110,81 @@ let rec eval ?knownpurity:(knownpurity=None) (e : expr) (state : evalstate) : ev
 
 (* Search for a value in the primitives table and environment *)
 and lookup (ident : ide) (state : evalstate) : evt =
-  if Dict.exists ident Primitives.table then
-    let _, numparams, purity = get_primitive_info (Dict.get ident Primitives.table) in
-    (* Generate a closure abstraction from a primitive *)
-    let primargs = generate_prim_params numparams in
-    let symprimargs = symbols_from_strings primargs in
-    let lambdas = lambda_from_paramlist primargs (ApplyPrimitive((ident, numparams, purity), symprimargs)) in
-    eval lambdas state
-  else if Dict.exists ident Primitives.stdlib_table then
-    (Dict.get ident Primitives.stdlib_table)
-  else lookup_env ident state
-
-(* Search for a value in an environment *)
-and lookup_env (ident : ide) (state : evalstate) : evt =
-  if ident = "" then failwith "invalid identifier"
-  else
-    match state.env with
-    | [] -> iraise (UnboundVariable ident)
-    | (i, LazyExpression e) :: env_rest ->
-      if ident = i then eval e state
-      else lookup_env ident { state with env = env_rest }
-    | (i, AlreadyEvaluated e) :: env_rest ->
-      if ident = i then e else lookup_env ident { state with env = env_rest }
+  match (Dict.get ident Primitives.table) with
+    | None -> (match (Dict.get ident state.env) with
+      | None -> iraise (UnboundVariable ident)
+      | Some (LazyExpression e) -> eval e state
+      | Some (AlreadyEvaluated e) -> e)
+    | Some (LazyExpression e) -> eval e state
+    | Some (AlreadyEvaluated e) -> e
 
 and applyfun (closure : evt) (arg : type_wrapper) (state : evalstate) : evt =
   (* Evaluate the argument and unpack the evt encapsuled in them *)
   match closure with
-  | Closure (param, body, decenv, cpurity) ->
-      (* apply the function *)
-      let application_env = Dict.insert decenv param arg in
-      eval ~knownpurity:(Some cpurity) body { state with env = application_env }
-  (* Apply a recursive function *)
-  | RecClosure (name, param, body, decenv, cpurity) ->
-    let rec_env = Dict.insert decenv name (AlreadyEvaluated closure) in
-    let application_env = Dict.insert rec_env param arg in
-    eval ~knownpurity:(Some cpurity) body { state with env = application_env }
-    (* Generate a closure abstraction from a primitive *)
+  | Closure (name, param, body, decenv) ->
+    (* Create a recursion environment if the function is recursive *)
+    let self_env = (match name with
+        | None -> decenv
+        | Some x -> Dict.insert decenv x (AlreadyEvaluated closure)) in
+    let appl_env = Dict.insert self_env param arg in
+    eval body { state with env = appl_env }
   | _ -> traise "Cannot apply a non functional value"
+
+and eval_assignment state (islazy, name, value) =
+  if islazy then LazyExpression value else
+  match value with
+      | Lambda(param, fbody) ->
+        let rec_env = Dict.insert state.env name
+            (AlreadyEvaluated (Closure (Some name, param, fbody, state.env)))
+        in AlreadyEvaluated (eval value { state with env = rec_env })
+      | _ -> AlreadyEvaluated (eval value state)
+
+and eval_assignment_list assignment_list state =
+  match assignment_list with
+  | [] -> []
+  | (islazy, name, value)::xs ->
+    let eass = eval_assignment state (islazy, name, value) in
+    let newstate = { state with env = (Dict.insert state.env name eass)} in
+    (name, eass)::(eval_assignment_list xs newstate)
+
+and eval_command command state =
+  if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow
+      "AST equivalent" "\n%s"
+      (show_command command) else ();
+  match command with
+  | Directive dir -> (match dir with
+    | Setpurity p -> (EvtUnit, { state with purity = p }))
+  | Expr e ->
+    (* Infer the expression purity and evaluate if appropriate to the current state *)
+    let exprpurity = Puritycheck.infer e state in
+    if isstrictlypure state.purity && isimpure exprpurity then
+    iraise (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
+      " expression but it is in " ^ (show_puret state.purity) ^ " state!"));
+    (* Normalize the expression *)
+    let optimized_ast = Optimizer.iterate_optimizer e in
+    (* If the expression is NOT already in normal state, print the optimized one if verbosity is enough *)
+    if optimized_ast = e then () else
+    if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
+        (show_expr optimized_ast) else ();
+    (* Evaluate the expression *)
+    let evaluated = eval optimized_ast state in
+    (* Print it in its raw form if verbosity is enabled *)
+    if state.verbosity >= 1 then print_message ~color:T.Green ~loc:(Nowhere) "Result"
+        "\t%s" (show_evt evaluated) else ();
+    (* Print the fancy result if state.printresult is true *)
+    if state.printresult then
+      print_endline
+        ("result: " ^ (show_unpacked_evt evaluated)
+         ^ " - " ^ (show_tinfo (Typecheck.typeof evaluated)))
+    else ();
+    (evaluated, state)
+  | Def dl ->
+    let (islazyl, idel, vall) = unzip3 dl in
+    let ovall = (List.map (Optimizer.iterate_optimizer) vall) in
+    let odl = zip3 islazyl idel ovall in
+    (* Print the definitions if verbosity is enough and they were optimized *)
+    if ovall = vall then () else
+    if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
+        (show_command (Def odl)) else ();
+    let newenv = eval_assignment_list odl state in
+    (EvtUnit, { state with env = newenv } )

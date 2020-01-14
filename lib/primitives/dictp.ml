@@ -30,8 +30,9 @@ let getkey args =
   let (key, ed) = (match args with
       | [key; d] -> (unpack_string key, unpack_dict d)
       | _ -> iraise WrongPrimitiveArgs) in
-  if not (Dict.exists key ed) then iraise (DictError "key not found") else
-    Dict.get key ed
+  match Dict.get key ed with
+    | None -> iraise (DictError "key not found")
+    | Some value -> value
 
 (** Get a list of the keys *)
 let getkeys args =
