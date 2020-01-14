@@ -153,6 +153,7 @@ and eval_command command state =
       (show_command command) else ();
   match command with
   | Directive dir -> (match dir with
+    | Includefile f -> eval_command_list (read_file (Parser.file Lexer.token) f) state
     | Setpurity p -> (EvtUnit, { state with purity = p })
     | Setverbose v -> (EvtUnit, { state with verbosity = v}))
   | Expr e ->
@@ -189,3 +190,9 @@ and eval_command command state =
         (show_command (Def odl)) else ();
     let newenv = eval_assignment_list odl state in
     (EvtUnit, { state with env = newenv } )
+
+and eval_command_list cmdlst state = match cmdlst with
+  | x::xs ->
+    let _, newstate = eval_command x state in
+    eval_command_list xs newstate;
+  | [] -> (EvtUnit, state)

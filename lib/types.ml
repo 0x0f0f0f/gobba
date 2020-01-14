@@ -23,6 +23,7 @@ let ispure x = not (isimpure x)
 
 (** A type containing directives information *)
 type directive =
+  | Includefile of string
   | Setpurity of puret
   | Setverbose of int
 [@@deriving show,eq,ord]
@@ -337,3 +338,21 @@ let print_error (loc, err, _) = print_message ~color:T.Red ~loc "Error" "%s" (sh
 
 let print_stacktrace (_, _, s) maxdepth = print_message ~color:T.Red ~loc:Nowhere
   "Stacktrace" "\n%s" (string_of_stack maxdepth s)
+
+(** Parse the contents from a file, using a given [parser]. *)
+let read_file parser fn =
+try
+  if not (Sys.file_exists fn) then iraise (FileNotFoundError fn) else
+    let fh = open_in fn in
+    let lex = Lexing.from_channel fh in
+    lex.Lexing.lex_curr_p <- {lex.Lexing.lex_curr_p with Lexing.pos_fname = fn};
+    try
+      let terms = parser lex in
+      close_in fh;
+      terms
+    with
+    (* Close the file in case of any parsing errors. *)
+      e -> close_in fh ; iraise (SyntaxError (Printexc.print_backtrace stderr; Printexc.to_string e))
+with
+(* Any errors when opening or closing a file are fatal. *)
+  Sys_error msg -> iraise (Fatal msg)

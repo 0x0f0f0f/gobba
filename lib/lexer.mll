@@ -41,7 +41,6 @@ rule token = parse
   | "let"       { LET }
   | "and"       { AND }
   | "lazy"      { LAZY }
-  | "rec"       { REC }
   | "->"        { LARROW }
   | "in"        { IN }
   | "pure"      { PURE }

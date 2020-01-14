@@ -29,7 +29,7 @@
 %token LARROW
 %token LPAREN RPAREN
 %token AND
-%token LET LAZY REC IN
+%token LET LAZY IN
 %token PIPE COMPOSE
 %token PURE IMPURE
 %token DOLLAR
@@ -86,6 +86,10 @@ toplevel:
 directive:
   | PURE { Setpurity Pure }
   | IMPURE { Setpurity Impure }
+  | s = SYMBOL a = STRING
+  { match s with
+    | "include" -> Includefile a
+    | _ -> failwith "unknown directive" }
   | s = SYMBOL i = INTEGER
   { match s with
     | "verbose" -> Setverbose i

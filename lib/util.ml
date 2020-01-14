@@ -113,4 +113,3 @@ let rec zip3 l1 l2 l3 =
   | (x::xs, y::ys, z::zs) -> (x,y,z)::(zip3 xs ys zs)
   | _ -> failwith "lists are not of equal length"
 
-
