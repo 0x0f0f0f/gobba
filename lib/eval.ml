@@ -88,7 +88,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
       let prim = get_primitive_function (match (Dict.get name Primitives.ocaml_table) with
         | None -> iraise (Fatal "Unbound primitive. This should never happen")
         | Some p -> p) in
-      prim eargs
+      (try prim eargs with InternalError (loc, err, _) -> raise (InternalError(loc, err, state.stack)))
     (* Eval a sequence of expressions but return the last *)
     | Sequence exprl ->
       let rec unroll el =
@@ -112,7 +112,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
 and lookup (ident : ide) (state : evalstate) : evt =
   match (Dict.get ident Primitives.table) with
     | None -> (match (Dict.get ident state.env) with
-      | None -> iraise (UnboundVariable ident)
+      | None -> iraises (UnboundVariable ident) state.stack
       | Some (LazyExpression e) -> eval e state
       | Some (AlreadyEvaluated e) -> e)
     | Some (LazyExpression e) -> eval e state
@@ -153,13 +153,14 @@ and eval_command command state =
       (show_command command) else ();
   match command with
   | Directive dir -> (match dir with
-    | Setpurity p -> (EvtUnit, { state with purity = p }))
+    | Setpurity p -> (EvtUnit, { state with purity = p })
+    | Setverbose v -> (EvtUnit, { state with verbosity = v}))
   | Expr e ->
     (* Infer the expression purity and evaluate if appropriate to the current state *)
     let exprpurity = Puritycheck.infer e state in
     if isstrictlypure state.purity && isimpure exprpurity then
-    iraise (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
-      " expression but it is in " ^ (show_puret state.purity) ^ " state!"));
+    iraises (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
+      " expression but it is in " ^ (show_puret state.purity) ^ " state!")) state.stack;
     (* Normalize the expression *)
     let optimized_ast = Optimizer.iterate_optimizer e in
     (* If the expression is NOT already in normal state, print the optimized one if verbosity is enough *)

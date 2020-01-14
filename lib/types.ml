@@ -24,6 +24,7 @@ let ispure x = not (isimpure x)
 (** A type containing directives information *)
 type directive =
   | Setpurity of puret
+  | Setverbose of int
 [@@deriving show,eq,ord]
 
 (** Contains a primitive's name, number of arguments and pureness *)
@@ -81,6 +82,25 @@ let rec replacebody l newbody = match l with
 let rec findparams l = match l with
   | Lambda(p, b) -> p::(findparams b)
   | _ -> []
+
+(** Show a short representation of an expression (useful for stack traces) *)
+let rec simple_show_expr e = match e with
+  | NumInt i -> string_of_int i
+  | NumFloat i -> string_of_float i
+  | NumComplex i -> show_complext i
+  | Boolean i -> string_of_bool i
+  | String i -> "\"" ^ i ^ "\""
+  | Symbol s -> s
+  | Apply(Symbol f, b) -> f ^ " (" ^ simple_show_expr b ^ ")"
+  | Lambda(p, b) -> "(fun " ^ (String.concat " " (p::(findparams b))) ^ " -> ... )"
+  | Let(l, _) -> "let " ^ (String.concat " and" (List.map (fun x -> Util.snd3 x ^ " = ... ") l))
+  | Plus(a, b) -> simple_show_expr a ^ " + " ^ simple_show_expr b
+  | Sub(a, b) -> simple_show_expr a ^ " + " ^ simple_show_expr b
+  | Mult(a, b) -> simple_show_expr a ^ " + " ^ simple_show_expr b
+  | Div(a, b) -> simple_show_expr a ^ " + " ^ simple_show_expr b
+  | Compose(a, b) -> simple_show_expr a ^ " <=< " ^ simple_show_expr b
+  | _ -> "<code>"
+
 
 (** Creates a nested Lambda from a list of params*)
 let lambda_from_paramlist l body = List.fold_right (fun p e -> Lambda (p, e)) l body
@@ -213,7 +233,8 @@ type stackframe =
     @param s The stack where to push the expression
     @param e The expression to push
 *)
-let push_stack (s: stackframe) (e: expr) = match s with
+let push_stack (s: stackframe) (e: expr) =
+  match s with
   | StackValue(d, ee, ss) -> StackValue(d+1, e, StackValue(d, ee, ss))
   | EmptyStack -> StackValue(1, e, EmptyStack)
 
@@ -226,7 +247,14 @@ let depth_of_stack (s: stackframe) = match s with
   | StackValue(d, _, _) -> d
   | EmptyStack -> 0
 
-(** Options for the eval function, includes *)
+let rec string_of_stack maxdepth (s: stackframe) =
+  match s with
+  | EmptyStack -> "toplevel"
+  | StackValue(d, e, ss) ->
+    if maxdepth = 0 then "... " ^ (string_of_int d) ^ " stack frames omitted ..." else
+    Printf.sprintf "%05i : %s in\n%s" d (simple_show_expr e) (string_of_stack (maxdepth - 1)  ss)
+
+(** Options for the eval function *)
 type evalstate = {
   env: env_type;
   purityenv: purityenv_type;
@@ -262,16 +290,21 @@ type internalerrort =
 
 (** Exception [Error (loc, err, msg)] indicates an error of type [err] with error message
     [msg], occurring at location [loc]. *)
-exception InternalError of (location * internalerrort)
+exception InternalError of (location * internalerrort * stackframe)
 
 (** Utility function to raise a syntax error quickly *)
-let sraise l msg = raise (InternalError ((location_of_lex l), SyntaxError msg))
+let sraises l msg s = raise (InternalError ((location_of_lex l), SyntaxError msg, s))
+let sraise l msg = raise (InternalError ((location_of_lex l), SyntaxError msg, EmptyStack))
+
 
 (** Utility function to raise an internal error without a location*)
-let iraise e = raise (InternalError (Nowhere, e))
+let iraises e s = raise (InternalError (Nowhere, e, s))
+let iraise e = raise (InternalError (Nowhere, e, EmptyStack))
 
 (** Utility function to raise a type error without a location*)
-let traise msg = raise (InternalError (Nowhere, TypeError msg))
+let traises msg s = raise (InternalError (Nowhere, TypeError msg, s))
+let traise msg = raise (InternalError (Nowhere, TypeError msg, EmptyStack))
+
 
 (** Print the location of a lexeme*)
 let print_location loc ppf =
@@ -300,6 +333,7 @@ let print_message ?color:(color=T.Default) ?(loc=Nowhere) msg_type =
     Format.kfprintf (fun ppf -> Format.fprintf ppf "@.") Format.err_formatter
 
 (** Print the caught error *)
-let print_error (loc, err) = print_message ~color:T.Red ~loc "Error" "%s" (show_internalerrort err)
+let print_error (loc, err, _) = print_message ~color:T.Red ~loc "Error" "%s" (show_internalerrort err)
 
-
+let print_stacktrace (_, _, s) maxdepth = print_message ~color:T.Red ~loc:Nowhere
+  "Stacktrace" "\n%s" (string_of_stack maxdepth s)

@@ -36,9 +36,16 @@ let rec repl_loop state  =
     loop ()
   with
   | End_of_file -> raise End_of_file
-  | InternalError err -> Printexc.print_backtrace stderr; print_error err; repl_loop state
+  | InternalError err ->
+    Printexc.print_backtrace stderr;
+    print_error err;
+    print_stacktrace err 20;
+    repl_loop state
   | Sys.Break -> prerr_endline "Interrupted."; repl_loop state
-  | e -> Printexc.print_backtrace stderr; print_error (Nowhere, (Fatal (Printexc.to_string e))); repl_loop state
+  | e ->
+    Printexc.print_backtrace stderr;
+    print_error (Nowhere, (Fatal (Printexc.to_string e)), state.stack);
+    repl_loop state
 
 let repl state =
   Sys.catch_break true;

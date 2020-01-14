@@ -86,6 +86,10 @@ toplevel:
 directive:
   | PURE { Setpurity Pure }
   | IMPURE { Setpurity Impure }
+  | s = SYMBOL i = INTEGER
+  { match s with
+    | "verbose" -> Setverbose i
+    | _ -> failwith "unknown directive" }
 
 assignment:
   | name = SYMBOL EQUAL value = ast_expr

@@ -32,4 +32,4 @@ let run_file fn state =
   with
   | InternalError err -> print_error err; []
   | Sys.Break -> prerr_endline "Interrupted."; []
-  | e -> print_error (Nowhere, Fatal (Printexc.to_string e)); []
+  | e -> print_error (Nowhere, Fatal (Printexc.to_string e), state.stack); []

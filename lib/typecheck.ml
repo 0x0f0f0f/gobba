@@ -13,13 +13,6 @@ let typeof e = match e with
   | EvtDict _ -> TDict
   | Closure (_, _, _, _) -> TLambda
 
-(* Check if first elem of tuple is an allowed type for dict key and return tuple *)
-let isvalidkey (x, y) = ((match x with
-    | EvtInt _ -> x
-    | EvtBool _ -> x
-    | EvtString _ -> x
-    | _ -> traise "value not allowed as dictionary key"), y)
-
 (** Get the lowest (most inclusive set) number type from a list of numbers *)
 let rec infer_lowest_numbert low ls = match ls with
   | [] -> low
