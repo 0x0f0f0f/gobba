@@ -26,11 +26,11 @@ let rec read_lines_until ic del =
 
 let run_one = Eval.eval_command
 
-let rec repl_loop state  =
+let rec repl_loop state maxdepth  =
   let loop () =
     let cmd = read_toplevel parser () in
     let _, newstate = Eval.eval_command cmd state in
-    let _ = repl_loop newstate in ()
+    let _ = repl_loop newstate maxdepth in ()
   in
   try
     loop ()
@@ -39,16 +39,33 @@ let rec repl_loop state  =
   | InternalError err ->
     Printexc.print_backtrace stderr;
     print_error err;
-    print_stacktrace err 20;
-    repl_loop state
-  | Sys.Break -> prerr_endline "Interrupted."; repl_loop state
+    print_stacktrace err maxdepth;
+    repl_loop state maxdepth
+  | Sys.Break ->
+    prerr_endline "Interrupted.";
+    repl_loop state maxdepth
   | e ->
     Printexc.print_backtrace stderr;
     print_error (Nowhere, (Fatal (Printexc.to_string e)), state.stack);
-    repl_loop state
+    repl_loop state maxdepth
 
-let repl state =
+let repl state maxstackdepth =
   Sys.catch_break true;
   try
-    let _ = repl_loop state in ()
+    let _ = repl_loop state maxstackdepth in ()
   with End_of_file -> prerr_endline "Goodbye!"; ()
+
+let run_file fn state maxstackdepth =
+  try
+    Eval.eval_command_list (read_file (Parser.file Lexer.token) fn) state
+  with
+  | InternalError err ->
+    print_error err;
+    print_stacktrace err maxstackdepth;
+    (EvtBool false, state)
+  | Sys.Break ->
+    prerr_endline "Interrupted.";
+    (EvtBool false, state)
+  | e ->
+    print_error (Nowhere, Fatal (Printexc.to_string e), state.stack);
+    (EvtBool false, state)

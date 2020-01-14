@@ -1,4 +1,22 @@
-## 0.3.3 2019-01-08
+## 0.4 2020-01-??
+- Multiline REPL
+- Integer division now returns a float if the modulo between the two numbers is 0
+- Print the type in the REPL result
+- Directives on the toplevel: `#include filename` to load and run files,
+  `#verbose n` to set a verbosity level, `#pure` and `#impure` to set the global purity context.
+- Minicaml and OCaml Stack traces on errors!
+- Removed the `let rec` and `let rec lazy` statements.
+- `lazy`-ness is now meant for a single assignment in a let statement, and they
+  can be mixed; This is now valid: `let a = ... and lazy b = ... ;;`
+- A LOT of internal optimizations.
+- `Lambda` and `Closure` abstractions for function now have a single parameter
+  and can be nested. This means that `(fun x y z -> ...) = (fun x -> (fun y -> (fun z -> ...)))` is now true, and the
+  evaluation gets quite simplified (for example, in partial evaluation)
+- Composition and reverse composition are back and working with `<=<` and `>=>`
+- Purity inference is now done before evaluation
+- Capability of recursion is now inferred automatically basing on the location of a `fun` expression.
+
+## 0.3.3 2020-01-08
 - Rely on the [Ramda.js](https://ramdajs.com/) library for JS transpilation.
   (Currently broken because of numerical primitives and a lack of a Complex
   number solution for Javascript).

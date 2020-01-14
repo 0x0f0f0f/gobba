@@ -86,6 +86,10 @@ toplevel:
 directive:
   | PURE { Setpurity Pure }
   | IMPURE { Setpurity Impure }
+  | s = SYMBOL
+  { match s with
+    | "uncertain" -> Setpurity Uncertain
+    | _ -> failwith "unknown directive" }
   | s = SYMBOL a = STRING
   { match s with
     | "include" -> Includefile a

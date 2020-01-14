@@ -250,7 +250,7 @@ let depth_of_stack (s: stackframe) = match s with
 
 let rec string_of_stack maxdepth (s: stackframe) =
   match s with
-  | EmptyStack -> "toplevel"
+  | EmptyStack -> "----- : toplevel"
   | StackValue(d, e, ss) ->
     if maxdepth = 0 then "... " ^ (string_of_int d) ^ " stack frames omitted ..." else
     Printf.sprintf "%05i : %s in\n%s" d (simple_show_expr e) (string_of_stack (maxdepth - 1)  ss)
