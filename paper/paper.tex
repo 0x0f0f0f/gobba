@@ -1,4 +1,4 @@
-\documentclass[a4paper, 11pt]{article}
+\documentclass[a4paper, 10pt]{article}
 
 %% Language and font encodings. This says how to do hyphenation on end of lines.
 \usepackage[english]{babel}
@@ -11,7 +11,7 @@
 \usepackage{collectbox}
 %\usepackage{tgpagella} % text only
 %\usepackage{mathpazo}
-\usepackage{stix}
+%\usepackage{stix}
 
 \usepackage{multicol}
 \setlength{\columnsep}{1.5cm}
@@ -52,9 +52,9 @@ marginparwidth=1cm, marginparsep=0.4cm, margin=1.2cm]{geometry}
 
 
 %% Citation package
-\usepackage[authoryear]{natbib}
-\bibliographystyle{abbrvnat}
-\setcitestyle{authoryear,open={(},close={)}}
+%\usepackage[authoryear]{natbib}
+\bibliographystyle{unsrt}
+%\setcitestyle{authoryear,open={(},close={)}}
 
 \newcommand{\te}[1]{\text{#1}}
 \newcommand{\mybox}{%
@@ -181,6 +181,7 @@ Boolean operations are reduced using laws from the propositional calculus, such 
 \section{Types}
 
 \section{Evaluation}
+\texttt{minicaml}'s evaluator is heavily inspired by the Metacircular Evaluator defined in the highly acclaimed textbook \textit{Structure and Interpretation of Computer Programs} \cite{Abelson1996}
 \subsection{Operational Semantics}
 
 \begin{note}
@@ -258,10 +259,6 @@ Boolean operations are reduced using laws from the propositional calculus, such 
 	\end{aligned}}{<\te{e, foldl f a d}> \Rightarrow \lambda( \hdots \lambda(\lambda(a, v_1), v_2), \hdots, v_n)} \\ \\
 \end{gather*}
 
-\section{Javascript Transpiler}
-
-Most of the primitives rely on the Javascript library \textbf{Ramda} \url{https://ramdajs.com/}
-
 \section{Tests}
 Unit testing is extensively performed using the alcotest testing framework. Code
 coverage is provided by the \texttt{bisect\_ppx} library which yields an HTML
@@ -280,4 +277,7 @@ Integration system.
 \end{itemize}
 
 \end{multicols}
+
+\bibliography{bib}
+
 \end{document}
