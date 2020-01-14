@@ -31,7 +31,6 @@ let rec eval ?knownpurity:(knownpurity=None) (e : expr) (state : evalstate) : ev
       (depth_of_stack state.stack)
       (show_expr e)
   else ();
-  (* override eval *)
   let epurity = match knownpurity with
     | Some p -> p
     | None -> infer_purity e Primitives.table [] state.env in
