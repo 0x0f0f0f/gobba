@@ -2,7 +2,7 @@ open Minicaml
 open Minicaml.Types
 open Cmdliner
 
-let run_minicaml verbose program printresult maxstackdepth =
+let run_minicaml verbose program printresult maxstackdepth ist =
   Printexc.record_backtrace true; 
   let state = {
     env = (Util.Dict.empty());
@@ -13,8 +13,8 @@ let run_minicaml verbose program printresult maxstackdepth =
     purity = Uncertain;
   } in
   match program with
-  | None -> Repl.repl {state with printresult = true} maxstackdepth
-  | Some name -> let _ = Repl.run_file name state maxstackdepth in ()
+  | None -> Repl.repl {state with printresult = true} maxstackdepth ist
+  | Some name -> let _ = Repl.run_file name state maxstackdepth ist in ()
 
 let verbose =
   let doc = "If 1, Print AST to stderr after expressions " ^
@@ -22,8 +22,12 @@ let verbose =
   Arg.(value & opt int 0 & info ["v"; "verbose"] ~docv:"VERBOSITY" ~doc)
 
 let maxstackdepth =
-  let doc = "The maximum level of nested expressions to print in a Stacktrace." in
+  let doc = "The maximum level of nested expressions to print in a stack trace." in
   Arg.(value & opt int 10 & info ["m"; "maxstackdepth"] ~docv:"MAXSTACKDEPTH" ~doc)
+
+let internalst =
+  let doc = "To print or not the language's internal stack traces" in
+  Arg.(value & flag & info ["internals"] ~doc)
 
 let print_exprs =
   let doc = "If set, print the result of expressions when evaluating a program from file" in
@@ -33,7 +37,7 @@ let program =
   let doc = "The program that will be run. If a program is not provided, launch a REPL shell" in
   Arg.(value & pos 0 (some string) None & info [] ~docv:"PROGRAM_FILE" ~doc)
 
-let run_minicaml_t = Term.(const run_minicaml $ verbose $ program $ print_exprs $ maxstackdepth )
+let run_minicaml_t = Term.(const run_minicaml $ verbose $ program $ print_exprs $ maxstackdepth $ internalst)
 
 let info =
   let doc =  String.map (fun c -> if c = '\n' then ' ' else c )
