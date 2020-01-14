@@ -17,29 +17,31 @@ let uniqueorfail l =
   if Dict.dup_exists l then iraise (DictError "Duplicate key in dictionary")
   else l
 
-let checkpurity current newp = if isstrictlypure current && isimpure newp then
+let checkstrictpurity current newp = if isstrictlypure current && isimpure newp then
+  iraise (PurityError "Cannot enter an impure context from a strictly pure one")
+  else ()
+
+let checkpurity current newp = if ispure current && isimpure newp then
   iraise (PurityError "Cannot enter an impure context from a strictly pure one")
   else ()
 
 (** Evaluate an expression in an environment *)
 let rec eval ?knownpurity:(knownpurity=None) (e : expr) (state : evalstate) : evt =
   let state = { state with stack = push_stack state.stack e } in
-  (* Partially apply eval to the current stackframe, verbosity and environment *)
-  if state.verbosity >= 2 then
-    print_message ~color:T.Blue ~loc:Nowhere "Reduction at depth"
-      "%d\nExpression:\n%s"
-      (depth_of_stack state.stack)
-      (show_expr e)
-  else ();
   let epurity = match knownpurity with
     | Some p -> p
     | None -> infer_purity e Primitives.table [] state.env in
+  if state.verbosity >= 2 then
+    print_message ~color:T.Blue ~loc:Nowhere "Reduction at depth"
+      "%d\n%s Expression:\n%s"
+      (depth_of_stack state.stack) (show_puret epurity)
+      (show_expr e)
+  else ();
+  checkstrictpurity state.purity epurity;
   let evaluated =
     match e with
     | Unit -> EvtUnit
-    | Purity (n, ee) ->
-      checkpurity state.purity n;
-      eval ee { state with purity = n }
+    | Purity (n, ee) -> eval ee { state with purity = n }
     | NumInt n -> EvtInt n
     | NumFloat n -> EvtFloat n
     | NumComplex n -> EvtComplex n
@@ -183,12 +185,10 @@ and applyfun (closure : evt) (arg : type_wrapper) (state : evalstate) : evt =
   match closure with
   | Closure (param, body, decenv, cpurity) ->
       (* apply the function *)
-      checkpurity state.purity cpurity;
       let application_env = Dict.insert decenv param arg in
       eval ~knownpurity:(Some cpurity) body { state with env = application_env }
   (* Apply a recursive function *)
   | RecClosure (name, param, body, decenv, cpurity) ->
-    checkpurity state.purity cpurity;
     let rec_env = Dict.insert decenv name (AlreadyEvaluated closure) in
     let application_env = Dict.insert rec_env param arg in
     eval ~knownpurity:(Some cpurity) body { state with env = application_env }
