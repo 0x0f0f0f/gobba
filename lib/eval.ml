@@ -22,7 +22,7 @@ let checkpurity current newp = if isstrictlypure current && isimpure newp then
   else ()
 
 (** Evaluate an expression in an environment *)
-let rec eval (e : expr) (state : evalstate) : evt =
+let rec eval ?knownpurity:(knownpurity=None) (e : expr) (state : evalstate) : evt =
   let state = { state with stack = push_stack state.stack e } in
   (* Partially apply eval to the current stackframe, verbosity and environment *)
   if state.verbosity >= 2 then
@@ -31,7 +31,10 @@ let rec eval (e : expr) (state : evalstate) : evt =
       (depth_of_stack state.stack)
       (show_expr e)
   else ();
-  let epurity = infer_purity e Primitives.table [] state.env in
+  (* override eval *)
+  let epurity = match knownpurity with
+    | Some p -> p
+    | None -> infer_purity e Primitives.table [] state.env in
   let evaluated =
     match e with
     | Unit -> EvtUnit
@@ -83,14 +86,14 @@ let rec eval (e : expr) (state : evalstate) : evt =
       let new_env =
         Dict.insertmany state.env identifiers evaluated_assignments
       in
-      eval body { state with env = new_env }
+      eval ~knownpurity:(Some epurity) body { state with env = new_env }
     | Letlazy (assignments, body) ->
       let identifiers = fstl assignments in
       let new_env =
         Dict.insertmany state.env identifiers
           (List.map (fun (_, value) -> LazyExpression value) assignments)
       in
-      eval body { state with env = new_env }
+      eval ~knownpurity:(Some epurity) body { state with env = new_env }
     | Letrec (ident, value, body) -> (
         match value with
         | Lambda (params, fbody) ->
@@ -98,7 +101,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
             Dict.insert state.env ident
               (AlreadyEvaluated (RecClosure (ident, params, fbody, state.env, epurity)))
           in
-          eval body { state with env = rec_env }
+          eval ~knownpurity:(Some epurity) body { state with env = rec_env }
         | _ ->
           traise "Cannot define recursion on non-functional values"
       )
@@ -106,7 +109,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
         match value with
         | Lambda (_, _) ->
           let rec_env = Dict.insert state.env ident (LazyExpression value) in
-          eval body { state with env = rec_env }
+          eval  ~knownpurity:(Some epurity) body { state with env = rec_env }
         | _ ->
           traise "Cannot define recursion on non-functional values"
       )
@@ -158,8 +161,8 @@ and lookup (ident : ide) (state : evalstate) : evt =
     (* Generate a closure abstraction from a primitive *)
     let primargs = generate_prim_params numparams in
     let symprimargs = symbols_from_strings primargs in
-    let cbody = lambda_from_paramlist primargs (ApplyPrimitive((ident, numparams, purity), symprimargs)) in
-    eval cbody state
+    let lambdas = lambda_from_paramlist primargs (ApplyPrimitive((ident, numparams, purity), symprimargs)) in
+    eval lambdas state
   else if Dict.exists ident Primitives.stdlib_table then
     (Dict.get ident Primitives.stdlib_table)
   else lookup_env ident state
@@ -183,12 +186,12 @@ and applyfun (closure : evt) (arg : type_wrapper) (state : evalstate) : evt =
       (* apply the function *)
       checkpurity state.purity cpurity;
       let application_env = Dict.insert decenv param arg in
-      eval body { state with env = application_env }
+      eval ~knownpurity:(Some cpurity) body { state with env = application_env }
   (* Apply a recursive function *)
   | RecClosure (name, param, body, decenv, cpurity) ->
     checkpurity state.purity cpurity;
     let rec_env = Dict.insert decenv name (AlreadyEvaluated closure) in
     let application_env = Dict.insert rec_env param arg in
-    eval body { state with env = application_env }
+    eval ~knownpurity:(Some cpurity) body { state with env = application_env }
     (* Generate a closure abstraction from a primitive *)
   | _ -> traise "Cannot apply a non functional value"
