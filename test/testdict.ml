@@ -63,5 +63,4 @@ let test_suite = List.map quickcase [
     ("foldl", test_foldl);
     ("filterkeys", test_filterkeys);
     ("filter", test_filter);
-    (*   ("no duplicate keys", test_duplicate) *)
   ]

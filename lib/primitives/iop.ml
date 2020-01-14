@@ -15,6 +15,6 @@ let pprint args =
   print_string x; EvtUnit
 
 let table = [
-  ("print", (pprint, 1, Impure));
-  ("print_endline", (pprint_endline, 1, Impure));
+  ("print",         Primitive (pprint, ("print", 1, Impure)));
+  ("print_endline", Primitive (pprint_endline, ("print_endline", 1, Impure)));
 ]

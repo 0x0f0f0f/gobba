@@ -61,11 +61,12 @@ let div args =
   | TComplex -> EvtComplex (Complex.div (unpack_complex x) (unpack_complex y))
   | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_tinfo found ))
 
+let flatnum = (fun x -> flatten_numbert_list x |> snd |> fun y -> EvtList y)
 
 let table = [
-  ("flatnum", ((fun x -> flatten_numbert_list x |> snd |> fun y -> EvtList y), 0, Pure));
-  ("add", (add, 0, Numerical));
-  ("mult", (mult, 0, Numerical));
-  ("sub", (sub, 2, Numerical));
-  ("div", (div, 2, Numerical))
+  ("flatnum", Primitive (flatnum, ("flatnum", 0, Pure)));
+  ("add", Primitive (add, ("add", 0, Numerical)));
+  ("mult", Primitive (mult, ("mult", 0, Numerical)));
+  ("sub", Primitive (sub, ("sub", 2, Numerical)));
+  ("div", Primitive (div, ("div", 2, Numerical)))
 ]

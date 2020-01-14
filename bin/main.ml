@@ -3,6 +3,7 @@ open Minicaml.Types
 open Cmdliner
 
 let run_minicaml verbose program printresult =
+  Printexc.record_backtrace true; 
   let state = {
     env = (Util.Dict.empty());
     verbosity = verbose;

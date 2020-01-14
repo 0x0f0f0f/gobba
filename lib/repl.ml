@@ -9,10 +9,10 @@ let read_one parser str =
 let read_toplevel parser () =
   let prompt = "> " in
   let str = Ocamline.read
-    ~prompt:prompt
-    ~brackets:[('(', ')'); ('[',']');  ('{','}')]
-    ~strings:['"']
-    ";;" in
+      ~prompt:prompt
+      ~brackets:[('(', ')'); ('[',']');  ('{','}')]
+      ~strings:['"']
+      ";;" in
   parser (Lexing.from_string (str ^ "\n"))
 
 let parser = Parser.toplevel Lexer.token
@@ -65,9 +65,10 @@ let run_one command state =
            (fun (ident, value) ->
               (match value with
                | Lambda (params, fbody) ->
-                 let rec_env = (Dict.insert state.env ident
-                                  (AlreadyEvaluated (RecClosure(ident, params, fbody, state.env))))
-                 in AlreadyEvaluated (RecClosure(ident, params, fbody, rec_env))
+                  let purity = Typecheck.infer_purity value Primitives.table [] state.env in
+                  let rec_env = (Dict.insert state.env ident
+                                  (AlreadyEvaluated (RecClosure(ident, params, fbody, state.env, purity))))
+                 in AlreadyEvaluated (RecClosure(ident, params, fbody, rec_env, purity))
                | _ -> traise "Cannot define recursion on non-functional values")
            ) dl) in
     (EvtUnit, { state with env = newenv } )
@@ -82,9 +83,9 @@ let rec repl_loop state  =
     loop ()
   with
   | End_of_file -> raise End_of_file
-  | InternalError err -> print_error err; repl_loop state
+  | InternalError err -> Printexc.print_backtrace stderr; print_error err; repl_loop state
   | Sys.Break -> prerr_endline "Interrupted."; repl_loop state
-  | e -> print_error (Nowhere, (Fatal (Printexc.to_string e))); repl_loop state
+  | e -> Printexc.print_backtrace stderr; print_error (Nowhere, (Fatal (Printexc.to_string e))); repl_loop state
 
 let repl state =
   Sys.catch_break true;

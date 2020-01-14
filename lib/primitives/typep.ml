@@ -14,7 +14,7 @@ let myfailwith args =
   let _ = iraise (InternalFailure msg) in EvtUnit
 
 let table = [
-  ("typeof", (typeofp, 1, Pure));
-  ("failwith", (myfailwith, 1, Pure));
+  ("typeof", Primitive (typeofp, ("typeof", 1, Pure)));
+  ("failwith", Primitive (myfailwith, ("failwith", 1, Pure)));
 ]
 

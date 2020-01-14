@@ -21,37 +21,36 @@ let test_apply () =
   checkevalfail (Apply(NumInt 5, NumInt 5))
 
 let test_curry () =
-  checkeval (Let ([("f", (Lambda ("x", (Lambda ("y", Plus ((Symbol "x"), (Symbol "y")))))))],
-                  (Apply ((Symbol "f"), (NumInt 3)))))
+  check "let f = fun x y -> x + y in f 3"
     (Closure ("y", (Plus ((Symbol "x"), (Symbol "y"))),
-              [("x", (AlreadyEvaluated (EvtInt 3)))]));
+              [("x", (AlreadyEvaluated (EvtInt 3)))], Numerical));
   check ("let rec fibacc = fun a n -> if n < 2 then a + n else (fibacc a (n - 1)) + (fibacc a (n - 2)) in fibacc 2 ")
-(Closure ("n",
-   (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))),
-      (Plus ((Symbol "a"), (Symbol "n"))),
-      (Plus
-         ((Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
-             (Sub ((Symbol "n"), (NumInt 1))))),
-          (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
-             (Sub ((Symbol "n"), (NumInt 2)))))))
-      )),
-   [("a", (AlreadyEvaluated (EvtInt 2)));
-     ("fibacc",
-      (AlreadyEvaluated
-         (RecClosure ("fibacc", "a",
-            (Lambda ("n",
-               (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))),
-                  (Plus ((Symbol "a"), (Symbol "n"))),
-                  (Plus
-                     ((Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
-                         (Sub ((Symbol "n"), (NumInt 1))))),
-                      (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
-                         (Sub ((Symbol "n"), (NumInt 2)))))))
-                  ))
-               )),
-            []))))
-     ]
-   ))
+    (Closure ("n",
+              (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))),
+                           (Plus ((Symbol "a"), (Symbol "n"))),
+                           (Plus
+                              ((Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                                       (Sub ((Symbol "n"), (NumInt 1))))),
+                               (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                                       (Sub ((Symbol "n"), (NumInt 2)))))))
+                          )),
+              [("a", (AlreadyEvaluated (EvtInt 2)));
+               ("fibacc",
+                (AlreadyEvaluated
+                   (RecClosure ("fibacc", "a",
+                                (Lambda ("n",
+                                         (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))),
+                                                      (Plus ((Symbol "a"), (Symbol "n"))),
+                                                      (Plus
+                                                         ((Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                                                                  (Sub ((Symbol "n"), (NumInt 1))))),
+                                                          (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                                                                  (Sub ((Symbol "n"), (NumInt 2)))))))
+                                                     ))
+                                        )),
+                                [], Pure))))
+              ], Pure
+             ))
 
 let test_let () =
   checkeval (Let(["f", NumInt 5], Symbol "f")) (EvtInt 5);
@@ -98,14 +97,14 @@ let test_lookup () =
   checkeval (Letlazy(["a", NumInt 1; "b", NumInt 2], Symbol "a")) (EvtInt 1)
 
 let test_primitive_abstraction () =
-  check "head" (Closure ("a", ApplyPrimitive("head", 1, Pure, [Symbol "a"]), []));
+  check "head" (Closure ("a", ApplyPrimitive(("head", 1, Pure), [Symbol "a"]), [], Pure));
   check "head [1]" (EvtInt 1);
   check "insert 3" (Closure ("b",
                              (Lambda ("c",
-                                      (ApplyPrimitive ("insert", 3, Pure,
+                                      (ApplyPrimitive (("insert", 3, Pure),
                                                        [(Symbol "a"); (Symbol "b"); (Symbol "c")]))
                                      )),
-                             [("a", (AlreadyEvaluated (EvtInt 3)))]))
+                             [("a", (AlreadyEvaluated (EvtInt 3)))], Pure))
 
 let test_suite = List.map quickcase [
     ("constants", test_constants);

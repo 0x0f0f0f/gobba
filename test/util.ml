@@ -14,30 +14,32 @@ let state = {
   purity = Uncertain;
 }
 
+let myevt = Alcotest.testable pp_evt equal_evt
+let myexpr = Alcotest.testable pp_expr equal_expr
+let mypurity = Alcotest.testable pp_puret equal_puret
+
 let quickcase (descr, case) = A.test_case descr `Quick case
 
 let parse str = match (read_one parser str) with
   | Expr e -> e
   | _ -> failwith "did not expect a definition here"
 
-let checkeq descr fst snd eqfn = A.(check bool) descr true (eqfn fst snd)
-
-let checkparse expr result =
-  A.(check bool) expr true (equal_expr (parse expr) result)
+let checkparse e result = A.(check myexpr) e result (parse e)
 
 let checkparsefail exp = A.check_raises exp (Failure("syntax error"))
   (fun () -> try let _ = (parse exp) in () with _ -> failwith "syntax error")
 
-let checkeval exp expected = A.(check bool) (show_expr exp) true (equal_evt
-(eval exp state) expected)
+let checkeval exp expected = A.(check myevt) (show_expr exp) expected (eval exp state)
 
 let checkevalfail exp = A.(check_raises) (show_expr exp)
 (Failure("evaluation error")) (fun () -> try let _ = (eval exp state) in () with _ -> failwith "evaluation error")
 
-let check exp expected = A.(check bool) exp true (equal_evt (eval (parse exp) state) expected)
+let check exp expected = A.(check myevt) exp expected (eval (parse exp) state)
 
 let checkfail exp  = A.(check_raises) exp (Failure("evaluation error"))
-(fun () -> try let _ = (eval (parse exp) state) in () with _ -> failwith "evaluation error")
+(fun () -> try let _ = (eval (parse exp) state) in () with e ->  print_endline (Printexc.to_string e); failwith "evaluation error")
+
+let checkpurity exp expected = A.(check mypurity) exp expected (Typecheck.infer_purity (parse exp) Primitives.table [] [])
 
 let examples_path = Sys.getenv "MINICAML_EXAMPLES"
 

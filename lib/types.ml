@@ -21,7 +21,7 @@ let isstrictlypure x = x = Pure
 let isimpure x = x = Impure
 let ispure x = not (isimpure x)
 
-(** Contains info about a primitive *)
+(** Contains a primitive's name, number of arguments and pureness *)
 type primitiveinfo = (ide * int * puret) [@@deriving show { with_path = false }, eq, ord]
 
 (** The type representing Abstract Syntax Tree expressions *)
@@ -62,7 +62,7 @@ type expr =
   | Letreclazy of ide * expr * expr
   | Lambda of ide * expr
   | Apply of expr * expr
-  | ApplyPrimitive of ide * int * puret * expr list
+  | ApplyPrimitive of primitiveinfo * expr list
   | Compose of expr * expr
   | Sequence of expr list
 [@@deriving show { with_path = false }, eq, ord]
@@ -108,9 +108,9 @@ type evt =
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
   | EvtDict of (ide * evt) list [@equal (=)]
-  | Closure of ide * expr * env_type [@equal (=)]
+  | Closure of ide * expr * env_type * puret [@equal (=)]
   (** RecClosure keeps the function name in the constructor for recursion *)
-  | RecClosure of ide * ide * expr * env_type [@equal (=)]
+  | RecClosure of ide * ide * expr * env_type * puret [@equal (=)]
   (** Abstraction that permits treating primitives as closures *)
 [@@deriving show { with_path = false }, eq, ord]
 
@@ -135,7 +135,7 @@ and typeinfo =
   | TString
   | TList
   | TDict
-  | TLambda
+  | TLambda of puret
 
 let show_tinfo t = match t with
   | TUnit   -> "unit"
@@ -147,7 +147,7 @@ let show_tinfo t = match t with
   | TString -> "string"
   | TList -> "list"
   | TDict -> "dict"
-  | TLambda -> "fun"
+  | TLambda p -> (show_puret p) ^ " fun"
 
 (* Generate a list of parameter names to use in the primitive abstraction *)
 let generate_prim_params n =
@@ -167,17 +167,30 @@ let rec show_unpacked_evt e = match e with
                  (String.concat ", " 
                     (List.map (fun (x,y) -> x ^ ":" ^ show_unpacked_evt y) d))
                  ^ "}"
-  | Closure (param, body, _) -> "(fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
-  | RecClosure (name, param, body, _) -> name ^ " = (rec fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
+  | Closure (param, body, _, _) -> "(fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
+  | RecClosure (name, param, body, _, _) -> name ^ " = (rec fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
 
 (** Function that creates a list with the params of a nested lambda in a Closure *)
 let findevtparams l = match l with
-  | Closure(p, b, _) -> p::(findparams b)
-  | RecClosure(_, p, b, _) -> p::(findparams b)
+  | Closure(p, b, _, _) -> p::(findparams b)
+  | RecClosure(_, p, b, _, _) -> p::(findparams b)
   | _ -> []
 
 (** A type representing a primitive *)
 type primitive = Primitive of (evt list -> evt) * primitiveinfo
+
+(** Get the purity of a primitive *)
+let get_primitive_purity x = match x with
+  Primitive (_, (_, _, p)) -> p
+
+(** Get the actual function from a primitive type *)
+let get_primitive_function x = match x with
+  Primitive (f, _) -> f
+
+(** Get the information from a primitive type *)
+let get_primitive_info x = match x with
+  Primitive (_, i) -> i
+
 
 (** A recursive type representing a stacktrace frame *)
 type stackframe =
@@ -211,10 +224,12 @@ type evalstate = {
   purity: puret;
 }
 
+(** The location of a lexeme in code *)
 type location =
   | Location of Lexing.position * Lexing.position (** delimited location *)
   | Nowhere (** no location *)
 
+(** Get the location of a lexeme *)
 let location_of_lex lex =
   Location (Lexing.lexeme_start_p lex, Lexing.lexeme_end_p lex)
 
@@ -246,7 +261,7 @@ let iraise e = raise (InternalError (Nowhere, e))
 (** Utility function to raise a type error without a location*)
 let traise msg = raise (InternalError (Nowhere, TypeError msg))
 
-
+(** Print the location of a lexeme*)
 let print_location loc ppf =
   match loc with
   | Nowhere ->

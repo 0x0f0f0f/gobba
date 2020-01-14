@@ -63,12 +63,12 @@ let dict_from_lists args =
   EvtDict(zip kl vl)
 
 let table = [
-  ("insert", (insert_dict, 3, Pure));
-  ("remove", (delete_dict, 2, Pure));
-  ("haskey", (haskey, 2, Pure));
-  ("getkey", (getkey, 2, Pure));
-  ("getkeys", (getkeys, 1, Pure));
-  ("getvalues", (getvalues, 1, Pure));
-  ("dictfromlists", (dict_from_lists, 2, Pure));
-  ("filterkeys", (filterkeys, 2, Pure))
+  ("insert",         Primitive (insert_dict, ("insert", 3, Pure)));
+  ("remove",         Primitive (delete_dict, ("remove", 2, Pure)));
+  ("haskey",         Primitive (haskey, ("haskey", 2, Pure)));
+  ("getkey",         Primitive (getkey, ("getkey", 2, Pure)));
+  ("getkeys",        Primitive (getkeys, ("getkeys", 1, Pure)));
+  ("getvalues",      Primitive (getvalues, ("getvalues", 1, Pure)));
+  ("dictfromlists",  Primitive (dict_from_lists, ("dictfromlists", 2, Pure)));
+  ("filterkeys",     Primitive (filterkeys, ("filterkeys", 2, Pure)))
 ]

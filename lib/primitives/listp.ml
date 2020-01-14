@@ -35,9 +35,9 @@ let mem args =
   EvtBool(List.mem elem ls)
 
 let table = [
-  ("head", (head, 1, Pure));
-  ("tail", (tail, 1, Pure));
-  ("mem", (mem, 2, Pure));
-  ("length", (length, 2, Pure));
-  ("at", (getat, 2, Pure));
+  ("head",    Primitive (head, ("head", 1, Pure)));
+  ("tail",    Primitive (tail, ("tail", 1, Pure)));
+  ("mem",     Primitive (mem, ("mem", 2, Pure)));
+  ("length",  Primitive (length, ("length", 2, Pure)));
+  ("at",      Primitive (getat, ("at", 2, Pure)));
 ]

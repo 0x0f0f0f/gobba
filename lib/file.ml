@@ -13,7 +13,7 @@ let read_file parser fn =
         terms
       with
       (* Close the file in case of any parsing errors. *)
-        e -> close_in fh ; iraise (SyntaxError (Printexc.to_string e))
+        e -> close_in fh ; iraise (SyntaxError (Printexc.print_backtrace stderr; Printexc.to_string e))
   with
   (* Any errors when opening or closing a file are fatal. *)
     Sys_error msg -> iraise (Fatal msg)

@@ -17,6 +17,10 @@ let uniqueorfail l =
   if Dict.dup_exists l then iraise (DictError "Duplicate key in dictionary")
   else l
 
+let checkpurity current newp = if isstrictlypure current && isimpure newp then
+  iraise (PurityError "Cannot enter an impure context from a strictly pure one")
+  else ()
+
 (** Evaluate an expression in an environment *)
 let rec eval (e : expr) (state : evalstate) : evt =
   let state = { state with stack = push_stack state.stack e } in
@@ -27,13 +31,13 @@ let rec eval (e : expr) (state : evalstate) : evt =
       (depth_of_stack state.stack)
       (show_expr e)
   else ();
+  let epurity = infer_purity e Primitives.table [] state.env in
   let evaluated =
     match e with
     | Unit -> EvtUnit
     | Purity (n, ee) ->
-      if isstrictlypure state.purity && isimpure n then
-          iraise (PurityError "Cannot enter an impure context from a strictly pure one")
-      else eval ee { state with purity = n }
+      checkpurity state.purity n;
+      eval ee { state with purity = n }
     | NumInt n -> EvtInt n
     | NumFloat n -> EvtFloat n
     | NumComplex n -> EvtComplex n
@@ -73,7 +77,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
     | Let (assignments, body) ->
       let evaluated_assignments =
         List.map
-          (fun (_, value) -> AlreadyEvaluated (eval value state))
+          (fun (_, value) -> AlreadyEvaluated (eval value state) )
           assignments
       and identifiers = fstl assignments in
       let new_env =
@@ -92,7 +96,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
         | Lambda (params, fbody) ->
           let rec_env =
             Dict.insert state.env ident
-              (AlreadyEvaluated (RecClosure (ident, params, fbody, state.env)))
+              (AlreadyEvaluated (RecClosure (ident, params, fbody, state.env, epurity)))
           in
           eval body { state with env = rec_env }
         | _ ->
@@ -106,26 +110,27 @@ let rec eval (e : expr) (state : evalstate) : evt =
         | _ ->
           traise "Cannot define recursion on non-functional values"
       )
-    | Lambda (param, body) -> Closure (param, body, state.env)
+    | Lambda (param, body) ->
+      Closure (param, body, state.env, epurity)
     | Compose (f2, f1) ->
       let ef1 = eval f1 state and ef2 = eval f2 state in
-      stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
+      stcheck (typeof ef1) (TLambda Uncertain); stcheck (typeof ef2) (TLambda Uncertain);
       let params1 = findevtparams ef1 in
       let appl1 = apply_from_exprlist (symbols_from_strings params1) f1 in
       eval (lambda_from_paramlist params1 (Apply (f2, appl1))) state
     (* Function Application *)
     | Apply (f, arg) ->
       let closure = eval f state in
-      let earg = AlreadyEvaluated (eval arg state) in
+      let earg = (AlreadyEvaluated ((eval arg state))) in
       applyfun closure earg state
-    | ApplyPrimitive (name, numparams, purity, args) ->
+    | ApplyPrimitive ((name, numparams, purity), args) ->
       if List.length args != numparams then (iraise (Fatal "Primitive Application Error"))
       else if ispure state.purity && isimpure purity then
         iraise
           (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
       else
       let eargs = List.map (fun x -> eval x state) args in
-      let prim = fst3 (Dict.get name Primitives.table) in
+      let prim = get_primitive_function (Dict.get name Primitives.table) in
       prim eargs
     (* Eval a sequence of expressions but return the last *)
     | Sequence exprl ->
@@ -149,11 +154,11 @@ let rec eval (e : expr) (state : evalstate) : evt =
 (* Search for a value in the primitives table and environment *)
 and lookup (ident : ide) (state : evalstate) : evt =
   if Dict.exists ident Primitives.table then
-    let _, numparams, purity = Dict.get ident Primitives.table in
+    let _, numparams, purity = get_primitive_info (Dict.get ident Primitives.table) in
     (* Generate a closure abstraction from a primitive *)
     let primargs = generate_prim_params numparams in
     let symprimargs = symbols_from_strings primargs in
-    let cbody = lambda_from_paramlist primargs (ApplyPrimitive(ident, numparams, purity, symprimargs)) in
+    let cbody = lambda_from_paramlist primargs (ApplyPrimitive((ident, numparams, purity), symprimargs)) in
     eval cbody state
   else if Dict.exists ident Primitives.stdlib_table then
     (Dict.get ident Primitives.stdlib_table)
@@ -174,12 +179,14 @@ and lookup_env (ident : ide) (state : evalstate) : evt =
 and applyfun (closure : evt) (arg : type_wrapper) (state : evalstate) : evt =
   (* Evaluate the argument and unpack the evt encapsuled in them *)
   match closure with
-  | Closure (param, body, decenv) ->
+  | Closure (param, body, decenv, cpurity) ->
       (* apply the function *)
+      checkpurity state.purity cpurity;
       let application_env = Dict.insert decenv param arg in
       eval body { state with env = application_env }
   (* Apply a recursive function *)
-  | RecClosure (name, param, body, decenv) ->
+  | RecClosure (name, param, body, decenv, cpurity) ->
+    checkpurity state.purity cpurity;
     let rec_env = Dict.insert decenv name (AlreadyEvaluated closure) in
     let application_env = Dict.insert rec_env param arg in
     eval body { state with env = application_env }
