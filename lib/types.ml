@@ -96,9 +96,9 @@ let rec simple_show_expr e = match e with
   | Lambda(p, b) -> "(fun " ^ (String.concat " " (p::(findparams b))) ^ " -> ... )"
   | Let(l, _) -> "let " ^ (String.concat " and" (List.map (fun x -> Util.snd3 x ^ " = ... ") l))
   | Plus(a, b) -> simple_show_expr a ^ " + " ^ simple_show_expr b
-  | Sub(a, b) -> simple_show_expr a ^ " + " ^ simple_show_expr b
-  | Mult(a, b) -> simple_show_expr a ^ " + " ^ simple_show_expr b
-  | Div(a, b) -> simple_show_expr a ^ " + " ^ simple_show_expr b
+  | Sub(a, b) -> simple_show_expr a ^ " - " ^ simple_show_expr b
+  | Mult(a, b) -> simple_show_expr a ^ " * " ^ simple_show_expr b
+  | Div(a, b) -> simple_show_expr a ^ " / " ^ simple_show_expr b
   | Compose(a, b) -> simple_show_expr a ^ " <=< " ^ simple_show_expr b
   | _ -> "<code>"
 

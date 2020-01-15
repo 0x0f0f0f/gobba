@@ -67,9 +67,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
     | IfThenElse (guard, first, alt) ->
       let g = unpack_bool (eval guard state) in
       if g then eval first state else eval alt state
-    | Let (assignments, body) ->
-      let new_env = eval_assignment_list assignments state in
-      eval body { state with env = new_env }
+    | Let (assignments, body) -> eval body (eval_assignment_list assignments state)
     | Lambda (param, body) ->
       Closure (None, param, body, state.env)
     | Compose (f2, f1) ->
@@ -130,22 +128,22 @@ and applyfun (closure : evt) (arg : type_wrapper) (state : evalstate) : evt =
     eval body { state with env = appl_env }
   | _ -> traise "Cannot apply a non functional value"
 
-and eval_assignment state (islazy, name, value) =
-  if islazy then LazyExpression value else
-  match value with
-      | Lambda(param, fbody) ->
-        let rec_env = Dict.insert state.env name
-            (AlreadyEvaluated (Closure (Some name, param, fbody, state.env)))
-        in AlreadyEvaluated (eval value { state with env = rec_env })
-      | _ -> AlreadyEvaluated (eval value state)
+and eval_assignment state (islazy, name, value) : evalstate =
+  let nval =
+    if islazy then  LazyExpression value else
+    (match value with
+    | Lambda(param, fbody) ->
+        let rec_env = Dict.insert state.env name (AlreadyEvaluated (Closure (Some name, param, fbody, state.env))) in
+        (AlreadyEvaluated (eval value { state with env = rec_env }))
+    | _ -> (AlreadyEvaluated (eval value state))) in
+    { state with env = (Dict.insert state.env name nval) }
 
-and eval_assignment_list assignment_list state =
+and eval_assignment_list assignment_list state : evalstate =
   match assignment_list with
-  | [] -> []
+  | [] -> state
   | (islazy, name, value)::xs ->
-    let eass = eval_assignment state (islazy, name, value) in
-    let newstate = { state with env = (Dict.insert state.env name eass)} in
-    (name, eass)::(eval_assignment_list xs newstate)
+    let newstate = eval_assignment state (islazy, name, value) in
+    (eval_assignment_list xs newstate)
 
 and eval_command command state =
   if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow
@@ -161,7 +159,8 @@ and eval_command command state =
     let exprpurity = Puritycheck.infer e state in
     if isstrictlypure state.purity && isimpure exprpurity then
     iraises (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
-      " expression but it is in " ^ (show_puret state.purity) ^ " state!")) state.stack;
+      " expression but it is in " ^ (show_puret state.purity) ^ " state!")) state.stack else ();
+    if state.verbosity >= 1 then print_endline (show_puret exprpurity) else ();
     (* Normalize the expression *)
     let optimized_ast = Optimizer.iterate_optimizer e in
     (* If the expression is NOT already in normal state, print the optimized one if verbosity is enough *)
@@ -188,8 +187,8 @@ and eval_command command state =
     if ovall = vall then () else
     if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
         (show_command (Def odl)) else ();
-    let newenv = eval_assignment_list odl state in
-    (EvtUnit, { state with env = newenv } )
+    let newstate = eval_assignment_list odl state in
+    (EvtUnit, newstate )
 
 and eval_command_list cmdlst state = match cmdlst with
   | x::xs ->

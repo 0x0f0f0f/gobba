@@ -8,6 +8,7 @@ module A = Alcotest
 
 let state = {
   env = (Dict.empty ());
+  purityenv = (Dict.empty ());
   verbosity = 0;
   printresult = false;
   stack = EmptyStack;
@@ -39,9 +40,8 @@ let check exp expected = A.(check myevt) exp expected (eval (parse exp) state)
 let checkfail exp  = A.(check_raises) exp (Failure("evaluation error"))
 (fun () -> try let _ = (eval (parse exp) state) in () with e ->  print_endline (Printexc.to_string e); failwith "evaluation error")
 
-let checkpurity exp expected = A.(check mypurity) exp expected (Typecheck.infer_purity (parse exp) Primitives.table [] [])
+let checkpurity exp expected = A.(check mypurity) exp expected (Puritycheck.infer (parse exp) state)
 
 let examples_path = Sys.getenv "MINICAML_EXAMPLES"
 
-let checkprogram fn expected = A.(check bool) fn true (equal_evt (last (last
-(File.run_file (Filename.concat examples_path fn) state))) expected)
+let checkprogram fn expected = A.(check myevt) fn expected (fst (Repl.run_file (Filename.concat examples_path fn) state 20 true))

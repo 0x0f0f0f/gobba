@@ -49,7 +49,7 @@ let test_dicts () =
 
 
 let test_random_hell () =
-  checkparse "[(20; (); ([0; ([]; []; [1]; let rec f = fun n -> if n < 2 then n else f(n - 1) in f 3)])); [30; 40; 50]; 2]"
+  checkparse "[(20; (); ([0; ([]; []; [1]; let f = fun n -> if n < 2 then n else f(n - 1) in f 3)])); [30; 40; 50]; 2]"
     (List
        [(Sequence
            [(NumInt 20); Unit;
@@ -97,14 +97,14 @@ let test_pipeline () =
   checkparse
     "((let fib = fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2)) in fib) >=> (fun x -> x + 1)) "
    (Compose ((Lambda ("x", (Plus ((Symbol "x"), (NumInt 1))))),
-      (Let ("fib",
+      (Let ([false, "fib",
          (Lambda ("n",
             (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))), (Symbol "n"),
                (Plus
                   ((Apply ((Symbol "fib"), (Sub ((Symbol "n"), (NumInt 1))))),
                    (Apply ((Symbol "fib"), (Sub ((Symbol "n"), (NumInt 2)))))))
                ))
-            )),
+            ))],
          (Symbol "fib")))
       ))
 

@@ -42,6 +42,7 @@ let rec repl_loop state maxdepth internalst =
     print_stacktrace err maxdepth;
     repl_loop state maxdepth internalst
   | Sys.Break ->
+    if internalst then Printexc.print_backtrace stderr;
     prerr_endline "Interrupted.";
     repl_loop state maxdepth internalst
   | e ->
@@ -65,6 +66,7 @@ let run_file fn state maxstackdepth internalst =
     print_stacktrace err maxstackdepth;
     (EvtBool false, state)
   | Sys.Break ->
+    if internalst then Printexc.print_backtrace stderr;
     prerr_endline "Interrupted.";
     (EvtBool false, state)
   | e ->
