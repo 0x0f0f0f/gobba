@@ -184,7 +184,7 @@ ast_simple_expr:
   { Purity (Impure, e)}
   | l = delimited(LSQUARE, separated_list(SEMI, ast_expr), RSQUARE)
   { List l }
-  | l = delimited(LBRACKET, separated_list(COMMA, assignment), RBRACKET)
+  | l = delimited(LBRACKET, separated_list(SEMI, assignment), RBRACKET)
   { Dict (List.map (fun (_, k, v) -> (k,v)) l) }
   | b = BOOLEAN
   { Boolean b }
