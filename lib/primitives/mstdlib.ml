@@ -79,7 +79,7 @@ let table =
   [("map", (closurize "map" mapstr));
    ("filter", (closurize "filter" filterstr));
    ("foldl", (closurize "foldl" foldlstr));
-   ("foldr", (closurize "foldr" foldlstr))
+   ("foldr", (closurize "foldr" foldrstr))
   ]
 
 let purity_table = [("map", Pure); ("filter", Pure); ("foldl", Pure); ("foldr", Pure)]

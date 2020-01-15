@@ -34,9 +34,11 @@ let test_map () =
   checkevalfail (apply_from_exprlist [(Lambda ("x", (Plus ((NumInt 1),
                                                            (Symbol "x"))))); (String "x")] (Symbol "map"))
 
-let test_foldl () =
+let test_fold () =
   check "foldl (fun acc x -> acc + x) 0 [1;2;3;4]"
     (EvtInt 10);
+  check "foldl (fun x y -> x - y) 10 [1;2;3]" (EvtInt 4);
+  check "foldr (fun x y -> x - y) 10 [1;2;3]" (EvtInt (-8));
   checkfail "foldl \"fail\" \"fail\" \"fail\" 0";
   checkfail "foldl (fun x -> 1 + x) 0 \"x\""
 
@@ -70,6 +72,6 @@ let test_suite = List.map quickcase [
     ("cons", test_cons);
     ("concat", test_concat);
     ("map", test_map);
-    ("foldl", test_foldl);
+    ("fold", test_fold);
     ("filter", test_filter);
   ]

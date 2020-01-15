@@ -40,10 +40,12 @@ let test_map () =
         (("c"), (EvtInt 4)); (("d"), (EvtInt 5))]);
   checkfail "map \"fail\" \"fail\" \"fail\""
 
-let test_foldl () =
-  check "foldl (fun acc x -> x + acc) 10 {\"a\"= 1; \"b\"= 2; \"c\"= 3; \"d\"= 4}" (EvtInt 10);
+let test_fold () =
+  check "foldl (fun acc x -> x + acc) 10 {a= 1; b= 2; c= 3; d= 4}" (EvtInt 20);
+  check "foldl (fun x y -> x - y) 10 {a=1; b=2; c=3}" (EvtInt 4);
+  check "foldr (fun x y -> x - y) 10 {a=1; b=2; c=3}" (EvtInt (-8));
   checkfail "foldl \"fail\" \"fail\"  \"fail\" 0"
-  
+
 let test_filterkeys () =
   check ("filterkeys [\"apple\"] " ^ sample_dict)
     (EvtDict [("apple", EvtInt 314)]);
@@ -60,7 +62,7 @@ let test_suite = List.map quickcase [
     ("haskey", test_haskey);
     ("getkey", test_getkey);
     ("map", test_map);
-    ("foldl", test_foldl);
+    ("fold", test_fold);
     ("filterkeys", test_filterkeys);
     ("filter", test_filter);
   ]
