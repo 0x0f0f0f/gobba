@@ -9,7 +9,7 @@ TODO: compute at compile time *)
 let closurize name str =
    try
       (match (parser (Lexing.from_string (str ^ "\n"))) with
-      | Expr(Lambda(p, body)) -> AlreadyEvaluated (Closure (Some name, p, body, []))
+      | Expr(Lambda(p, body)) -> LazyExpression (Lambda(p, body))
       | _ -> failwith "standard library definition error")
    with
    | e -> failwith ("standard library definition error in " ^ name ^ ": \n" ^
@@ -29,10 +29,10 @@ let mapstr =
 let filterstr =
 {| fun pred l ->
    if typeof l = "list" then
-       let aux = fun f l ->
-      (if l = [] then l else if f (head l) then
+      let aux = fun f l ->
+      if l = [] then l else if f (head l) then
          (head l)::(aux f (tail l))
-         else (aux f (tail l))) in
+         else (aux f (tail l)) in
       aux pred l
    else if typeof l = "dict" then
       let aux = fun f kl vl acc ->
@@ -44,7 +44,42 @@ let filterstr =
    else failwith "value is not iterable"
 |}
 
-let table = 
-  [("map", (Pure, closurize "map" mapstr));
-   ("filter", (Pure, closurize "filter" filterstr));
+let foldlstr =
+{| fun f z l ->
+   if typeof l = "list" then
+      let aux = fun f z l ->
+         if l = [] then z else
+         aux f (f z (head l)) (tail l)
+      in aux f z l
+   else if typeof l = "dict" then
+      let aux = fun f z kl vl ->
+         if kl = [] && vl = [] then z else
+         aux f (f z (head vl)) (tail kl) (tail vl)
+      in aux f z (getkeys l) (getvalues l)
+   else failwith "value is not iterable"
+|}
+
+let foldrstr =
+{| fun f z l ->
+   if typeof l = "list" then
+      let aux = fun f z l ->
+         if l = [] then z else
+         f (head l) (aux f z (tail l))
+      in aux f z l
+   else if typeof l = "dict" then
+      let aux = fun f z kl vl ->
+         if kl = [] && vl = [] then z else
+         f (head vl) (aux f z (tail kl) (tail vl))
+      in aux f z (getkeys l) (getvalues l)
+   else failwith "value is not iterable"
+|}
+
+
+let table =
+  [("map", (closurize "map" mapstr));
+   ("filter", (closurize "filter" filterstr));
+   ("foldl", (closurize "foldl" foldlstr));
+   ("foldr", (closurize "foldr" foldlstr))
   ]
+
+let purity_table = [("map", Pure); ("filter", Pure); ("foldl", Pure); ("foldr", Pure)]
