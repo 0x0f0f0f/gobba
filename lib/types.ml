@@ -55,13 +55,16 @@ type expr =
   | Not of expr
   (* Control flow and functions *)
   | IfThenElse of expr * expr * expr
-  | Let of (bool * ide * expr) list * expr
+  | Let of assignment_type list * expr
   | Lambda of ide * expr
   | Apply of expr * expr
   | ApplyPrimitive of primitiveinfo * expr list
   | Compose of expr * expr
   | Sequence of expr list
 [@@deriving show { with_path = false }, eq, ord]
+
+(* Defines an assignment: laziness, name and value *)
+and assignment_type = (bool * ide * expr) [@@deriving show { with_path = false }, eq, ord]
 
 (** Function that finds a nested lambda body *)
 let rec findbody l = match l with
@@ -119,7 +122,7 @@ type directive =
 type command =
   | Directive of directive
   | Expr of expr
-  | Def of (bool * ide * expr) list
+  | Def of assignment_type list
 [@@deriving show { with_path = false }, eq, ord]
 
 

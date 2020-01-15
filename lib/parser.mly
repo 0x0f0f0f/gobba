@@ -60,24 +60,21 @@
 
 %%
 
+
+
 file:
   | EOF
     { [] }
   | e = ast_expr EOF
-    { [Expr e] }
+    { (Expr e) :: [] }
   | e = ast_expr SEMISEMI lst = file
-    { Expr e :: lst }
-  | ds = nonempty_list(def) SEMISEMI lst = file
-    { ds @ lst }
-  | ds = nonempty_list(def) EOF
-    { ds }
+    { Expr(e) :: lst }
+  | d = def SEMISEMI lst = file
+    { (Def d) :: lst }
+  | d = def EOF
+    { (Def d) :: [] }
   | d = directive lst = file
   { (Directive d)::lst }
-
-
-def:
-  | LET a = separated_list(AND, assignment)
-    { Def a }
 
 toplevel:
   | d = directive
@@ -85,9 +82,19 @@ toplevel:
   | l = separated_list(SEMI, ast_expr) SEMISEMI? EOF
   { Expr(Sequence(l)) }
   | d = def SEMISEMI? EOF
-  { d }
+  { Def d }
   | d = ast_expr SEMISEMI? EOF
   { Expr d }
+
+assignment:
+  | name = SYMBOL EQUAL value = ast_expr
+  { (false, name, value) }
+  | LAZY name = SYMBOL EQUAL value = ast_expr
+  { (true, name, value) }
+
+def:
+  | LET a = separated_list(AND, assignment)
+    { a }
 
 directive:
   | s = DIRECTIVE a = STRING
@@ -107,11 +114,6 @@ directive:
     | "#dumppurityenv" -> Dumppurityenv
     | _ -> failwith "unknown directive" }
 
-assignment:
-  | name = SYMBOL EQUAL value = ast_expr
-  { (false, name, value) }
-  | LAZY name = SYMBOL EQUAL value = ast_expr
-  { (true, name, value) }
 
 ast_expr:
   | e = ast_app_expr
@@ -152,8 +154,8 @@ ast_expr:
   { Le (e1, e2) }
   | IF g = ast_expr THEN b = ast_expr ELSE e = ast_expr
   { IfThenElse (g, b, e)}
-  | LET a = separated_list(AND, assignment) IN body = ast_expr
-  { Let (a, body) }
+  | d = def IN body = ast_expr
+  { Let (d, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
   { lambda_from_paramlist params body }
   | e1 = ast_expr COMPOSE e2 = ast_expr
@@ -198,4 +200,5 @@ ast_simple_expr:
   { NumComplex {Complex.re = r; Complex.im = i} }
     | r = FLOAT CMIN i = FLOAT
   { NumComplex {Complex.re = r; Complex.im = -1. *. i} }
+
 %%

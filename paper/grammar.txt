@@ -1,26 +1,30 @@
 <file> ::= EOF
          | <ast_expr> EOF
          | <ast_expr> SEMISEMI <file>
-         | nonempty_list(<def>) SEMISEMI <file>
-         | nonempty_list(<def>) EOF
+         | <def> SEMISEMI <file>
+         | <def> EOF
+         | <directive> <file>
 
-<def> ::= LET [<assignment> (AND <assignment>)*]
-        | LET REC [<assignment> (AND <assignment>)*]
-
-<toplevel> ::= [<ast_expr> (SEMI <ast_expr>)*] [SEMISEMI] EOF
+<toplevel> ::= <directive>
+             | [<ast_expr> (SEMI <ast_expr>)*] [SEMISEMI] EOF
              | <def> [SEMISEMI] EOF
              | <ast_expr> [SEMISEMI] EOF
 
 <assignment> ::= SYMBOL EQUAL <ast_expr>
+               | LAZY SYMBOL EQUAL <ast_expr>
 
-<dict_value> ::= SYMBOL COLON <ast_expr>
+<def> ::= LET [<assignment> (AND <assignment>)*]
+
+<directive> ::= DIRECTIVE STRING
+              | DIRECTIVE INTEGER
+              | DIRECTIVE UNIT
 
 <ast_expr> ::= <ast_app_expr>
              | LPAREN <ast_expr> (SEMI <ast_expr>)* RPAREN
              | <ast_expr> CONS <ast_expr>
              | NOT <ast_expr>
              | <ast_expr> ATSIGN <ast_expr>
-             | <ast_expr> TOPOWER <ast_expr>
+             | <ast_expr> CONCAT <ast_expr>
              | <ast_expr> LAND <ast_expr>
              | <ast_expr> OR <ast_expr>
              | <ast_expr> PLUS <ast_expr>
@@ -34,11 +38,7 @@
              | <ast_expr> GREATEREQUAL <ast_expr>
              | <ast_expr> LESSEQUAL <ast_expr>
              | IF <ast_expr> THEN <ast_expr> ELSE <ast_expr>
-             | LET [<assignment> (AND <assignment>)*] IN <ast_expr>
-             | LET REC SYMBOL EQUAL <ast_expr> IN <ast_expr>
-             | LET LAZY [<assignment> (AND <assignment>)*] IN <ast_expr>
-             | LET LAZY REC SYMBOL EQUAL <ast_expr> IN <ast_expr>
-             | LET REC LAZY SYMBOL EQUAL <ast_expr> IN <ast_expr>
+             | <def> IN <ast_expr>
              | LAMBDA SYMBOL+ LARROW <ast_expr>
              | <ast_expr> COMPOSE <ast_expr>
              | <ast_expr> PIPE <ast_expr>
@@ -49,10 +49,11 @@
                     | UNIT
                     | DOLLAR <ast_expr>
                     | LPAREN <ast_expr> RPAREN
+                    | <ast_simple_expr> COLON SYMBOL
                     | PURE <ast_expr>
                     | IMPURE <ast_expr>
                     | LSQUARE [<ast_expr> (SEMI <ast_expr>)*] RSQUARE
-                    | LBRACKET [<dict_value> (COMMA <dict_value>)*] RBRACKET
+                    | LBRACKET [<assignment> (SEMI <assignment>)*] RBRACKET
                     | BOOLEAN
                     | STRING
                     | INTEGER

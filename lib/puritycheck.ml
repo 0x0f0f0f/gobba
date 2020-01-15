@@ -23,16 +23,22 @@ let rec infer e state : puret =
     List.fold_left level_purity Numerical apl in
   match e with
   | NumInt _ | NumFloat _ | NumComplex _ -> Numerical
+  (* Expressions with lists of expressions *)
+  | List l | Sequence l -> inferpl l
+  (* Dictionaries contain key value pairs, level them out *)
+  | Dict (l) -> let _, vl = unzip l in inferpl vl
   | Purity (allowed, body) ->
     if isstrictlypure state.purity && isimpure allowed then
       iraise (PurityError ("Cannot enter an " ^ (show_puret allowed) ^
       " context from a " ^ (show_puret state.purity) ^ " one!"))
       else infer body { state with purity = allowed }
-  | Sequence l -> inferpl l
   (* Infer from all the binary operators *)
   | Compose (a, b) | Plus (a, b) | Sub (a, b)
   | Mult (a, b) | Div (a, b) -> inferp2 a b
   | Lambda(_, b) -> infer b state
+  | IfThenElse(g, t, f) ->
+    let pg = infer g state and pt = infer t state and pf = infer f state in
+    level_purity pg (level_purity pt pf)
   | Let(assignments, body) ->
     let newstate = infer_assignment_list assignments state in
     infer body newstate

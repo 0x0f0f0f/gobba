@@ -1,21 +1,24 @@
 ![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master)
 # minicaml 
 
-**minicaml** is a small, purely functional interpreted programming language. I
-wrote **minicaml** for the **Programming 2** course at the University of Pisa,
-taught by Professors Gianluigi Ferrari and Francesca Levi. It is based on the
-teachers' [minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml),
-an evaluation example to show how interpreters work. Parsing and lexing are done
+**minicaml** is a small, dinamically typed purely functional programming
+language. It is heavily inspired by the OCaml, Haskell and Scheme languages.
+**minicaml** was initially written as a midterm project for  the **Programming
+2** course at the University of Pisa, taught by Professors Gianluigi Ferrari and
+Francesca Levi. Therefore, it is based on the teachers'
+[minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml), a simple
+evaluation example to show how interpreters work. Parsing and lexing are done
 with menhir and ocamllex ([learn
 more](https://v1.realworldocaml.org/v1/en/html/parsing-with-ocamllex-and-menhir.html)).
 The REPL can show each reduction step that is done in evaluating an expression.
-I'd also like in the near future to implement a compiler and abstract machine
-for this project.
+An LLVM compiler is planned for the next future.
 
 ## Documentation
-The internal documentation is available [here](https://0x0f0f0f.github.io/minicaml).
-Please note that the language is still in a prototyping phase, and therefore the specification is not complete,
-and will be constantly updated. 
+The internal documentation is available
+[here](https://0x0f0f0f.github.io/minicaml). Please note that the language at
+the current status is in an experimental phase and therefore the specification
+is not complete, and will be constantly updated. The documentation may not be up
+to date with the latest features in the `master` branch.
 
 ## Installation
 To install, you need to have `opam` (OCaml's package manager) and a recent OCaml
@@ -136,9 +139,9 @@ will be included in an object (dictionary):
 (* Declarations will be available in module *) Fibonacci
 ```
 
-`#verbosity n` sets verbosity level to `n`. `#dumpenv` and `#dumppurityenv` dump
-the current environments. `#pure`, `#impure` and `#uncertain` set the global allowed
-purity level.
+`#verbosity n` sets verbosity level to `n`. There are "unit" directives:
+`#dumpenv ()` and `#dumppurityenv ()` dump the current environments. `#pure ()`,
+`#impure ()` and `#uncertain ()` set the globally allowed purity level.
 
 ### Complex numbers
 The `:+` and `:-` operators are used to create complex values, the floating point number
@@ -220,11 +223,11 @@ your code as purely functional as you can.
 ```ocaml
 let bad_function = fun x ->
     impure (let mystring =
-        "I am a bad impure function! Also: " ^ x in
+        "I am a bad impure function! Also: " ++ x in
         print_endline mystring );;
 
 let good_function = fun x ->
-    print_endline ("I am a good function! Also: " ^ x) ;;
+    print_endline ("I am a good function! Also: " ++ x) ;;
 
 bad_function "hello!" ;;
 (* The above statement is causing side effects and will error *)

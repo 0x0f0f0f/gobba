@@ -11,7 +11,7 @@
 \usepackage{collectbox}
 %\usepackage{tgpagella} % text only
 %\usepackage{mathpazo}
-%\usepackage{stix}
+\usepackage{stix2}
 
 \usepackage{multicol}
 \setlength{\columnsep}{1.5cm}
@@ -92,13 +92,13 @@ marginparwidth=1cm, marginparsep=0.4cm, margin=1.2cm]{geometry}
 \maketitle
 
 \begin{abstract}
-\textbf{minicaml} is a small, purely functional interpreted programming language
-with a didactical purpose. It is based on the Prof. Gianluigi Ferrari and Prof.
-Francesca Levi's minicaml, an evaluation example to show students attending the
-Programming 2 course at the University of Pisa how interpreters work. It is an
-interpreted language featuring a Caml-like syntax, static (lexical scoping),
-interchangeable eager and lazy evaluation and a didactical REPL that
-shows each AST expression and each evaluation step.
+\textbf{minicaml} is a dinamically typed and purely functional interpreted
+programming language. It is based on the Professor Gianluigi Ferrari and
+Professor Francesca Levi's minicaml, an evaluation example to show students
+attending the Programming 2 course at the University of Pisa how interpreters
+work. It is an interpreted language heavily inspired from the OCaml, Haskell and
+Scheme languages, with static (lexical scoping), eager and lazy evaluation and a
+didactical REPL that shows each AST expression and each evaluation step.
 \end{abstract}
 
 \section{REPL and command line interface}
@@ -111,7 +111,7 @@ OCaml package manager \textbf{opam}. To do so, please check that you have a vers
 opam install minicaml
 \end{lstlisting}
 Alternatively, \textbf{minicaml} can be installed from source by downloading the
-source code git repository and building it manually. \textbf{minicaml} has been tested
+source code repository and building it manually. \textbf{minicaml} has been tested
 only on Linux and macOS systems. It has not been tested yet on Windows and BSD
 derived systems.
 \begin{lstlisting}[style=bash]
@@ -121,7 +121,7 @@ git clone https://github.com/0x0f0f0f/minicaml
 cd minicaml
 # install dependencies
 opam install ANSITerminal dune ppx_deriving menhir \\
-  cmdliner alcotest bisect_ppx
+  cmdliner alcotest bisect_ppx ocamline
 # compile
 make
 # test
@@ -134,24 +134,39 @@ make install
 
 \clearpage
 
-
-
-\section{Lexer}
-
-Lexing is achieved with \texttt{ocamllex}, the default tool for generating
-scanners in OCaml
-
-\section{Syntax and Parser}
-The parser is realized with the \textbf{Menhir} parser generator, and is
-documented using \textbf{Obelisk}, which generates a clean text file
-containing the grammar documentation
-
-\lstinputlisting[style=txt]{grammar.txt}
-
 \begin{multicols}{2}
 
+\section{Syntax and Parser}
+Lexing is achieved with \texttt{ocamllex}, the default tool for generating
+scanners in OCaml.
+The parser is realized with the \textbf{Menhir} parser generator, and is
+documented using \textbf{Obelisk}, which generates a clean text file
+containing the language grammar, available in Appendix \ref{grammar}.
+
+\section{Purity Inference}
+An important feature of the minicaml language is the purity inference algorithm,
+which is performed statically on expressions before evaluation. It is an
+interpretation of expressions over the domain of purity, meant to prevent side
+effects by signal an error if they are contained inside the programs written in
+the language. Expressions are tagged by the algorithm with the \texttt{Pure},
+\texttt{Impure} and \texttt{Numerical} labels. An \texttt{Impure} expression is
+an expression that contains calls to primitives that perform I/O operations,
+mutable variables and/or imperative style assignments. A \texttt{Numerical}
+expression is an expression where only numerical operations are performed.
+\texttt{Pure} expressions are those which do not fall into the previous two
+categories. To perform impure side effects, the programmer has two constructs
+available called \textbf{purity blocks}. By default, the evaluator is in an
+\texttt{Uncertain} context, which means that it will not allow side effects to
+be carried on by evaluation, but will allow evaluating purity blocks that change
+the currently allowed purity context. The \texttt{impure} statement takes an
+expression (the block) and evaluates it in a context where the allowed purity is
+\texttt{Impure}, so that side effects may be performed. The other construct
+available, the \texttt{pure} statement, takes an expression and enforces a
+\texttt{Pure} context, meaning that side effects and nested impure blocks will
+not be allowed inside of the expression.
+
 \section{AST Optimization}
-Before being evaluated, AST expressions are analyzed and optimized by an
+After purity inference is performed, and before evaluation, AST expressions are analyzed and optimized by an
 optimizer function that is recursively called over the tree that is representing
 the expression. The optimizer simplifies expressions which result is known and
 therefore does not need to be evaluated. For example, it is known that \texttt{5
@@ -270,13 +285,21 @@ Integration system.
 \section{Thanks to}
 
 \begin{itemize}
-	\item Prof. Gian-Luigi Ferrari for teaching us how to project and develop
+	\item Prof. Gian-Luigi Ferrari and Francesca Levi for teaching us how to project and develop
 	interpreters in OCaml
 	\item Antonio DeLucreziis for helping me implement lazy evaluation.
 	\item Prof. Alessandro Berarducci for helping me study lambda calculus in deep.
+	\item Giorgio Mossa for helping me polish the lambda-closure mechanism.
 \end{itemize}
 
 \end{multicols}
+
+\appendix
+\clearpage
+\section{Parsing Grammar}
+\label{grammar}
+
+\lstinputlisting[style=txt]{grammar.txt}
 
 \bibliography{bib}
 

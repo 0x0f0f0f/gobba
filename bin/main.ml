@@ -41,8 +41,8 @@ let run_minicaml_t = Term.(const run_minicaml $ verbose $ program $ print_exprs 
 
 let info =
   let doc =  String.map (fun c -> if c = '\n' then ' ' else c )
-      {| minicaml is a small, purely functional interpreted programming language. Parsing
-and lexing are done with menhir and ocamllex The REPL can show each reduction
+      {| minicaml is a dinamically typed purely functional programming language,
+heavily inspired by OCaml, Haskell and Scheme. The REPL can show each reduction
 step that is done in evaluating an expression.|} in
   let man = [
     `S Manpage.s_bugs;

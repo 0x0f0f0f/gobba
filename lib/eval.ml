@@ -209,7 +209,8 @@ and eval_directive dir state dirscope =
         | None -> Filename.remove_extension f |> Filename.basename |> String.capitalize_ascii) in
       let file_in_scope = if not (Filename.is_relative f) then f else
       Filename.concat (dirscope) f in
-      let _, resulting_state = eval_command_list (read_file (Parser.file Lexer.token) file_in_scope) state dirscope in
+      let _, resulting_state = eval_command_list (read_file (Parser.file Lexer.token) file_in_scope)
+        { state with env = []; purityenv = [] } dirscope in
       let newmodule =
         List.filter (fun (_,v) -> match v with AlreadyEvaluated _ -> true | _ -> false) resulting_state.env
         |> List.map (fun (k, v) -> match v with AlreadyEvaluated x -> (k,x) | _ -> failwith "should never fail")
