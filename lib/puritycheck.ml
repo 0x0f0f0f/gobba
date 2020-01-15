@@ -15,6 +15,7 @@ let level_purity a b = match (a, b) with
   @param paraml If inside a lambda, the list of parameters
   @param env An environment, needed to infer whether lazy expressions are pure or not *)
 let rec infer e state : puret =
+  let state = { state with stack = (push_stack state.stack e) } in
   let inferp x = infer x state in
   let inferp2 a b = level_purity (inferp a) (inferp b) in
   let inferpl ls =
@@ -39,12 +40,16 @@ let rec infer e state : puret =
   | Apply (f, arg) ->
     let fp = inferp f and argp = inferp arg in
     if ispure state.purity && isimpure fp then
-        iraise (PurityError ("Tried to apply a " ^ (show_puret fp) ^ " value in a " ^ (show_puret state.purity) ^ " state"))
+        iraises (PurityError
+          (Printf.sprintf "Tried to apply a %s value in a %s state" (show_puret fp) (show_puret state.purity)))
+          state.stack
     else level_purity fp argp
   | ApplyPrimitive ((name, numparams, purity), args) ->
       if List.length args != numparams then (iraise (Fatal "Primitive Application Error"))
       else if ispure state.purity && isimpure purity then
-        iraise (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
+        iraises
+          (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
+          state.stack
       else purity
   | _ -> Pure
 
