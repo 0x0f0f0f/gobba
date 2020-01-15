@@ -20,12 +20,13 @@ let symbol = alpha (alpha|digit|'_')*
 let int = '-'? ['0'-'9'] ['0'-'9']*
 let white = [' ' '\t' '\r' '\n']
 
+let directive = "#pure" | "#impure" | "#uncertain" | "#dumppurityenv" | "#dumpenv" | "#include" | "#verbose" | "#import"
 rule token = parse
   | white       { token lexbuf }
   | "(*"        { comments 0 lexbuf }
   | int         { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
   | float       { FLOAT (float_of_string (Lexing.lexeme lexbuf))}
-  | "#"         { HASH }
+  | directive   { DIRECTIVE (Lexing.lexeme lexbuf) }
   | ":+"        { CPLUS }
   | ":-"        { CMIN }
   | "()"        { UNIT }

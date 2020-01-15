@@ -164,19 +164,17 @@ possible, and to avoid using it inside of function bodies. This means keeping
 your code as purely functional as you can.
 ```ocaml
 let bad_function = fun x ->
-    impure (
-        let mystring =
+    impure (let mystring =
         "I am a bad impure function! Also: " ^ x in
-        print_endline mystring
-    );;
+        print_endline mystring );;
 
 let good_function = fun x ->
     print_endline ("I am a good function! Also: " ^ x) ;;
 
 bad_function "hello!" ;;
-(* The above statement is causing side effects but will not error*)
+(* The above statement is causing side effects and will error *)
 
-good_function "hello!" ;;
+good_function "hello! I should error" ;;
 (* The above will error, because it is trying to execute
 an impure computation in a pure environment
 Here's a good way of calling it *)
@@ -184,12 +182,12 @@ impure $ good_function "hello!" ;;
 
 (* You can specify that you DO NOT want to compute impure
 expressions by using the pure statement *)
-pure $ good_function "henlo world!" ;;
+pure $ good_function "henlo world! I should error" ;;
 (* The above will error because
 it contains an impure computation*)
-pure $ bad_function "ciao mondo!" ;;
-(* The above will error because a pure context
-does not allow nesting an impure context inside *)
+pure $ bad_function "ciao mondo! I should error" ;;
+(* The above will error because a pure contest
+does not allow nesting an impure contest inside *)
 ```
 
 A good way of structuring your code is keeping `pure/impure` statements as

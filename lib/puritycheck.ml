@@ -33,8 +33,8 @@ let rec infer e state : puret =
   | Mult (a, b) | Div (a, b) -> inferp2 a b
   | Lambda(_, b) -> infer b state
   | Let(assignments, body) ->
-    let new_penv = infer_assignment_list assignments state in
-    infer body { state with purityenv = new_penv }
+    let newstate = infer_assignment_list assignments state in
+    infer body newstate
   | Symbol s -> lookup s state
   | Apply (f, arg) ->
     let fp = inferp f and argp = inferp arg in
@@ -55,12 +55,13 @@ and lookup (name: ide) (state: evalstate) : puret =
       | Some purity -> purity)
     | Some purity -> purity
 
-and infer_assignment state (_, _, value) = infer value state
+and infer_assignment state (_, name, value) : evalstate =
+  (* Return a new state, updating the purityenv with the new binding, infered from the value (where Impure contexts are allowed) *)
+  { state with purityenv = (Dict.insert state.purityenv name (infer value { state with purity = Impure })) }
 
-and infer_assignment_list assignments state =
+and infer_assignment_list assignments state : evalstate =
   match assignments with
-  | [] -> []
+  | [] -> state
   | (islazy, name, value)::xs ->
-    let assignment_purity = infer_assignment state (islazy, name, value) in
-    let newstate = { state with purityenv = Dict.insert state.purityenv name assignment_purity } in
-    (name, assignment_purity)::(infer_assignment_list xs newstate)
+    let newstate = infer_assignment state (islazy, name, value) in
+    (infer_assignment_list xs newstate)

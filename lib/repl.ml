@@ -29,7 +29,7 @@ let run_one = Eval.eval_command
 let rec repl_loop state maxdepth internalst =
   let loop () =
     let cmd = read_toplevel parser () in
-    let _, newstate = Eval.eval_command cmd state in
+    let _, newstate = Eval.eval_command cmd state (Filename.current_dir_name) in
     let _ = repl_loop newstate maxdepth internalst in ()
   in
   try
@@ -58,7 +58,7 @@ let repl state maxstackdepth internalst =
 
 let run_file fn state maxstackdepth internalst =
   try
-    Eval.eval_command_list (read_file (Parser.file Lexer.token) fn) state
+    Eval.eval_command_list (read_file (Parser.file Lexer.token) fn) state (Filename.dirname fn)
   with
   | InternalError err ->
     if internalst then Printexc.print_backtrace stderr;

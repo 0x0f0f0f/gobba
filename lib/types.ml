@@ -21,13 +21,6 @@ let isstrictlypure x = x = Pure || x = Numerical
 let isimpure x = x = Impure
 let ispure x = not (isimpure x)
 
-(** A type containing directives information *)
-type directive =
-  | Includefile of string
-  | Setpurity of puret
-  | Setverbose of int
-[@@deriving show,eq,ord]
-
 (** Contains a primitive's name, number of arguments and pureness *)
 type primitiveinfo = (ide * int * puret) [@@deriving show { with_path = false }, eq, ord]
 
@@ -111,6 +104,16 @@ let apply_from_exprlist l f = List.fold_left (fun e p -> Apply (e, p)) f l
 
 (** Creates a list of Symbol from a list of string*)
 let symbols_from_strings l = List.map (fun x -> Symbol x) l
+
+(** A type containing directives information *)
+type directive =
+  | Dumppurityenv
+  | Includefile of string
+  | Includefileasmodule of string * ide option 
+  | Setpurity of puret
+  | Setverbose of int
+[@@deriving show,eq,ord]
+
 
 (** A type useful for evaluating files, stating if a command is
     an expression or simply a "global" declaration (appended to environment) *)
@@ -222,7 +225,7 @@ let lambda_from_primitive prim =
     lambdas
 
 (** An environment type containing identifier - purity couples *)
-type purityenv_type = (ide, puret) Util.Dict.t
+type purityenv_type = (ide, puret) Util.Dict.t [@@deriving show]
 
 (** A recursive type representing a stacktrace frame *)
 type stackframe =
@@ -308,10 +311,10 @@ let traise msg = raise (InternalError (Nowhere, TypeError msg, EmptyStack))
 
 
 (** Print the location of a lexeme*)
-let print_location loc ppf =
+let print_location loc  =
   match loc with
   | Nowhere ->
-    Format.fprintf ppf "unknown location"
+    "unknown location"
   | Location (begin_pos, end_pos) ->
     let begin_char = begin_pos.Lexing.pos_cnum - begin_pos.Lexing.pos_bol in
     let end_char = end_pos.Lexing.pos_cnum - begin_pos.Lexing.pos_bol in
@@ -319,25 +322,26 @@ let print_location loc ppf =
     let filename = begin_pos.Lexing.pos_fname in
 
     if String.length filename != 0 then
-      Format.fprintf ppf "file %S, line %d, charaters %d-%d" filename begin_line begin_char end_char
+      Printf.sprintf "file %S, line %d, charaters %d-%d" filename begin_line begin_char end_char
     else
-      Format.fprintf ppf "line %d, characters %d-%d" (begin_line - 1) begin_char end_char
+      Printf.sprintf "line %d, characters %d-%d" (begin_line - 1) begin_char end_char
 
 (** Print a message at a given location [loc] of message type [msg_type]. *)
-let print_message ?color:(color=T.Default) ?(loc=Nowhere) msg_type =
+let print_message ?color:(color=T.Default) ?(loc=Nowhere) header contents =
+  flush_all ();
   match loc with
   | Location _ ->
-    T.eprintf [T.Foreground color] "%s" (Format.asprintf "%s at %t:@\n" msg_type (print_location loc));
-    Format.kfprintf (fun ppf -> Format.fprintf ppf "@.") Format.err_formatter
+    T.eprintf [T.Foreground color] "%s: " header; flush_all ();
+    Printf.eprintf "at %s\n%s\n%!" (print_location loc) contents;
   | Nowhere ->
-    T.eprintf [T.Foreground color] "%s: " msg_type ;
-    Format.kfprintf (fun ppf -> Format.fprintf ppf "@.") Format.err_formatter
+    T.eprintf [T.Foreground color] "%s: " header; flush_all ();
+    Printf.eprintf "%s\n%!" contents
 
 (** Print the caught error *)
-let print_error (loc, err, _) = print_message ~color:T.Red ~loc "Error" "%s" (show_internalerrort err)
+let print_error (loc, err, _) = print_message ~color:T.Red ~loc "Error" (show_internalerrort err)
 
 let print_stacktrace (_, _, s) maxdepth = print_message ~color:T.Red ~loc:Nowhere
-  "Stacktrace" "\n%s" (string_of_stack maxdepth s)
+  "Stacktrace" ("\n" ^ (string_of_stack maxdepth s))
 
 (** Parse the contents from a file, using a given [parser]. *)
 let read_file parser fn =

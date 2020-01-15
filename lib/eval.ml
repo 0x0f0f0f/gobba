@@ -23,8 +23,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
 
   if state.verbosity >= 2 then
     print_message ~color:T.Blue ~loc:Nowhere "Reduction at depth"
-      "%d\nExpression:\n%s"
-      (depth_of_stack state.stack) (show_expr e)
+      (Printf.sprintf "%d\nExpression:\n%s" (depth_of_stack state.stack) (show_expr e))
   else ();
   let evaluated =
     match e with
@@ -100,9 +99,9 @@ let rec eval (e : expr) (state : evalstate) : evt =
       unroll exprl
   in
   if state.verbosity >= 2 then
-    print_message ~color:T.Cyan ~loc:Nowhere "Evaluates to at depth" "%d\n%s\n"
+    print_message ~color:T.Cyan ~loc:Nowhere "Evaluates to at depth" (Printf.sprintf "%d\n%s\n"
       (depth_of_stack state.stack)
-      (show_evt evaluated)
+      (show_evt evaluated))
   else ();
   evaluated
 
@@ -145,53 +144,79 @@ and eval_assignment_list assignment_list state : evalstate =
     let newstate = eval_assignment state (islazy, name, value) in
     (eval_assignment_list xs newstate)
 
-and eval_command command state =
+and eval_command command state dirscope =
   if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow
-      "AST equivalent" "\n%s"
-      (show_command command) else ();
+      "AST equivalent" (Printf.sprintf "\n%s"
+      (show_command command)) else ();
   match command with
-  | Directive dir -> (match dir with
-    | Includefile f -> eval_command_list (read_file (Parser.file Lexer.token) f) state
-    | Setpurity p -> (EvtUnit, { state with purity = p })
-    | Setverbose v -> (EvtUnit, { state with verbosity = v}))
+  | Directive dir -> eval_directive dir state dirscope
   | Expr e ->
     (* Infer the expression purity and evaluate if appropriate to the current state *)
     let exprpurity = Puritycheck.infer e state in
     if isstrictlypure state.purity && isimpure exprpurity then
     iraises (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
       " expression but it is in " ^ (show_puret state.purity) ^ " state!")) state.stack else ();
-    if state.verbosity >= 1 then print_endline (show_puret exprpurity) else ();
+    if state.verbosity >= 1 then Printf.eprintf "Has purity: %s\n%!" (show_puret exprpurity) else ();
     (* Normalize the expression *)
     let optimized_ast = Optimizer.iterate_optimizer e in
     (* If the expression is NOT already in normal state, print the optimized one if verbosity is enough *)
     if optimized_ast = e then () else
-    if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
-        (show_expr optimized_ast) else ();
+    if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization"
+    (Printf.sprintf "\n%s" (show_expr optimized_ast)) else ();
     (* Evaluate the expression *)
     let evaluated = eval optimized_ast state in
     (* Print it in its raw form if verbosity is enabled *)
     if state.verbosity >= 1 then print_message ~color:T.Green ~loc:(Nowhere) "Result"
-        "\t%s" (show_evt evaluated) else ();
+        (Printf.sprintf "\t%s" (show_evt evaluated)) else ();
     (* Print the fancy result if state.printresult is true *)
     if state.printresult then
-      print_endline
-        ("result: " ^ (show_unpacked_evt evaluated)
-         ^ " - " ^ (show_tinfo (Typecheck.typeof evaluated)))
+      Printf.eprintf "result: %s - %s\n%!"
+        (show_unpacked_evt evaluated)
+        (show_tinfo (Typecheck.typeof evaluated))
     else ();
     (evaluated, state)
   | Def dl ->
     let (islazyl, idel, vall) = unzip3 dl in
+    (* Infer the values purity and evaluate if appropriate to the current state *)
+    let new_purity_state = Puritycheck.infer_assignment_list dl state in
     let ovall = (List.map (Optimizer.iterate_optimizer) vall) in
     let odl = zip3 islazyl idel ovall in
     (* Print the definitions if verbosity is enough and they were optimized *)
     if ovall = vall then () else
-    if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization" "\n%s"
-        (show_command (Def odl)) else ();
-    let newstate = eval_assignment_list odl state in
+    if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization"
+    (Printf.sprintf "\n%s" (show_command (Def odl))) else ();
+    let newstate = eval_assignment_list odl new_purity_state in
     (EvtUnit, newstate )
 
-and eval_command_list cmdlst state = match cmdlst with
+and eval_command_list cmdlst state dirscope = match cmdlst with
   | x::xs ->
-    let _, newstate = eval_command x state in
-    eval_command_list xs newstate;
+    let _, newstate = eval_command x state dirscope in
+    eval_command_list xs newstate dirscope;
   | [] -> (EvtUnit, state)
+
+and eval_directive dir state dirscope =
+  match dir with
+    | Dumppurityenv -> Printf.eprintf "<purity_env>: %s\n%!" (show_purityenv_type state.purityenv); (EvtUnit, state)
+    | Includefileasmodule (f, m) ->
+      let modulename = (match m with
+        | Some m -> m
+        | None -> Filename.remove_extension f |> Filename.basename |> String.capitalize_ascii) in
+      let file_in_scope = if not (Filename.is_relative f) then f else
+      Filename.concat (dirscope) f in
+      let _, resulting_state = eval_command_list (read_file (Parser.file Lexer.token) file_in_scope) state dirscope in
+      let newmodule =
+        List.filter (fun (_,v) -> match v with AlreadyEvaluated _ -> true | _ -> false) resulting_state.env
+        |> List.map (fun (k, v) -> match v with AlreadyEvaluated x -> (k,x) | _ -> failwith "should never fail")
+        |> fun ls -> EvtDict ls in
+      (EvtUnit, { state with env = (Dict.insert state.env modulename (AlreadyEvaluated newmodule) ) })
+
+    | Includefile f ->
+      let file_in_scope = if not (Filename.is_relative f) then f else
+      Filename.concat (dirscope) f in
+      (* Eval the file contents *)
+      eval_command_list (read_file (Parser.file Lexer.token) file_in_scope) state dirscope
+    | Setpurity p ->
+      if state.verbosity >= 1 then
+      Printf.eprintf "%s%!" (show_puret state.purity) else ();
+      (EvtUnit, { state with purity = p })
+    | Setverbose v -> (EvtUnit, { state with verbosity = v})

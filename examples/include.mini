@@ -1,0 +1,9 @@
+#include "./fibonacci.mini"
+
+print_endline (show (fib 10))
+
+#include "fibonacci.mini"
+
+print_endline (show (fib 10))
+
+#include "../examples/fibonacci.mini"

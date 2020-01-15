@@ -34,7 +34,7 @@
 %token PURE IMPURE
 %token DOLLAR
 %token SEMISEMI
-%token HASH
+%token <string> DIRECTIVE
 %token EOF
 
 /* Associativity of operators */
@@ -67,6 +67,8 @@ file:
     { ds @ lst }
   | ds = nonempty_list(def) EOF
     { ds }
+  | d = directive lst = file
+  { (Directive d)::lst }
 
 
 def:
@@ -74,7 +76,7 @@ def:
     { Def a }
 
 toplevel:
-  | HASH d = directive
+  | d = directive
   { Directive d }
   | l = separated_list(SEMI, ast_expr) SEMISEMI? EOF
   { Expr(Sequence(l)) }
@@ -84,19 +86,21 @@ toplevel:
   { Expr d }
 
 directive:
-  | PURE { Setpurity Pure }
-  | IMPURE { Setpurity Impure }
-  | s = SYMBOL
+  | s = DIRECTIVE a = STRING
   { match s with
-    | "uncertain" -> Setpurity Uncertain
+    | "#include" -> Includefile a
+    | "#import" -> Includefileasmodule (a, None)
     | _ -> failwith "unknown directive" }
-  | s = SYMBOL a = STRING
+  | s = DIRECTIVE i = INTEGER
   { match s with
-    | "include" -> Includefile a
+    | "#verbose" -> Setverbose i
     | _ -> failwith "unknown directive" }
-  | s = SYMBOL i = INTEGER
+  | s = DIRECTIVE UNIT
   { match s with
-    | "verbose" -> Setverbose i
+    | "#pure"   -> Setpurity Pure
+    | "#impure"   -> Setpurity Impure
+    | "#uncertain" -> Setpurity Uncertain
+    | "#dumppurityenv" -> Dumppurityenv
     | _ -> failwith "unknown directive" }
 
 assignment:
