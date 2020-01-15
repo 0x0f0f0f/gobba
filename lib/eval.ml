@@ -42,8 +42,14 @@ let rec eval (e : expr) (state : evalstate) : evt =
         match ls with
         | [] -> EvtList [ eval x state ]
         | lss -> EvtList (eval x state :: lss) )
-    | ConcatLists(e1, e2) -> EvtList ((unpack_list (eval e1 state)) @ (unpack_list (eval e2 state)))
-    | ConcatStrings(e1, e2) -> EvtString ((unpack_string (eval e1 state)) ^ (unpack_string (eval e2 state)))
+    | Concat(e1, e2) ->
+      let ev1 = eval e1 state and ev2 = eval e2 state in
+      let t1 = typeof ev1 and t2 = typeof ev2 in
+      (match (t1, t2) with
+        | TString, TString -> EvtString ((unpack_string ev1) ^ (unpack_string ev2))
+        | TList, TList -> EvtList ((unpack_list ev1) @ (unpack_list ev2))
+        | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
+          (show_tinfo t1) (show_tinfo t2))) state.stack )
     (* Dictionaries and operations *)
     | Dict l ->
       let el =

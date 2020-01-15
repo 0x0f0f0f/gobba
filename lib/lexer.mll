@@ -21,6 +21,7 @@ let int = '-'? ['0'-'9'] ['0'-'9']*
 let white = [' ' '\t' '\r' '\n']
 
 let directive = "#pure" | "#impure" | "#uncertain" | "#dumppurityenv" | "#dumpenv" | "#include" | "#verbose" | "#import"
+
 rule token = parse
   | white       { token lexbuf }
   | "(*"        { comments 0 lexbuf }
@@ -54,11 +55,13 @@ rule token = parse
   | "}"         { RBRACKET }
   | ":"         { COLON }
   | ","         { COMMA }
+  | "."         { DOT }
   | "::"        { CONS }
   | "&&"        { LAND }
   | "||"        { OR }
-  | "^"         { CONCATSTR }
-  | "@"         { CONCATLST }
+  | "^"         { TOPOWER }
+  | "@"         { ATSIGN }
+  | "++"        { CONCAT }
   | "+"         { PLUS }
   | "-"         { MINUS }
   | "*"         { TIMES }

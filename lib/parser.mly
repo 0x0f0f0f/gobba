@@ -9,14 +9,16 @@
 %token <string> STRING
 %token UNIT
 %token <bool> BOOLEAN
+%token DOT
 %token NOT
 %token LAND
 %token OR
-%token CONCATSTR
-%token CONCATLST
+%token ATSIGN
+%token CONCAT
 %token PLUS
 %token MINUS
 %token TIMES
+%token TOPOWER
 %token DIV
 %token EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
 %token IF THEN ELSE
@@ -45,8 +47,10 @@
 %left LAND OR
 %left PLUS MINUS
 %left TIMES
+%left TOPOWER
 %left DIV
 %left EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
+%left DOT
 
 %start file
 %type <Types.command list> file
@@ -109,10 +113,6 @@ assignment:
   | LAZY name = SYMBOL EQUAL value = ast_expr
   { (true, name, value) }
 
-dict_value:
-  | key = SYMBOL COLON value = ast_expr
-  { (key, value) }
-
 ast_expr:
   | e = ast_app_expr
   { e }
@@ -122,10 +122,10 @@ ast_expr:
   { Cons (e, ls) }
   | NOT e1 = ast_expr
   { Not e1}
-  | e1 = ast_expr CONCATLST e2 = ast_expr
-  { ConcatLists (e1, e2) }
-  | e1 = ast_expr CONCATSTR e2 = ast_expr
-  { ConcatStrings (e1, e2) }
+  | e1 = ast_expr ATSIGN e2 = ast_expr
+  { Apply(Apply(Symbol "nth", e2), e1) }
+  | e1 = ast_expr CONCAT e2 = ast_expr
+  { Concat (e1, e2) }
   | e1 = ast_expr LAND e2 = ast_expr
   { And (e1, e2)}
   | e1 = ast_expr OR e2 = ast_expr
@@ -176,14 +176,16 @@ ast_simple_expr:
   { e }
   | LPAREN e = ast_expr RPAREN
   { e }
+  | e = ast_simple_expr COLON s = SYMBOL
+  { Apply(Apply(Symbol "getkey", String(s)), e) }
   | PURE e = ast_expr
   { Purity (Pure, e)}
   | IMPURE e = ast_expr
   { Purity (Impure, e)}
   | l = delimited(LSQUARE, separated_list(SEMI, ast_expr), RSQUARE)
   { List l }
-  | l = delimited(LBRACKET, separated_list(COMMA, dict_value), RBRACKET)
-  { Dict l }
+  | l = delimited(LBRACKET, separated_list(COMMA, assignment), RBRACKET)
+  { Dict (List.map (fun (_, k, v) -> (k,v)) l) }
   | b = BOOLEAN
   { Boolean b }
   | s = STRING

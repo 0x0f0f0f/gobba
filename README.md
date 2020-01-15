@@ -129,10 +129,10 @@ The declarations in the included file will be included in the current toplevel e
 #include "examples/fibonacci.mini"
 ```
 
-`#open` loads a file like `#include` but the declarations in the included file
+`#import` loads a file like `#import` but the declarations in the included file
 will be included in an object (dictionary):
 ```ocaml
-#open "examples/fibonacci.mini"
+#import "examples/fibonacci.mini"
 (* Declarations will be available in module *) Fibonacci
 ```
 

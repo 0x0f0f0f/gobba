@@ -26,7 +26,6 @@ let concat args = match args with
   | [x;y] -> EvtString ((unpack_string x) ^ (unpack_string y))
   | _ -> iraise WrongPrimitiveArgs
 
-
 let show args =
   match args with
   | [EvtString x] -> (EvtString x)

@@ -18,7 +18,7 @@ let run_minicaml verbose program printresult maxstackdepth ist =
 
 let verbose =
   let doc = "If 1, Print AST to stderr after expressions " ^
-            "are entered in the REPL. If 2, print also reduction steps" in
+            "are entered in the REPL. If 2, also print reduction steps" in
   Arg.(value & opt int 0 & info ["v"; "verbose"] ~docv:"VERBOSITY" ~doc)
 
 let maxstackdepth =

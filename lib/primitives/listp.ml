@@ -18,8 +18,10 @@ let getat args =
   let at, ls = (match args with
       | [EvtInt a; EvtList l] -> (a,l)
       | _ -> iraise WrongPrimitiveArgs) in
-  if List.length ls <= at then iraise IndexOutOfBounds
-  else List.hd (drop at ls)
+  let curln = List.length ls in
+  let nat = if at < 0 then curln + at else at in
+  if curln <= nat || nat < 0 then iraise IndexOutOfBounds
+  else List.hd (drop nat ls)
 
 let tail args =
   if List.length args > 1 then iraise WrongPrimitiveArgs else
@@ -39,5 +41,5 @@ let table = [
   ("tail",    Primitive (tail, ("tail", 1, Pure)));
   ("mem",     Primitive (mem, ("mem", 2, Pure)));
   ("length",  Primitive (length, ("length", 2, Pure)));
-  ("at",      Primitive (getat, ("at", 2, Pure)));
+  ("nth",      Primitive (getat, ("nth", 2, Pure)));
 ]
