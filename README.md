@@ -14,6 +14,8 @@ for this project.
 
 ## Documentation
 The internal documentation is available [here](https://0x0f0f0f.github.io/minicaml).
+Please note that the language is still in a prototyping phase, and therefore the specification is not complete,
+and will be constantly updated. 
 
 ## Installation
 To install, you need to have `opam` (OCaml's package manager) and a recent OCaml
@@ -53,15 +55,36 @@ rlwrap minicaml
 
 The executable name is `minicaml`. If a file is specified as the first command
 line argument, then it will be ran as a program. If you are running a program you may want to use the flag `-p` to print the results of the expressions that are evaluated. Otherwise, if a program is not specified a REPL session will
-be opened. If the `minicaml` executable is ran with the flag `-v1`, it will show
-the AST equivalent of each submitted expression, if ran with `-v2` it will also
-show each reduction step in the evaluation.
-Use the **experimental** `-j` flag to compile a program to Javascript, using the
-[Ramda](https://ramdajs.com/) library as a "functional prelude", please note
-that a lot of stuff is still broken.
+be opened.
 
 Keep in mind that **minicaml** is purely functional and values
-are immutable.
+are immutable by default!
+
+### Command Line Options
+
+* `--help[=FMT] (default=auto)`:
+    Show this help in format FMT. The value FMT must be one of `auto',
+    `pager', `groff' or `plain'. With `auto', the format is `pager` or
+    `plain' whenever the TERM env var is `dumb' or undefined.
+
+* `--internals`:
+    To print or not the language's internal stack traces
+
+* `-m MAXSTACKDEPTH, --maxstackdepth=MAXSTACKDEPTH (absent=10)`:
+    The maximum level of nested expressions to print in a stack trace.
+
+* `-p, --printexprs`:
+    If set, print the result of expressions when evaluating a program
+    from file
+
+* `-v VERBOSITY, --verbose=VERBOSITY (absent=0)`:
+    If 1, Print AST to stderr after expressions are entered in the
+    REPL. If 2, also print reduction steps
+
+* `--version`
+    Show version information.
+
+
 
 ## Examples
 Check the `examples/` directory for some example programs.
@@ -69,8 +92,9 @@ Check the `examples/` directory for some example programs.
 ## Features
 
 ### Arithmetics with full scheme-like numeric tower
-Integer division returns integers. Floating point numbers decimal part can be
-omitted if it is 0. Floating point numbers can use the power syntax using `e`.
+Integer division returns an integer if the modulo is 0, and returns a float
+otherwise. Floating point numbers decimal part can be omitted if it is 0.
+Floating point numbers can use the power syntax using `e`.
 ```ocaml
 1 + 2 + 3 * (4 - 1) ;;
 1 + 4.0 - 1. / 2.315 ;;
@@ -78,27 +102,6 @@ omitted if it is 0. Floating point numbers can use the power syntax using `e`.
 true && false || (1 < 2) && (1 = 1) ;;
 ```
 
-### Complex numbers
-The `:+` and `:-` operators are used to create complex values, the floating point number
-on the left is the real part and the one on the right is the imaginary part.
-```ocaml
-12. :+ 1.12;;
-0. :- 1.12;;
-```
-
-### Strings and Lists
-Here is how to concatenate strings
-```ocaml
-"hello " ^ "world"
-```
-
-`::` means is the classic `cons` operator, while `@` is used for list
-concatenation as in OCaml
-```
-1 :: [2] @ [3]
-```
-
-To convert any value to a string you can use the `show` primitive.
 
 ### Declarations
 Local declaration statements are purely functional and straightforward:
@@ -113,6 +116,58 @@ be evaluated in the resulting new environment.
 let a = 2 ;;
 x + 3 ;;
 ```
+
+### Toplevel Directives
+Toplevel directives can be used in both files and the REPL. Like in OCaml, they
+start with a `#` symbol. Note that toplevel directives are not expressions and
+they can only be used in a file (or REPL) top level, and cannot be used inside expressions.
+
+`#include` loads a file at a position relative to the current directory (if in
+the REPL) or the directory containing the current running file (in file mode).
+The declarations in the included file will be included in the current toplevel environment:
+```ocaml
+#include "examples/fibonacci.mini"
+```
+
+`#open` loads a file like `#include` but the declarations in the included file
+will be included in an object (dictionary):
+```ocaml
+#open "examples/fibonacci.mini"
+(* Declarations will be available in module *) Fibonacci
+```
+
+`#verbosity n` sets verbosity level to `n`. `#dumpenv` and `#dumppurityenv` dump
+the current environments. `#pure`, `#impure` and `#uncertain` set the global allowed
+purity level.
+
+### Complex numbers
+The `:+` and `:-` operators are used to create complex values, the floating point number
+on the left is the real part and the one on the right is the imaginary part.
+```ocaml
+12. :+ 1.12;;
+0. :- 1.12;;
+```
+
+### Strings and Lists
+Here is how to concatenate strings
+```haskell
+"hello " ++ "world"
+```
+
+To convert any value to a string you can use the `show` primitive.
+
+`::` means is the classic `cons` operator, while `++` is used for list and string concatenation
+```haskell
+1 :: [2] ++ [3]
+```
+
+To access nth value of a list, the `@` (at) operator is used. Lists are indexed from 0.
+
+```ocaml
+[1; 2; 3; 4] @ 0 (* => 1 *)
+[1; 2; 3; 4] @ 2 (* => 3 *)
+```
+
 
 ### Functions and recursion
 For parsing simplicity, only the OCaml anonymous function style of declaring
@@ -214,6 +269,10 @@ let add_one = (fun z -> z + 1) ;;
 ```
 
 ### Dictionaries
+Dictionary (object) values are similar to Javascript objects.
+The difference is that the keys of an existing dictionary are
+treated as symbols, and they can be manipulated using strings.
+
 ```ocaml
 let n = {hola: 1, mondo: 2} ;;
 let m = insert "newkey" 123 n ;;
