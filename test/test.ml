@@ -15,7 +15,7 @@ let () = A.run "minicaml" [
     "parser", Testparser.test_suite;
     "dictionaries", Testdict.test_suite;
     "lists", Testlist.test_suite;
-    "lists", Teststring.test_suite;
+    "strings", Teststring.test_suite;
     "purity", Testpurity.test_suite;
     "eval", Testeval.test_suite;
     (* "miscellanous programs", Testprogram.test_suite; *)

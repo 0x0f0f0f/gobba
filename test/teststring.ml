@@ -9,7 +9,7 @@ let test_string () =
   check sample_string (EvtString("hello world! nyasu \t"))
 
 let test_concat () =
-  check ("\"a\" ^ \"b\"") (EvtString "ab");
+  check ("\"a\" ++ \"b\"") (EvtString "ab");
   check ("concat \"a\" \"b\"") (EvtString "ab")
 
 let test_suite = List.map quickcase [

@@ -44,7 +44,7 @@ let filterstr =
    else failwith "value is not iterable"
 |}
 
-let table = [](* 
+let table = 
   [("map", (Pure, closurize "map" mapstr));
    ("filter", (Pure, closurize "filter" filterstr));
-  ] *)
+  ]

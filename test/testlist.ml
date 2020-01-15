@@ -60,7 +60,7 @@ let test_filter () =
     (apply_from_exprlist [(Lambda ("x", (Gt ((Symbol "x"), (NumInt 3))))); NumInt 3 ] (Symbol "filter"))
 
 let test_concat () =
-  check ("[1] @ [2]") (EvtList [EvtInt 1; EvtInt 2])
+  check ("[1] ++ [2]") (EvtList [EvtInt 1; EvtInt 2])
 
 
 let test_suite = List.map quickcase [
