@@ -109,6 +109,7 @@ let symbols_from_strings l = List.map (fun x -> Symbol x) l
 
 (** A type containing directives information *)
 type directive =
+  | Dumpenv
   | Dumppurityenv
   | Includefile of string
   | Includefileasmodule of string * ide option 
@@ -266,7 +267,7 @@ type evalstate = {
   purityenv: purityenv_type;
   verbosity: int;
   stack: stackframe;
-  printresult: bool;
+  mutable printresult: bool;
   purity: puret;
 }
 

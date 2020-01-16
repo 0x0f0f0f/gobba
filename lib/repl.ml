@@ -27,33 +27,33 @@ let rec read_lines_until ic del =
 let run_one = Eval.eval_command
 
 let rec repl_loop state maxdepth internalst =
-  let loop () =
-    let cmd = read_toplevel parser () in
-    let _, newstate = Eval.eval_command cmd state (Filename.current_dir_name) in
-    let _ = repl_loop newstate maxdepth internalst in ()
-  in
-  try
-    loop ()
-  with
-  | End_of_file -> raise End_of_file
-  | InternalError err ->
-    if internalst then Printexc.print_backtrace stderr;
-    print_error err;
-    print_stacktrace err maxdepth;
-    repl_loop state maxdepth internalst
-  | Sys.Break ->
-    if internalst then Printexc.print_backtrace stderr;
-    prerr_endline "Interrupted.";
-    repl_loop state maxdepth internalst
-  | e ->
-    if internalst then Printexc.print_backtrace stderr;
-    print_error (Nowhere, (Fatal (Printexc.to_string e)), state.stack);
-    repl_loop state maxdepth internalst
+  while true do
+    try
+      let cmd = read_toplevel parser () in
+      state := snd (Eval.eval_command cmd !state (Filename.current_dir_name))
+    with
+    | End_of_file -> raise End_of_file
+    | InternalError err ->
+      if internalst then Printexc.print_backtrace stderr;
+      print_error err;
+      print_stacktrace err maxdepth;
+      repl_loop state maxdepth internalst
+    | Sys.Break ->
+      if internalst then Printexc.print_backtrace stderr;
+      prerr_endline "Interrupted.";
+      repl_loop state maxdepth internalst
+    | e ->
+      if internalst then Printexc.print_backtrace stderr;
+      print_error (Nowhere, (Fatal (Printexc.to_string e)), !state.stack);
+      repl_loop state maxdepth internalst
+  done
+
 
 let repl state maxstackdepth internalst =
   Sys.catch_break true;
+  let mstate = ref state in
   try
-    let _ = repl_loop state maxstackdepth internalst in ()
+    let _ = repl_loop mstate maxstackdepth internalst in ()
   with End_of_file -> prerr_endline "Goodbye!"; ()
 
 let run_file fn state maxstackdepth internalst =

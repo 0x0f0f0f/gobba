@@ -1,7 +1,7 @@
 ![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master)
 # minicaml 
 
-**minicaml** is a small, dinamically typed purely functional programming
+**minicaml** is a small, dyhamically typed purely functional programming
 language. It is heavily inspired by the OCaml, Haskell and Scheme languages.
 **minicaml** was initially written as a midterm project for  the **Programming
 2** course at the University of Pisa, taught by Professors Gianluigi Ferrari and

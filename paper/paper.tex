@@ -8,6 +8,7 @@
 \usepackage{xcolor}
 \usepackage{mathtools}
 \usepackage{amsthm}
+\usepackage[title]{appendix}
 \usepackage{collectbox}
 %\usepackage{tgpagella} % text only
 %\usepackage{mathpazo}
@@ -19,8 +20,8 @@
 %\usepackage{aas_macros}
 
 %% Sets page size and margins. You can edit this to your liking
-\usepackage[top=1.3cm, bottom=2.0cm, outer=2.5cm, inner=2.5cm, heightrounded,
-marginparwidth=1cm, marginparsep=0.4cm, margin=1.2cm]{geometry}
+\usepackage[top=1.3cm, bottom=2.0cm, outer=1.2cm, inner=1.2cm, heightrounded,
+marginparwidth=1cm, marginparsep=0.4cm]{geometry}
 
 %% Useful packages
 \usepackage{graphicx} %allows you to use jpg or png images. PDF is still recommended
@@ -41,7 +42,7 @@ marginparwidth=1cm, marginparsep=0.4cm, margin=1.2cm]{geometry}
 \lstdefinestyle{caml} {language=caml, basicstyle=\ttfamily, columns=[c]fixed,
  keywordstyle=\color{vblue}, identifierstyle=\color{black},
  commentstyle=\color{vgreen}, upquote=true, commentstyle=, breaklines=true,
- showstringspaces=false, stringstyle=\color{blue},
+ showstringspaces=false, stringstyle=\color{blue}, tabsize=2,
  literate={'"'}{\textquotesingle "\textquotesingle}3}
 
 \lstdefinestyle{txt} {basicstyle=\ttfamily, columns=[c]fixed,
@@ -92,7 +93,7 @@ marginparwidth=1cm, marginparsep=0.4cm, margin=1.2cm]{geometry}
 \maketitle
 
 \begin{abstract}
-\textbf{minicaml} is a dinamically typed and purely functional interpreted
+\textbf{minicaml} is a dyhamically typed and purely functional interpreted
 programming language. It is based on the Professor Gianluigi Ferrari and
 Professor Francesca Levi's minicaml, an evaluation example to show students
 attending the Programming 2 course at the University of Pisa how interpreters
@@ -145,16 +146,17 @@ containing the language grammar, available in Appendix \ref{grammar}.
 
 \section{Purity Inference}
 An important feature of the minicaml language is the purity inference algorithm,
-which is performed statically on expressions before evaluation. It is an
-interpretation of expressions over the domain of purity, meant to prevent side
-effects by signal an error if they are contained inside the programs written in
-the language. Expressions are tagged by the algorithm with the \texttt{Pure},
-\texttt{Impure} and \texttt{Numerical} labels. An \texttt{Impure} expression is
-an expression that contains calls to primitives that perform I/O operations,
-mutable variables and/or imperative style assignments. A \texttt{Numerical}
-expression is an expression where only numerical operations are performed.
-\texttt{Pure} expressions are those which do not fall into the previous two
-categories. To perform impure side effects, the programmer has two constructs
+which is performed statically on expressions before evaluation. It is an interpretation of expressions over the domain of purity, meant to
+prevent side effects by signal an error if they are contained inside the
+programs written in the language. Expressions are tagged by the algorithm with
+the \texttt{Pure}, \texttt{Impure} and \texttt{Numerical} labels. An
+\texttt{Impure} expression is an expression that contains calls to primitives
+that perform I/O operations, mutable variables and/or imperative style
+assignments. A \texttt{Numerical} expression is an expression where only
+numerical operations are performed; \texttt{Pure} expressions are those which do not fall into the previous two
+categories.
+
+To achieve the execution of impure side effects, the programmer has two constructs
 available called \textbf{purity blocks}. By default, the evaluator is in an
 \texttt{Uncertain} context, which means that it will not allow side effects to
 be carried on by evaluation, but will allow evaluating purity blocks that change
@@ -195,8 +197,92 @@ Boolean operations are reduced using laws from the propositional calculus, such 
 
 \section{Types}
 
-\section{Evaluation}
-\texttt{minicaml}'s evaluator is heavily inspired by the Metacircular Evaluator defined in the highly acclaimed textbook \textit{Structure and Interpretation of Computer Programs} \cite{Abelson1996}
+\section{Evaluator}
+\texttt{minicaml}'s evaluator is heavily inspired by the Metacircular Evaluator defined in the
+highly acclaimed textbook \textit{Structure and Interpretation of Computer Programs} \cite{Abelson1996}.
+
+\section{Primitives}
+The language primitives that are implemented in OCaml are organized in modules
+separated by functionality. Each primitive is a function that accepts a list of
+evaluated values and returns a single reduced value; therefore they have a type
+of \texttt{evt list -> evt}. OCaml primitives have to perform internal
+typechecking and unpacking of the arguments they receive from the minicaml
+calls.
+
+From the evaluator's perspective, primitives are organized in a table
+such that when a symbol gets evaluated, it is looked up in the primitives table,
+if there is a match then the found primitive's name is wrapped in an
+\texttt{ApplyPrimitive} expression nestedinside of a lazy lambda expression that
+permits partial application. When the evaluator finally encounters an
+\texttt{ApplyPrimitive} expression, the primitive OCaml function is extracted,
+applied to the arguments and the resulting value is returned by the current
+evaluator call. If a primitive is not found when looking up for a symbol, then a
+symbol lookup is performed in the current environment.
+
+Some primitives, such as catamorphic procedures, are not native OCaml functions
+but small expressions written directly in minicaml; those primitives are kept as
+lazy expressions into the same table as native OCaml primitives. The key
+difference between the two resides in the fact that those textual minicaml
+primitives are not transformed into a function which body contains only an
+\texttt{ApplyPrimitive} call, but are instead parsed and analyzed at run time.
+The resulting additional startup time caused by parsing and analysis is
+proportional to the number of textual form primitives in the table and therefore
+quite irrelevant on non-embedded computer systems. The \textit{fold left} and
+\textit{fold right} catamorphic primitives are written directly in the minicaml
+language and are hereby provided as examples.
+
+\begin{lstlisting}[style=caml,caption=The tail recursive left fold procedure]
+fun f z l ->
+if typeof l = "list" then
+  let aux = fun f z l ->
+    if l = [] then z else
+	  aux f (f z (head l)) (tail l)
+	in aux f z l
+else if typeof l = "dict" then
+	let aux = fun f z kl vl ->
+		if kl = [] && vl = [] then z else
+		aux f (f z (head vl)) (tail kl) (tail vl)
+	in aux f z (getkeys l) (getvalues l)
+else failwith "value is not iterable"
+\end{lstlisting}
+
+\begin{lstlisting}[style=caml,caption=The right fold procedure]
+fun f z l ->
+if typeof l = "list" then
+   let aux = fun f z l ->
+	  if l = [] then z else
+	  f (head l) (aux f z (tail l))
+   in aux f z l
+else if typeof l = "dict" then
+   let aux = fun f z kl vl ->
+	  if kl = [] && vl = [] then z else
+	  f (head vl) (aux f z (tail kl) (tail vl))
+   in aux f z (getkeys l) (getvalues l)
+else failwith "value is not iterable"
+\end{lstlisting}
+
+
+\section{Tests}
+Unit testing is extensively performed using the alcotest testing framework. Code
+coverage is provided by the \texttt{bisect\_ppx} library which yields an HTML
+page containing the coverage percentage when unit tests are run by the dune
+build system. After each commit is pushed to the remote version control repository on
+Github, the package is built and tests are run thanks to the Travis Continuos
+Integration system.
+
+\section{Thanks to}
+
+\begin{itemize}
+	\item Prof. Gian-Luigi Ferrari and Francesca Levi for teaching us how to project and develop
+	interpreters in OCaml
+	\item Antonio DeLucreziis for helping me implement lazy evaluation.
+	\item Prof. Alessandro Berarducci for helping me study lambda calculus in deep.
+	\item Giorgio Mossa for helping me polish the lambda-closure mechanism.
+\end{itemize}
+
+\end{multicols}
+
+\iffalse
 \subsection{Operational Semantics}
 
 \begin{note}
@@ -204,7 +290,6 @@ Boolean operations are reduced using laws from the propositional calculus, such 
 	The symbol $\_$ is used whenever a value exists but is content is irrelevant
 	to the semantical rule, or cannot be determined and therefore is discarded.
 \end{note}
-
 
 \textbf{Dictionaries}
 
@@ -274,32 +359,16 @@ Boolean operations are reduced using laws from the propositional calculus, such 
 	\end{aligned}}{<\te{e, foldl f a d}> \Rightarrow \lambda( \hdots \lambda(\lambda(a, v_1), v_2), \hdots, v_n)} \\ \\
 \end{gather*}
 
-\section{Tests}
-Unit testing is extensively performed using the alcotest testing framework. Code
-coverage is provided by the \texttt{bisect\_ppx} library which yields an HTML
-page containing the coverage percentage when unit tests are run by the dune
-build system. After each commit is pushed to the remote version control repository on
-Github, the package is built and tests are run thanks to the Travis Continuos
-Integration system.
+\fi
 
-\section{Thanks to}
-
-\begin{itemize}
-	\item Prof. Gian-Luigi Ferrari and Francesca Levi for teaching us how to project and develop
-	interpreters in OCaml
-	\item Antonio DeLucreziis for helping me implement lazy evaluation.
-	\item Prof. Alessandro Berarducci for helping me study lambda calculus in deep.
-	\item Giorgio Mossa for helping me polish the lambda-closure mechanism.
-\end{itemize}
-
-\end{multicols}
-
-\appendix
 \clearpage
-\section{Parsing Grammar}
-\label{grammar}
 
-\lstinputlisting[style=txt]{grammar.txt}
+\begin{appendices}
+  \section{Parsing Grammar}
+  \label{grammar}
+  \lstinputlisting[style=txt]{grammar.txt}
+\end{appendices}
+
 
 \bibliography{bib}
 

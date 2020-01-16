@@ -194,14 +194,14 @@ and eval_command command state dirscope =
     let newstate = eval_assignment_list odl new_purity_state in
     (EvtUnit, newstate )
 
-and eval_command_list cmdlst state dirscope = match cmdlst with
-  | x::xs ->
-    let _, newstate = eval_command x state dirscope in
-    eval_command_list xs newstate dirscope;
-  | [] -> (EvtUnit, state)
+and eval_command_list cmdlst state dirscope =
+  let mstate = ref state in
+  List.iter (fun x -> mstate := snd (eval_command x !mstate dirscope)) cmdlst;
+  (EvtUnit, !mstate)
 
 and eval_directive dir state dirscope =
   match dir with
+    | Dumpenv -> Printf.eprintf "<env>: %s\n%!" (show_env_type state.env); (EvtUnit, state)
     | Dumppurityenv -> Printf.eprintf "<purity_env>: %s\n%!" (show_purityenv_type state.purityenv); (EvtUnit, state)
     | Includefileasmodule (f, m) ->
       let modulename = (match m with

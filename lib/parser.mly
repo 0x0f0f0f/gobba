@@ -112,6 +112,7 @@ directive:
     | "#impure"   -> Setpurity Impure
     | "#uncertain" -> Setpurity Uncertain
     | "#dumppurityenv" -> Dumppurityenv
+    | "#dumpenv" -> Dumpenv
     | _ -> failwith "unknown directive" }
 
 
