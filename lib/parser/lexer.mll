@@ -26,7 +26,7 @@ rule token = parse
   | white       { token lexbuf }
   | "(*"        { comments 0 lexbuf }
   | int         { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
-  | float       { FLOAT (float_of_string (Lexing.lexeme lexbuf))}
+  | float       { FLOAT (try float_of_string (Lexing.lexeme lexbuf) with _ -> sraise lexbuf "Invalid use of the dot symbol")}
   | directive   { DIRECTIVE (Lexing.lexeme lexbuf) }
   | ":+"        { CPLUS }
   | ":-"        { CMIN }

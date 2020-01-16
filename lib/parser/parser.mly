@@ -67,7 +67,7 @@ optterm_nonempty_list(separator, X):
     xs = optterm_nonempty_list(separator, X)
      { x :: xs }
 
-toplevel: l = optterm_list(SEMISEMI, statement ); EOF { l }
+toplevel: l = optterm_nonempty_list(SEMISEMI, statement ); EOF { l }
 
 statement:
   | e = ast_expr

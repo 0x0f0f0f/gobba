@@ -1,14 +1,16 @@
-<file> ::= EOF
-         | <ast_expr> EOF
-         | <ast_expr> SEMISEMI <file>
-         | <def> SEMISEMI <file>
-         | <def> EOF
-         | <directive> <file>
+<optterm_list(separator, X)> ::= [separator]
+                               | <optterm_nonempty_list(separator, X)>
 
-<toplevel> ::= <directive>
-             | [<ast_expr> (SEMI <ast_expr>)*] [SEMISEMI] EOF
-             | <def> [SEMISEMI] EOF
-             | <ast_expr> [SEMISEMI] EOF
+<optterm_nonempty_list(separator, X)> ::= X [separator]
+                                        | X separator
+                                          <optterm_nonempty_list(separator,
+                                          X)>
+
+<toplevel> ::= <optterm_list(SEMISEMI, <statement>)> EOF
+
+<statement> ::= <ast_expr>
+              | <def>
+              | <directive>
 
 <assignment> ::= SYMBOL EQUAL <ast_expr>
                | LAZY SYMBOL EQUAL <ast_expr>
