@@ -1,6 +1,6 @@
 {
   open Parser
-  open Types
+  open Errors
   open Lexing
 
   let next_line lexbuf =

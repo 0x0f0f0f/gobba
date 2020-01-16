@@ -122,37 +122,37 @@ ast_expr:
   | l = delimited(LPAREN, separated_nonempty_list(SEMI, ast_expr), RPAREN)
   { Sequence l }
   | e = ast_expr CONS ls = ast_expr
-  { Cons (e, ls) }
+  { Binop(Cons, e, ls) }
   | NOT e1 = ast_expr
   { Not e1}
   | e1 = ast_expr ATSIGN e2 = ast_expr
   { Apply(Apply(Symbol "nth", e2), e1) }
   | e1 = ast_expr CONCAT e2 = ast_expr
-  { Concat (e1, e2) }
+  { Binop(Concat, e1, e2) }
   | e1 = ast_expr LAND e2 = ast_expr
-  { And (e1, e2)}
+  { Binop(And, e1, e2)}
   | e1 = ast_expr OR e2 = ast_expr
-  { Or (e1, e2)}
+  { Binop(Or, e1, e2)}
   | e1 = ast_expr PLUS e2 = ast_expr
-  { Plus(e1, e2) }
+  { Binop(Plus, e1, e2) }
   | e1 = ast_expr MINUS e2 = ast_expr
-  { Sub (e1, e2) }
+  { Binop(Sub, e1, e2) }
   | e1 = ast_expr TIMES e2 = ast_expr
-  { Mult (e1, e2) }
+  { Binop(Mult, e1, e2) }
   | e1 = ast_expr DIV e2 = ast_expr
-  { Div (e1, e2) }
+  { Binop(Div, e1, e2) }
   | e1 = ast_expr EQUAL e2 = ast_expr
-  { Eq (e1, e2) }
+  { Binop(Eq, e1, e2) }
   | e1 = ast_expr DIFFER e2 = ast_expr
-  { Not(Eq (e1, e2)) }
+  { Not(Binop(Eq, e1, e2)) }
   | e1 = ast_expr GREATER e2 = ast_expr
-  { Gt (e1, e2) }
+  { Binop(Gt, e1, e2) }
   | e1 = ast_expr LESS e2 = ast_expr
-  { Lt (e1, e2) }
+  { Binop(Lt, e1, e2) }
   | e1 = ast_expr GREATEREQUAL e2 = ast_expr
-  { Ge (e1, e2) }
+  { Binop(Ge, e1, e2) }
   | e1 = ast_expr LESSEQUAL e2 = ast_expr
-  { Le (e1, e2) }
+  { Binop(Le, e1, e2) }
   | IF g = ast_expr THEN b = ast_expr ELSE e = ast_expr
   { IfThenElse (g, b, e)}
   | d = def IN body = ast_expr
@@ -160,9 +160,9 @@ ast_expr:
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
   { lambda_from_paramlist params body }
   | e1 = ast_expr COMPOSE e2 = ast_expr
-  { Compose(e1, e2) }
+  { Binop(Compose, e1, e2) }
   | e1 = ast_expr PIPE  e2 = ast_expr
-  { Compose(e2, e1) }
+  { Binop(Compose, e2, e1) }
 
 ast_app_expr:
   | e = ast_simple_expr

@@ -1,4 +1,5 @@
 open Types
+open Errors
 open Util
 open Typecheck
 module T = ANSITerminal
@@ -37,19 +38,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
     | String s -> EvtString s
     | Symbol x -> lookup x state
     | List x -> EvtList (List.map (fun x -> eval x state) x)
-    | Cons (x, xs) -> (
-        let ls = unpack_list (eval xs state) in
-        match ls with
-        | [] -> EvtList [ eval x state ]
-        | lss -> EvtList (eval x state :: lss) )
-    | Concat(e1, e2) ->
-      let ev1 = eval e1 state and ev2 = eval e2 state in
-      let t1 = typeof ev1 and t2 = typeof ev2 in
-      (match (t1, t2) with
-        | TString, TString -> EvtString ((unpack_string ev1) ^ (unpack_string ev2))
-        | TList, TList -> EvtList ((unpack_list ev1) @ (unpack_list ev2))
-        | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
-          (show_tinfo t1) (show_tinfo t2))) state.stack )
+    | Binop (kind, e1, e2) -> eval_binop kind e1 e2 state
     (* Dictionaries and operations *)
     | Dict l ->
       let el =
@@ -57,34 +46,17 @@ let rec eval (e : expr) (state : evalstate) : evt =
           (List.map (fun (x, y) -> (x, eval y state)) l)
       in
       EvtDict el
-    | Plus (x, y) ->  Numericalp.add [(eval x state); (eval y state)]
-    | Sub (x, y) ->   Numericalp.sub [(eval x state); (eval y state)]
-    | Div (x, y) ->   Numericalp.div [(eval x state); (eval y state)]
-    | Mult (x, y) ->  Numericalp.mult [(eval x state); (eval y state)]
-    | And (x, y) -> bool_binop (eval x state, eval y state) ( && )
-    | Or (x, y) -> bool_binop (eval x state, eval y state) ( || )
     | Not x -> bool_unop (eval x state) not
-    | Eq (x, y) -> EvtBool (compare_evt (eval x state) (eval y state) = 0)
-    | Gt (x, y) -> EvtBool (compare_evt (eval x state) (eval y state) > 0)
-    | Lt (x, y) -> EvtBool (compare_evt (eval x state) (eval y state) < 0)
-    | Ge (x, y) -> EvtBool (compare_evt (eval x state) (eval y state) >= 0)
-    | Le (x, y) -> EvtBool (compare_evt (eval x state) (eval y state) <= 0)
     | IfThenElse (guard, first, alt) ->
       let g = unpack_bool (eval guard state) in
       if g then eval first state else eval alt state
     | Let (assignments, body) -> eval body (eval_assignment_list assignments state)
     | Lambda (param, body) ->
       Closure (None, param, body, state.env)
-    | Compose (f2, f1) ->
-      let ef1 = eval f1 state and ef2 = eval f2 state in
-      stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
-      let params1 = findevtparams ef1 in
-      let appl1 = apply_from_exprlist (symbols_from_strings params1) f1 in
-      eval (lambda_from_paramlist params1 (Apply (f2, appl1))) state
     (* Function Application *)
     | Apply (f, arg) ->
       let closure = eval f state in
-      let earg = (AlreadyEvaluated ((eval arg state))) in
+      let earg = eval arg state in
       applyfun closure earg state
     | ApplyPrimitive ((name, _, _), args) ->
       let eargs = List.map (fun x -> eval x state) args in
@@ -111,24 +83,59 @@ let rec eval (e : expr) (state : evalstate) : evt =
   else ();
   evaluated
 
+and eval_binop (k: binop) (x: expr) (y: expr) state =
+  match k with
+  | Cons ->
+        let ls = unpack_list (eval y state) in
+  (match ls with
+        | [] -> EvtList [ eval x state ]
+        | lss -> EvtList (eval x state :: lss))
+  | Concat ->
+      let ev1 = eval x state and ev2 = eval y state in
+      let t1 = typeof ev1 and t2 = typeof ev2 in
+      (match (t1, t2) with
+        | TString, TString -> EvtString ((unpack_string ev1) ^ (unpack_string ev2))
+        | TList, TList -> EvtList ((unpack_list ev1) @ (unpack_list ev2))
+        | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
+        (show_tinfo t1) (show_tinfo t2))) state.stack )
+  | Compose->
+      let ef1 = eval y state and ef2 = eval x state in
+      stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
+      let params1 = findevtparams ef1 in
+      let appl1 = apply_from_exprlist (symbols_from_strings params1) y in
+      eval (lambda_from_paramlist params1 (Apply (x, appl1))) state
+
+  | Plus  ->  Numericalp.add [(eval x state); (eval y state)]
+  | Sub  ->   Numericalp.sub [(eval x state); (eval y state)]
+  | Div  ->   Numericalp.div [(eval x state); (eval y state)]
+  | Mult  ->  Numericalp.mult [(eval x state); (eval y state)]
+  | And  -> bool_binop (eval x state, eval y state) ( && )
+  | Or -> bool_binop (eval x state, eval y state) ( || )
+  | Eq -> EvtBool (compare_evt (eval x state) (eval y state) = 0)
+  | Gt -> EvtBool (compare_evt (eval x state) (eval y state) > 0)
+  | Lt -> EvtBool (compare_evt (eval x state) (eval y state) < 0)
+  | Ge -> EvtBool (compare_evt (eval x state) (eval y state) >= 0)
+  | Le -> EvtBool (compare_evt (eval x state) (eval y state) <= 0)
+
+
 (* Search for a value in the primitives table and environment *)
 and lookup (ident : ide) (state : evalstate) : evt =
   match (Dict.get ident Primitives.table) with
     | None -> (match (Dict.get ident state.env) with
       | None -> iraises (UnboundVariable ident) state.stack
       | Some (LazyExpression e) -> eval e state
-      | Some (AlreadyEvaluated e) -> e)
+      | Some e -> e)
     | Some (LazyExpression e) -> eval e state
-    | Some (AlreadyEvaluated e) -> e
+    | Some e -> e
 
-and applyfun (closure : evt) (arg : type_wrapper) (state : evalstate) : evt =
+and applyfun (closure : evt) (arg : evt) (state : evalstate) : evt =
   (* Evaluate the argument and unpack the evt encapsuled in them *)
   match closure with
   | Closure (name, param, body, decenv) ->
     (* Create a recursion environment if the function is recursive *)
     let self_env = (match name with
         | None -> decenv
-        | Some x -> Dict.insert decenv x (AlreadyEvaluated closure)) in
+        | Some x -> Dict.insert decenv x closure) in
     let appl_env = Dict.insert self_env param arg in
     eval body { state with env = appl_env }
   | _ -> traise "Cannot apply a non functional value"
@@ -138,9 +145,9 @@ and eval_assignment state (islazy, name, value) : evalstate =
     if islazy then  LazyExpression value else
     (match value with
     | Lambda(param, fbody) ->
-        let rec_env = Dict.insert state.env name (AlreadyEvaluated (Closure (Some name, param, fbody, state.env))) in
-        (AlreadyEvaluated (eval value { state with env = rec_env }))
-    | _ -> (AlreadyEvaluated (eval value state))) in
+        let rec_env = Dict.insert state.env name (Closure (Some name, param, fbody, state.env)) in
+        eval value { state with env = rec_env }
+    | _ -> eval value state) in
     { state with env = (Dict.insert state.env name nval) }
 
 and eval_assignment_list assignment_list state : evalstate =
@@ -159,7 +166,7 @@ and eval_command command state dirscope =
   | Expr e ->
     (* Infer the expression purity and evaluate if appropriate to the current state *)
     let exprpurity = Puritycheck.infer e state in
-    if isstrictlypure state.purity && isimpure exprpurity then
+    if (state.purity = Pure || state.purity = Numerical) && exprpurity = Impure then
     iraises (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
       " expression but it is in " ^ (show_puret state.purity) ^ " state!")) state.stack else ();
     if state.verbosity >= 1 then Printf.eprintf "Has purity: %s\n%!" (show_puret exprpurity) else ();
@@ -211,11 +218,8 @@ and eval_directive dir state dirscope =
       Filename.concat (dirscope) f in
       let _, resulting_state = eval_command_list (read_file (Parser.file Lexer.token) file_in_scope)
         { state with env = []; purityenv = [] } dirscope in
-      let newmodule =
-        List.filter (fun (_,v) -> match v with AlreadyEvaluated _ -> true | _ -> false) resulting_state.env
-        |> List.map (fun (k, v) -> match v with AlreadyEvaluated x -> (k,x) | _ -> failwith "should never fail")
-        |> fun ls -> EvtDict ls in
-      (EvtUnit, { state with env = (Dict.insert state.env modulename (AlreadyEvaluated newmodule) ) })
+      let newmodule = EvtDict resulting_state.env in
+      (EvtUnit, { state with env = (Dict.insert state.env modulename newmodule ) })
     | Includefile f ->
       let file_in_scope = if not (Filename.is_relative f) then f else
       Filename.concat (dirscope) f in

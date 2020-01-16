@@ -1,4 +1,5 @@
 open Types
+open Errors
 
 let read_one parser str =
   parser (Lexing.from_string (str ^ "\n"))

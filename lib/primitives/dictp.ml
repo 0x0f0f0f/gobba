@@ -1,4 +1,5 @@
 open Types
+open Errors
 open Typecheck
 open Util
 

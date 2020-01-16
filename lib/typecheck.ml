@@ -1,4 +1,5 @@
 open Types
+open Errors
 
 let terr e f = traise ("expected a value of type: " ^ e ^ ", found a value of type: " ^ f )
 
@@ -12,6 +13,7 @@ let typeof e = match e with
   | EvtList _ -> TList
   | EvtDict _ -> TDict
   | Closure (_, _, _, _) -> TLambda
+  | LazyExpression _ -> TUnit
 
 (** Get the lowest (most inclusive set) number type from a list of numbers *)
 let rec infer_lowest_numbert low ls = match ls with
@@ -60,16 +62,16 @@ let rec sinfer (e: expr) (state: evalstate) : typeinfo = match e with
   | String _ -> TString
   | List _ -> TList
   | Purity (_, x) -> sinfer x state
-  | Cons (_, b) -> (stcheck (sinfer b state) TList); TList
-  | Concat (a, b) ->
+  | Binop(Cons, _, b) -> (stcheck (sinfer b state) TList); TList
+  | Binop(Concat, a, b) ->
     let ta = sinfer a state and tb = sinfer b state in
     (match (ta, tb) with
         | TString, TString -> TString
         | TList, TList -> TList
         | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
           (show_tinfo ta) (show_tinfo tb))) state.stack )
-  | Plus(a, b) | Sub(a, b)
-  | Mult(a, b) | Div(a, b) ->
+  | Binop(Plus, a, b) | Binop(Sub, a, b)
+  | Binop(Mult, a, b) | Binop(Div, a, b) ->
     (stcheck (sinfer a state) TNumber);
     (stcheck (sinfer b state) TNumber);
     TNumber

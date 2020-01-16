@@ -1,4 +1,5 @@
 open Types
+open Errors
 open Util
 
 (** "level out" the purity of two values *)
@@ -24,21 +25,18 @@ let rec infer e state : puret =
   match e with
   | NumInt _ | NumFloat _ | NumComplex _ | Unit -> Numerical
   | Boolean _ | String _ -> Pure
-  | Not a -> inferp a 
+  | Not a -> inferp a
   (* Expressions with lists of expressions *)
   | List l | Sequence l -> inferpl l
   (* Dictionaries contain key value pairs, level them out *)
   | Dict (l) -> let _, vl = unzip l in inferpl vl
   | Purity (allowed, body) ->
-    if isstrictlypure state.purity && isimpure allowed then
+    if (state.purity = Pure || state.purity = Numerical) && allowed = Impure then
       iraise (PurityError ("Cannot enter an " ^ (show_puret allowed) ^
       " context from a " ^ (show_puret state.purity) ^ " one!"))
       else infer body { state with purity = allowed }
   (* Infer from all the binary operators *)
-  | Compose (a, b) | Plus (a, b) | Sub (a, b) | Cons (a, b)
-  | Concat (a, b) | Eq (a, b) | Lt (a, b) | Ge (a, b) | Le (a, b)
-  | Gt (a, b) | And (a, b) | Or (a, b)
-  | Mult (a, b) | Div (a, b) -> inferp2 a b
+  | Binop(_, a, b) -> inferp2 a b
   | Lambda(_, b) -> infer b state
   | IfThenElse(g, t, f) ->
     let pg = infer g state and pt = infer t state and pf = infer f state in
@@ -49,14 +47,14 @@ let rec infer e state : puret =
   | Symbol s -> lookup s state
   | Apply (f, arg) ->
     let fp = inferp f and argp = inferp arg in
-    if ispure state.purity && isimpure fp then
+    if state.purity <> Impure && fp = Impure then
         iraises (PurityError
           (Printf.sprintf "Tried to apply a %s value in a %s state" (show_puret fp) (show_puret state.purity)))
           state.stack
     else level_purity fp argp
   | ApplyPrimitive ((name, numparams, purity), args) ->
       if List.length args != numparams then (iraise (Fatal "Primitive Application Error"))
-      else if ispure state.purity && isimpure purity then
+      else if state.purity <> Impure && purity = Impure then
         iraises
           (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
           state.stack

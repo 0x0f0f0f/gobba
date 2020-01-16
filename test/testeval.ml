@@ -3,7 +3,7 @@ open Util
 
 module A = Alcotest
 
-let plus_one = (Lambda("n", Plus(Symbol "n", NumInt 1)))
+let plus_one = (Lambda("n", Binop(Plus,Symbol "n", NumInt 1)))
 
 let fib = "fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2))"
 
@@ -22,40 +22,37 @@ let test_apply () =
 
 let test_curry () =
   check "let f = fun x y -> x + y in f 3"
-    (Closure (None, "y", (Plus ((Symbol "x"), (Symbol "y"))),
-              [("x", (AlreadyEvaluated (EvtInt 3)));
-               ("f",
-                (AlreadyEvaluated
-                   (Closure ((Some "f"), "x",
-                             (Lambda ("y", (Plus ((Symbol "x"), (Symbol "y"))))), []))))
-              ]));
+    (Closure
+       (None, "y", (Binop(Plus,(Symbol "x"), (Symbol "y"))),
+        [("x", (EvtInt 3));
+         ("f",
+          (Closure ((Some "f"), "x",
+                    (Lambda ("y", (Binop(Plus,(Symbol "x"), (Symbol "y"))))), [])))
+        ]));
   check ("let fibacc = fun a n -> if n < 2 then a + n else (fibacc a (n - 1)) + (fibacc a (n - 2)) in fibacc 2 ")
-  (Closure (None, "n",
-   (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))),
-      (Plus ((Symbol "a"), (Symbol "n"))),
-      (Plus
-         ((Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
-             (Sub ((Symbol "n"), (NumInt 1))))),
-          (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
-             (Sub ((Symbol "n"), (NumInt 2)))))))
-      )),
-   [("a", (AlreadyEvaluated (EvtInt 2)));
-     ("fibacc",
-      (AlreadyEvaluated
-         (Closure ((Some "fibacc"), "a",
-            (Lambda ("n",
-               (IfThenElse ((Lt ((Symbol "n"), (NumInt 2))),
-                  (Plus ((Symbol "a"), (Symbol "n"))),
-                  (Plus
-                     ((Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
-                         (Sub ((Symbol "n"), (NumInt 1))))),
-                      (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
-                         (Sub ((Symbol "n"), (NumInt 2)))))))
-                  ))
-               )),
-            []))))
-     ]
-   ))
+    (Closure (None, "n",
+              (IfThenElse ((Binop(Lt,(Symbol "n"), (NumInt 2))),
+                           (Binop(Plus,(Symbol "a"), (Symbol "n"))),
+                           (Binop(Plus,(Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                                       (Binop(Sub,(Symbol "n"), (NumInt 1))))),
+                               (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                                       (Binop(Sub,(Symbol "n"), (NumInt 2)))))))
+                          )),
+              [("a", (EvtInt 2));
+               ("fibacc",
+                (Closure ((Some "fibacc"), "a",
+                          (Lambda ("n",
+                                   (IfThenElse ((Binop(Lt,(Symbol "n"), (NumInt 2))),
+                                                (Binop(Plus,(Symbol "a"), (Symbol "n"))),
+                                                (Binop(Plus,(Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                                                            (Binop(Sub,(Symbol "n"), (NumInt 1))))),
+                                                    (Apply ((Apply ((Symbol "fibacc"), (Symbol "a"))),
+                                                            (Binop(Sub,(Symbol "n"), (NumInt 2)))))))
+                                               ))
+                                  )),
+                          [])))
+              ]
+             ))
 
 let test_let () =
   checkeval (Let([false, "f", NumInt 5], Symbol "f")) (EvtInt 5);
@@ -64,15 +61,15 @@ let test_let () =
     (EvtInt 55)
 
 let test_arithmetic () =
-  checkeval (Plus(NumInt 4, NumInt 3)) (EvtInt 7);
-  checkeval (Sub (NumInt 4, NumInt 3)) (EvtInt 1);
-  checkeval (Mult(NumInt 4, NumInt 3)) (EvtInt 12);
+  checkeval (Binop(Plus,NumInt 4, NumInt 3)) (EvtInt 7);
+  checkeval (Binop(Sub,NumInt 4, NumInt 3)) (EvtInt 1);
+  checkeval (Binop(Mult,NumInt 4, NumInt 3)) (EvtInt 12);
   check "5 * 2 * 212 + (134 * 2 - 2 + 1 ) * 1 + 2 * 1 + 2 + 1" (EvtInt 2392);
-  checkevalfail (Plus (NumInt 4, String "x"))
+  checkevalfail (Binop(Plus,NumInt 4, String "x"))
 
 let test_boolops () =
-  checkeval (And (Boolean true, Boolean false)) (EvtBool false);
-  checkeval (Or (Boolean true, Boolean false)) (EvtBool true);
+  checkeval (Binop(And,Boolean true, Boolean false)) (EvtBool false);
+  checkeval (Binop(Or,Boolean true, Boolean false)) (EvtBool true);
   checkeval (Not (Boolean true)) (EvtBool false);
   checkeval (Not (Not (Boolean true))) (EvtBool true)
 
@@ -109,7 +106,7 @@ let test_primitive_abstraction () =
                                       (ApplyPrimitive (("insert", 3, Pure),
                                                        [(Symbol "a"); (Symbol "b"); (Symbol "c")]))
                                      )),
-                             [("a", (AlreadyEvaluated (EvtInt 3)))]))
+                             [("a",  (EvtInt 3))]))
 
 let test_suite = List.map quickcase [
     ("constants", test_constants);

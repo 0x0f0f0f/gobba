@@ -15,14 +15,14 @@ type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
 type puret =  Impure | Uncertain | Pure | Numerical
 [@@deriving show { with_path = false }, eq, ord]
 
-let isuncertain x = x = Uncertain
-let isnumerical x = x = Numerical
-let isstrictlypure x = x = Pure || x = Numerical
-let isimpure x = x = Impure
-let ispure x = not (isimpure x)
-
 (** Contains a primitive's name, number of arguments and pureness *)
 type primitiveinfo = (ide * int * puret) [@@deriving show { with_path = false }, eq, ord]
+
+(** Represents a binary operation kind *)
+type binop =
+  | Eq | Gt | Lt | Ge | Le | And | Or
+  | Plus | Sub | Div | Mult
+  | Cons | Concat | Compose  [@@deriving show { with_path = false }, eq, ord]
 
 (** The type representing Abstract Syntax Tree expressions *)
 type expr =
@@ -35,23 +35,9 @@ type expr =
   | String of string
   | Symbol of ide
   | List of expr list
-  | Cons of expr * expr
-  | Concat of expr * expr
   | Dict of (ide * expr) list
-  (* Numerical Operations *)
-  | Plus of (expr * expr)
-  | Sub of (expr * expr)
-  | Div of (expr * expr)
-  | Mult of (expr * expr)
-  (* Boolean Operations *)
-  | Eq of expr * expr
-  | Gt of expr * expr
-  | Lt of expr * expr
-  | Ge of expr * expr
-  | Le of expr * expr
-  (* Boolean operations *)
-  | And of expr * expr
-  | Or of expr * expr
+  (* Binary Operation *)
+  | Binop of binop * expr * expr
   | Not of expr
   (* Control flow and functions *)
   | IfThenElse of expr * expr * expr
@@ -59,7 +45,6 @@ type expr =
   | Lambda of ide * expr
   | Apply of expr * expr
   | ApplyPrimitive of primitiveinfo * expr list
-  | Compose of expr * expr
   | Sequence of expr list
 [@@deriving show { with_path = false }, eq, ord]
 
@@ -90,11 +75,7 @@ let rec simple_show_expr e = match e with
   | Apply(Symbol f, b) -> f ^ " (" ^ simple_show_expr b ^ ")"
   | Lambda(p, b) -> "(fun " ^ (String.concat " " (p::(findparams b))) ^ " -> ... )"
   | Let(l, _) -> "let " ^ (String.concat " and" (List.map (fun x -> Util.snd3 x ^ " = ... ") l))
-  | Plus(a, b) -> simple_show_expr a ^ " + " ^ simple_show_expr b
-  | Sub(a, b) -> simple_show_expr a ^ " - " ^ simple_show_expr b
-  | Mult(a, b) -> simple_show_expr a ^ " * " ^ simple_show_expr b
-  | Div(a, b) -> simple_show_expr a ^ " / " ^ simple_show_expr b
-  | Compose(a, b) -> simple_show_expr a ^ " <=< " ^ simple_show_expr b
+  | Binop(kind, a, b) -> simple_show_expr a ^ " " ^ (show_binop kind) ^ " " ^ simple_show_expr b
   | _ -> "<code>"
 
 
@@ -127,7 +108,7 @@ type command =
 [@@deriving show { with_path = false }, eq, ord]
 
 
-(** A type that represents an evaluated (reduced) value *)
+(** A type that represents an evaluated (result of a computation) value *)
 type evt =
   | EvtUnit
   | EvtInt of int         [@compare compare]
@@ -139,18 +120,11 @@ type evt =
   | EvtDict of (ide * evt) list [@equal (=)]
   (** Recursion is achieved by keeping an optional function name in the constructor *)
   | Closure of ide option * ide * expr * env_type  [@equal (=)]
-  (** Abstraction that permits treating primitives as closures *)
+  | LazyExpression of expr
 [@@deriving show { with_path = false }, eq, ord]
 
-(* Wrapper type that allows both AST expressions and
-   evaluated expression for lazy evaluation *)
-and type_wrapper =
-  | LazyExpression of expr
-  | AlreadyEvaluated of evt
-[@@deriving show { with_path = false }]
-
 (* An environment of already evaluated values  *)
-and env_type = (ide, type_wrapper) D.t [@@deriving show { with_path = false }, eq, ord]
+and env_type = (ide, evt) D.t [@@deriving show { with_path = false }, eq, ord]
 
 (** A type containing information about types *)
 and typeinfo =
@@ -197,6 +171,7 @@ let rec show_unpacked_evt e = match e with
                  ^ "}"
   | Closure (name, param, body, _) ->
     (match name with | Some x -> x | None -> "") ^ "(fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"
+  | LazyExpression e -> "<lazy>: " ^ (simple_show_expr e)
 
 (** Function that creates a list with the params of a nested lambda in a Closure *)
 let findevtparams l = match l with
@@ -271,95 +246,3 @@ type evalstate = {
   purity: puret;
 }
 
-(** The location of a lexeme in code *)
-type location =
-  | Location of Lexing.position * Lexing.position (** delimited location *)
-  | Nowhere (** no location *)
-
-(** Get the location of a lexeme *)
-let location_of_lex lex =
-  Location (Lexing.lexeme_start_p lex, Lexing.lexeme_end_p lex)
-
-(** Exceptions *)
-type internalerrort =
-  | Fatal of string
-  | InternalFailure of string
-  | WrongPrimitiveArgs
-  | IndexOutOfBounds
-  | TypeError of string
-  | UnboundVariable of string
-  | ListError of string
-  | DictError of string
-  | FileNotFoundError of string
-  | PurityError of string
-  | SyntaxError of string
-[@@deriving show { with_path = false }]
-
-(** Exception [Error (loc, err, msg)] indicates an error of type [err] with error message
-    [msg], occurring at location [loc]. *)
-exception InternalError of (location * internalerrort * stackframe)
-
-(** Utility function to raise a syntax error quickly *)
-let sraises l msg s = raise (InternalError ((location_of_lex l), SyntaxError msg, s))
-let sraise l msg = raise (InternalError ((location_of_lex l), SyntaxError msg, EmptyStack))
-
-
-(** Utility function to raise an internal error without a location*)
-let iraises e s = raise (InternalError (Nowhere, e, s))
-let iraise e = raise (InternalError (Nowhere, e, EmptyStack))
-
-(** Utility function to raise a type error without a location*)
-let traises msg s = raise (InternalError (Nowhere, TypeError msg, s))
-let traise msg = raise (InternalError (Nowhere, TypeError msg, EmptyStack))
-
-
-(** Print the location of a lexeme*)
-let print_location loc  =
-  match loc with
-  | Nowhere ->
-    "unknown location"
-  | Location (begin_pos, end_pos) ->
-    let begin_char = begin_pos.Lexing.pos_cnum - begin_pos.Lexing.pos_bol in
-    let end_char = end_pos.Lexing.pos_cnum - begin_pos.Lexing.pos_bol in
-    let begin_line = begin_pos.Lexing.pos_lnum in
-    let filename = begin_pos.Lexing.pos_fname in
-
-    if String.length filename != 0 then
-      Printf.sprintf "file %S, line %d, charaters %d-%d" filename begin_line begin_char end_char
-    else
-      Printf.sprintf "line %d, characters %d-%d" (begin_line - 1) begin_char end_char
-
-(** Print a message at a given location [loc] of message type [msg_type]. *)
-let print_message ?color:(color=T.Default) ?(loc=Nowhere) header contents =
-  flush_all ();
-  match loc with
-  | Location _ ->
-    T.eprintf [T.Foreground color] "%s: " header; flush_all ();
-    Printf.eprintf "at %s\n%s\n%!" (print_location loc) contents;
-  | Nowhere ->
-    T.eprintf [T.Foreground color] "%s: " header; flush_all ();
-    Printf.eprintf "%s\n%!" contents
-
-(** Print the caught error *)
-let print_error (loc, err, _) = print_message ~color:T.Red ~loc "Error" (show_internalerrort err)
-
-let print_stacktrace (_, _, s) maxdepth = print_message ~color:T.Red ~loc:Nowhere
-  "Stacktrace" ("\n" ^ (string_of_stack maxdepth s))
-
-(** Parse the contents from a file, using a given [parser]. *)
-let read_file parser fn =
-try
-  if not (Sys.file_exists fn) then iraise (FileNotFoundError fn) else
-    let fh = open_in fn in
-    let lex = Lexing.from_channel fh in
-    lex.Lexing.lex_curr_p <- {lex.Lexing.lex_curr_p with Lexing.pos_fname = fn};
-    try
-      let terms = parser lex in
-      close_in fh;
-      terms
-    with
-    (* Close the file in case of any parsing errors. *)
-      e -> close_in fh ; iraise (SyntaxError (Printexc.print_backtrace stderr; Printexc.to_string e))
-with
-(* Any errors when opening or closing a file are fatal. *)
-  Sys_error msg -> iraise (Fatal msg)

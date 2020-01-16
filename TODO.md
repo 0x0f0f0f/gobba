@@ -6,9 +6,9 @@
    ```ocaml
    (Letrec ("iter",
       (Lambda (["n"; "f"; "d"],
-         (IfThenElse ((Eq ((Symbol "n"), (NumInt 0))), (Symbol "d"),
+         (IfThenElse (Binop(Eq,(Symbol "n"), (NumInt 0))), (Symbol "d"),
             (Apply ((Symbol "iter"),
-               [(Sub ((Symbol "n"), (NumInt 1)));
+               [Binop(Sub,(Symbol "n"), (NumInt 1)));
                  (Apply ((Symbol "f"), [(Apply ((Symbol "f"), [(Symbol "d")]))]
                     ))
                  ]
@@ -19,7 +19,7 @@
          [("power",
            (Lambda (["i"; "n"],
               (Let (
-                 [("itim", (Lambda (["a"], (Mult ((Symbol "a"), (Symbol "i"))))))
+                 [("itim", (Lambda (["a"], Binop(Mult,(Symbol "a"), (Symbol "i"))))))
                    ],
                  (Apply ((Symbol "iter"),
                     [(Apply ((Symbol "n"),
@@ -43,9 +43,9 @@
    ```ocaml
    (Letrec ("iter",
       (Lambda (["n"; "f"; "d"],
-         (IfThenElse ((Eq ((Symbol "n"), (NumInt 0))), (Symbol "d"),
+         (IfThenElse (Binop(Eq,(Symbol "n"), (NumInt 0))), (Symbol "d"),
             (Apply ((Symbol "iter"),
-               [(Sub ((Symbol "n"), (NumInt 1))); (Symbol "f");
+               [Binop(Sub,(Symbol "n"), (NumInt 1))); (Symbol "f");
                  (Apply ((Symbol "f"), [(Symbol "d")]))]
                ))
             ))
@@ -54,7 +54,7 @@
          [("power",
            (Lambda (["i"; "n"],
               (Let (
-                 [("itim", (Lambda (["a"], (Mult ((Symbol "a"), (Symbol "i"))))))
+                 [("itim", (Lambda (["a"], Binop(Mult,(Symbol "a"), (Symbol "i"))))))
                    ],
                  (Apply ((Symbol "iter"),
                     [(Symbol "n"); (Symbol "itim"); (NumInt 1)]))

@@ -1,4 +1,5 @@
 open Types
+open Errors
 
 let pprint_endline args =
   let x = (match args with

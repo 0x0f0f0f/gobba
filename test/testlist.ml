@@ -20,19 +20,19 @@ let test_tail () =
   checkevalfail (Apply(Symbol "tail", List([])))
 
 let test_cons () =
-  checkeval (Cons(String "hello", List [])) (EvtList [EvtString "hello"]);
-  checkeval (Cons(String "hello", List [String "world"])) (EvtList [EvtString
+  checkeval (Binop(Cons,String "hello", List [])) (EvtList [EvtString "hello"]);
+  checkeval (Binop(Cons,String "hello", List [String "world"])) (EvtList [EvtString
                                                                       "hello"; EvtString "world"])
 
 let test_map () =
   checkeval (apply_from_exprlist
-               [(Lambda ("x", (Plus ((NumInt 1), (Symbol "x")))));
+               [(Lambda ("x", Binop(Plus, (NumInt 1), (Symbol "x"))));
                 (List [NumInt 1; NumInt 2; NumInt 3; NumInt 4])] (Symbol "map"))
     (EvtList [EvtInt 2; EvtInt 3; EvtInt 4; EvtInt 5]);
   checkevalfail (apply_from_exprlist [String "fail"; String "fail"; String
                                         "Fail"] (Symbol "map"));
-  checkevalfail (apply_from_exprlist [(Lambda ("x", (Plus ((NumInt 1),
-                                                           (Symbol "x"))))); (String "x")] (Symbol "map"))
+  checkevalfail (apply_from_exprlist [(Lambda ("x", Binop(Plus,(NumInt 1),
+                                                           (Symbol "x")))); (String "x")] (Symbol "map"))
 
 let test_fold () =
   check "foldl (fun acc x -> acc + x) 0 [1;2;3;4]"
@@ -45,7 +45,7 @@ let test_fold () =
 let test_filter () =
   checkeval
     (apply_from_exprlist
-       [(Lambda ("x", (Gt ((Symbol "x"), (NumInt 3)))));
+       [(Lambda ("x", Binop(Gt,(Symbol "x"), (NumInt 3))));
         (List
            [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
             (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)])
@@ -53,13 +53,13 @@ let test_filter () =
     (EvtList [(EvtInt 4); (EvtInt 5); (EvtInt 4)]);
   checkevalfail
     (apply_from_exprlist
-       [(Lambda ("x", (Gt ((Symbol "x"), (NumInt 3)))));
+       [(Lambda ("x", Binop(Gt,(Symbol "x"), (NumInt 3))));
         (List
            [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
             (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)]); NumInt 3
        ] (Symbol "filter"));
   checkevalfail
-    (apply_from_exprlist [(Lambda ("x", (Gt ((Symbol "x"), (NumInt 3))))); NumInt 3 ] (Symbol "filter"))
+    (apply_from_exprlist [(Lambda ("x", Binop(Gt,(Symbol "x"), (NumInt 3)))); NumInt 3 ] (Symbol "filter"))
 
 let test_concat () =
   check ("[1] ++ [2]") (EvtList [EvtInt 1; EvtInt 2])

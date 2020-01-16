@@ -1,55 +1,53 @@
 open Types
 
+(** Normalize an AST expression *)
 let rec optimize (e: expr) : expr = match e with
-  | Eq(NumInt x, NumInt y) -> Boolean (x == y)
-  | Gt(NumInt x, NumInt y) -> Boolean (x > y)
-  | Lt(NumInt x, NumInt y) -> Boolean (x < y)
-  | Eq(x, y) -> Eq (optimize x, optimize y)
-  | Gt(x, y) -> Gt (optimize x, optimize y)
-  | Lt(x, y) -> Lt (optimize x, optimize y)
-  | Plus(x, y) ->  Plus (optimize x, optimize y)
-  | Sub(x, y) ->  Sub (optimize x, optimize y)
-  | Mult(x, y) -> Mult (optimize x, optimize y)
-  | Div(x, y) -> Div (optimize x, optimize y)
-  | Apply(a, b) ->  Apply(optimize a, optimize b)
+  (* Redundant cases *)
+  | Unit | NumInt _ | NumFloat _ | NumComplex _
+  | String _ | Symbol _ | Boolean _  -> e
+  | Purity(_, b) -> optimize b
+  | Binop(Eq, NumInt x, NumInt y) -> Boolean (x == y)
+  | Binop(Gt, NumInt x, NumInt y) -> Boolean (x > y)
+  | Binop(Lt, NumInt x, NumInt y) -> Boolean (x < y)
   | List(l) -> List(List.map optimize l)
   | Dict(d) -> Dict(List.map (fun (k, v) -> (k, optimize v)) d)
   | Lambda(params, body) -> Lambda(params, optimize body)
   | Let(declarations, body) -> optimize_let declarations body
   (* Propositional Calculus optimizations *)
-  | And(Boolean x, Boolean y) -> Boolean (x && y)
-  | Or(Boolean x, Boolean y) -> Boolean (x || y)
+  | Binop(And, Boolean x, Boolean y) -> Boolean (x && y)
+  | Binop(Or, Boolean x, Boolean y) -> Boolean (x || y)
   | Not(Not(x)) -> optimize x
   | Not(Boolean x) -> Boolean (not x)
-  | Not(And(a, b)) -> Or(Not (optimize a), Not (optimize b))    (* DeMorgan *)
-  | Not(Or(a, b)) -> And(Not (optimize a), Not (optimize b))    
-  | Or(a, And (Not aa, b)) ->           (* Complement *)
+  | Not(Binop(And, a, b)) -> Binop(Or, Not (optimize a), Not (optimize b))    (* DeMorgan *)
+  | Not(Binop(Or, a, b)) -> Binop(And, Not (optimize a), Not (optimize b))
+  | Binop(Or, a, Binop(And, Not aa, b)) ->           (* Complement *)
     let oa = optimize a and oaa = optimize aa and ob = optimize b in
-    if oa = oaa then Or(oa, ob)
-    else Or(oa, And (Not oaa, ob))
-  | And(a, Or (Not aa, b)) -> 
+    if oa = oaa then Binop(Or, oa, ob)
+    else Binop(Or, oa, Binop(And, Not oaa, ob))
+  | Binop(And, a, Binop(Or, Not aa, b)) ->
     let oa = optimize a and oaa = optimize aa and ob = optimize b in
-    if oa = oaa then And(oa, ob)
-    else And(oa, Or (Not oaa, ob))
-  | Or(a, And (aa, b)) ->               (* Absorb *)
-    let oa = optimize a and oaa = optimize aa and ob = optimize b in
-    if oa = oaa then oa
-    else Or(oa, And (oaa, ob))
-  | And(a, Or (aa, b)) ->               (* Absorb *)
+    if oa = oaa then Binop(And, oa, ob)
+    else Binop(And, oa, Binop(Or, Not oaa, ob))
+  | Binop(Or, a, Binop(And, aa, b)) ->               (* Absorb *)
     let oa = optimize a and oaa = optimize aa and ob = optimize b in
     if oa = oaa then oa
-    else And(oa, Or (oaa, ob))
+    else Binop(Or, oa, Binop(And, oaa, ob))
+  | Binop(And, a, Binop(Or, aa, b)) ->               (* Absorb *)
+    let oa = optimize a and oaa = optimize aa and ob = optimize b in
+    if oa = oaa then oa
+    else Binop(And, oa, Binop(Or, oaa, ob))
   | Not(x) -> Not (optimize x)
-  | And(x, y) ->  And (optimize x, optimize y)
-  | Or(x, y) ->   Or (optimize x, optimize y)
   | IfThenElse(guard, iftrue, iffalse) ->
     (* Short circuit an if that is always true or false *)
     let og = optimize guard in
     if og = Boolean true then optimize iftrue
     else if og = Boolean false then optimize iffalse
     else IfThenElse(og, optimize iftrue, optimize iffalse)
-  | _ -> e
-
+  (* Binary cases *)
+  | Binop(kind, x, y) -> Binop(kind, optimize x, optimize y)
+  | Apply(a, b) ->  Apply(optimize a, optimize b)
+  | Sequence(ls) -> Sequence (List.map optimize ls)
+  | ApplyPrimitive(p, ls) -> ApplyPrimitive(p, List.map optimize ls)
 and optimize_let declarations body =
   let od = List.map (fun (l, i, v) -> (l, i, optimize v)) declarations in
   let ob = optimize body in
