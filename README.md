@@ -39,7 +39,7 @@ git clone https://github.com/0x0f0f0f/minicaml
 # cd into it
 cd minicaml
 # install dependencies
-opam install dune menhir ANSITerminal cmdliner alcotest bisect_ppx
+opam install dune menhir ANSITerminal cmdliner alcotest bisect_ppx ocamline
 # compile
 make
 # test

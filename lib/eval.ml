@@ -216,7 +216,6 @@ and eval_directive dir state dirscope =
         |> List.map (fun (k, v) -> match v with AlreadyEvaluated x -> (k,x) | _ -> failwith "should never fail")
         |> fun ls -> EvtDict ls in
       (EvtUnit, { state with env = (Dict.insert state.env modulename (AlreadyEvaluated newmodule) ) })
-
     | Includefile f ->
       let file_in_scope = if not (Filename.is_relative f) then f else
       Filename.concat (dirscope) f in

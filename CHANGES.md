@@ -1,12 +1,15 @@
-## 0.4 2020-01-??
+## 0.4 2020-01-16
 - Multiline REPL
+- New dictionary syntax
+- Static purity inference algorithm
+- `map`, `foldl` and `foldr` are implemented in the language
 - Integer division now returns a float if the modulo between the two numbers is 0
 - Print the type in the REPL result
-- Directives on the toplevel: `#include filename` to load and run files,
-  `#verbose n` to set a verbosity level, `#pure` and `#impure` to set the global purity context.
+- Directives on the toplevel: `#include filename` and `#import` to load and run files,
+  `#verbose n` to set a verbosity level, `#pure`, `#impure` and `#uncertain` to set the global purity context.
 - Minicaml and OCaml Stack traces on errors!
 - Removed the `let rec` and `let rec lazy` statements.
-- `lazy`-ness is now meant for a single assignment in a let statement, and they
+- `lazy`-ness is now meant for each single assignment in a let statement, and they
   can be mixed; This is now valid: `let a = ... and lazy b = ... ;;`
 - A LOT of internal optimizations.
 - `Lambda` and `Closure` abstractions for function now have a single parameter

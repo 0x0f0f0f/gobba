@@ -30,6 +30,7 @@ let test_haskey () =
 
 let test_getkey () =
   check ("getkey \"hello\" " ^ sample_dict) (EvtString "world");
+  check ("( " ^ sample_dict ^ " ):hello") (EvtString "world");
   checkfail ("getkey \"doesntexist\" " ^ sample_dict);
   checkfail ("getkey \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
