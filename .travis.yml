@@ -4,7 +4,7 @@ install: test -e .travis.opam.sh || wget https://raw.githubusercontent.com/ocaml
 script: 
 - bash -ex .travis-opam.sh
 - make test 
-- bisect-ppx-report -coveralls coveralls.json -service-job-id $TRAVIS_JOB_ID -I _build/default _build/default/test/bisect*.out
+- bisect-ppx-report -coveralls coverage.json -service-job-id $TRAVIS_JOB_ID -I _build/default _build/default/test/bisect*.out
 - curl -L -F json_file=@./coverage.json https://coveralls.io/api/v1/jobs
 
 env:
