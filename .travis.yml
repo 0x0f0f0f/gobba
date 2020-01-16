@@ -6,7 +6,7 @@ script:
 
 env:
   - OCAML_VERSION=4.08
-  - OCAML_VERSION=4.09 POST_INSTALL_HOOK="make test; bisect-ppx-report -coveralls coverage.json -service-job-id $TRAVIS_JOB_ID -I _build/default _build/default/test/bisect*.out; curl -L -F json_file=@./coverage.json https://coveralls.io/api/v1/jobs"
+  - OCAML_VERSION=4.09 POST_INSTALL_HOOK="opam install bisect-ppx; bisect-ppx-report -coveralls coverage.json -service-job-id $TRAVIS_JOB_ID -I _build/default _build/default/test/bisect*.out; curl -L -F json_file=@./coverage.json https://coveralls.io/api/v1/jobs"
 os:
   - linux
   - osx
