@@ -73,7 +73,9 @@ file:
     { (Def d) :: lst }
   | d = def EOF
     { (Def d) :: [] }
-  | d = directive lst = file
+  | d = directive SEMISEMI lst = file
+  { (Directive d)::lst }
+  | d = directive EOF lst = file
   { (Directive d)::lst }
 
 toplevel:

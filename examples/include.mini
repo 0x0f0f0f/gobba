@@ -1,9 +1,15 @@
-#include "./fibonacci.mini"
+#impure ();;
 
-print_endline (show (fib 10))
+#include "./fibonacci.mini" ;;
 
-#include "fibonacci.mini"
+IO:print_endline (show (fib 10)) ;;
 
-print_endline (show (fib 10))
+#include "fibonacci.mini" ;;
 
-#include "../examples/fibonacci.mini"
+IO:print_endline (show (fib 10)) ;;
+
+#include "../examples/fibonacci.mini" ;;
+
+#module "fibonacci.mini" ;;
+
+IO:print_endline (show (Fibonacci:fib 10)) 
