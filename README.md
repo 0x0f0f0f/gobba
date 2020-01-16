@@ -1,5 +1,5 @@
-![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master)
-# minicaml 
+![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/github/0x0f0f0f/minicaml/badge.svg?branch=)](https://coveralls.io/github/0x0f0f0f/minicaml?branch=)
+# minicaml
 
 **minicaml** is a small, dynamically typed purely functional programming
 language. It is heavily inspired by the OCaml, Haskell and Scheme languages.

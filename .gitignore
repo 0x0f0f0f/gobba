@@ -12,7 +12,9 @@
 _build/
 
 # test coverage
+secrets
 coverage/
+coverage.json
 bisect*
 
 # ocamlbuild targets
