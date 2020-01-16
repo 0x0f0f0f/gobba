@@ -12,27 +12,27 @@ let test_dict () =
   checkfail "{(fun x -> x) =1}"
 
 let test_insert () =
-  check ("insert \"abc\" 456 " ^ sample_dict)
+  check ("Dict:insert \"abc\" 456 " ^ sample_dict)
     (EvtDict([("abc", EvtInt 456);("hello", EvtString "world"); ("apple", EvtInt 314)]));
-  check ("insert \"hello\" 123 " ^ sample_dict)
+  check ("Dict:insert \"hello\" 123 " ^ sample_dict)
     (EvtDict([("hello", EvtInt 123); ("apple", EvtInt 314)]));
   checkfail ("insert \"doesntexist\" 123 " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_remove () =
-  check ("remove \"hello\"" ^ sample_dict) (EvtDict([("apple", EvtInt 314)]));
-  checkfail ("remove \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict);
-  checkfail ("remove \"doesntexist\"" ^ sample_dict)
+  check ("Dict:remove \"hello\"" ^ sample_dict) (EvtDict([("apple", EvtInt 314)]));
+  checkfail ("Dict:remove \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict);
+  checkfail ("Dict:remove \"doesntexist\"" ^ sample_dict)
 
 let test_haskey () =
-  check ("haskey \"ciaone\" " ^ sample_dict) (EvtBool false);
-  check ("haskey \"hello\" " ^ sample_dict) (EvtBool true);
-  checkfail ("haskey \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
+  check ("Dict:haskey \"ciaone\" " ^ sample_dict) (EvtBool false);
+  check ("Dict:haskey \"hello\" " ^ sample_dict) (EvtBool true);
+  checkfail ("Dict:haskey \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_getkey () =
-  check ("getkey \"hello\" " ^ sample_dict) (EvtString "world");
+  check (sample_dict ^ ":hello") (EvtString "world");
   check ("( " ^ sample_dict ^ " ):hello") (EvtString "world");
-  checkfail ("getkey \"doesntexist\" " ^ sample_dict);
-  checkfail ("getkey \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
+  checkfail ("Dict:getkey \"doesntexist\" " ^ sample_dict);
+  checkfail ("Dict:getkey \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_map () =
   check "map (fun x -> x + 1) {a=1;b=2;c=3;d=4}"
@@ -48,7 +48,7 @@ let test_fold () =
   checkfail "foldl \"fail\" \"fail\"  \"fail\" 0"
 
 let test_filterkeys () =
-  check ("filterkeys [\"apple\"] " ^ sample_dict)
+  check ("Dict:filterkeys [\"apple\"] " ^ sample_dict)
     (EvtDict [("apple", EvtInt 314)]);
   checkfail ("filterkeys \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 

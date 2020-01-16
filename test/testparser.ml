@@ -40,9 +40,9 @@ let test_dicts () =
   checkparse "{}" (Dict []);
   checkparse "{a = 1; b = [1; 2; 3]; abcde = fun x -> x}"
     (Dict
-       [("a", (NumInt 1));
-        ("b", (List [(NumInt 1); (NumInt 2); (NumInt 3)]));
-        ("abcde", (Lambda ("x", (Symbol "x"))))]);
+       [(false, "a", (NumInt 1));
+        (false, "b", (List [(NumInt 1); (NumInt 2); (NumInt 3)]));
+        (false, "abcde", (Lambda ("x", (Symbol "x"))))]);
   checkparsefail "{342=}"; checkparsefail "{;}";
   checkparsefail "{;=}"; checkparsefail "{a=}"
 

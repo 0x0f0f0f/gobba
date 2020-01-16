@@ -27,16 +27,7 @@ let concat args = match args with
   | [x;y] -> EvtString ((unpack_string x) ^ (unpack_string y))
   | _ -> iraise WrongPrimitiveArgs
 
-let show args =
-  match args with
-  | [EvtString x] -> (EvtString x)
-  | [x] -> EvtString (show_unpacked_evt x)
-  | _ -> iraise WrongPrimitiveArgs
-
 let table = [
-  ("^",                 Primitive (concat, ("concat", 2, Pure)));
   ("concat",            Primitive (concat, ("concat", 2, Pure)));
-  ("show",              Primitive (show, ("show", 1, Pure)));
-  ("string_from_value", Primitive (show, ("show", 1, Pure)));
 ]
 

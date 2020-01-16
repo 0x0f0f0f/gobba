@@ -20,7 +20,7 @@ let symbol = alpha (alpha|digit|'_')*
 let int = '-'? ['0'-'9'] ['0'-'9']*
 let white = [' ' '\t' '\r' '\n']
 
-let directive = "#pure" | "#impure" | "#uncertain" | "#dumppurityenv" | "#dumpenv" | "#include" | "#verbose" | "#import"
+let directive = "#pure" | "#impure" | "#uncertain" | "#dumppurityenv" | "#dumpenv" | "#include" | "#verbose" | "#module"
 
 rule token = parse
   | white       { token lexbuf }

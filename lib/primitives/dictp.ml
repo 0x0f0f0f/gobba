@@ -26,15 +26,6 @@ let haskey args =
       | _ -> iraise WrongPrimitiveArgs) in
   EvtBool(Dict.exists key ed)
 
-(** Check if a dict contains a key *)
-let getkey args =
-  let (key, ed) = (match args with
-      | [key; d] -> (unpack_string key, unpack_dict d)
-      | _ -> iraise WrongPrimitiveArgs) in
-  match Dict.get key ed with
-    | None -> iraise (DictError "key not found")
-    | Some value -> value
-
 (** Get a list of the keys *)
 let getkeys args =
   let ed = (match args with
@@ -68,7 +59,6 @@ let table = [
   ("insert",         Primitive (insert_dict, ("insert", 3, Pure)));
   ("remove",         Primitive (delete_dict, ("remove", 2, Pure)));
   ("haskey",         Primitive (haskey, ("haskey", 2, Pure)));
-  ("getkey",         Primitive (getkey, ("getkey", 2, Pure)));
   ("getkeys",        Primitive (getkeys, ("getkeys", 1, Pure)));
   ("getvalues",      Primitive (getvalues, ("getvalues", 1, Pure)));
   ("dictfromlists",  Primitive (dict_from_lists, ("dictfromlists", 2, Pure)));

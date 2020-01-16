@@ -10,7 +10,7 @@ let test_string () =
 
 let test_concat () =
   check ("\"a\" ++ \"b\"") (EvtString "ab");
-  check ("concat \"a\" \"b\"") (EvtString "ab")
+  check ("String:concat \"a\" \"b\"") (EvtString "ab")
 
 let test_suite = List.map quickcase [
     ("evaluate string", test_string);

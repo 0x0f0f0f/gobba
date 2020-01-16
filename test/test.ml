@@ -7,7 +7,7 @@ let test_stack_underflow () =
 
 
 
-let () = A.run "minicaml" [
+let () = Printexc.record_backtrace true; A.run "minicaml" [
     "stack", [
       A.test_case "stack underflow" `Quick test_stack_underflow;
       (*  A.test_case "stack overflow" `Quick test_stack_overflow *)
@@ -16,7 +16,7 @@ let () = A.run "minicaml" [
     "dictionaries", Testdict.test_suite;
     "lists", Testlist.test_suite;
     "strings", Teststring.test_suite;
-    "purity", Testpurity.test_suite;
     "eval", Testeval.test_suite;
+    "purity", Testpurity.test_suite;
     (* "miscellanous programs", Testprogram.test_suite; *)
   ]

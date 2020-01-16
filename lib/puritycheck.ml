@@ -13,8 +13,9 @@ let level_purity a b = match (a, b) with
 (** Infer the purity of an expression. Note: this is a naive approach.
   This function is an abstract interpretation of expressions over primitives and environments.
   @param pt The primitives table
-  @param paraml If inside a lambda, the list of parameters
-  @param env An environment, needed to infer whether lazy expressions are pure or not *)
+  @param state The current computation state
+  @param is_in_lambda If inside a lambda, the list of parameters
+   *)
 let rec infer e state : puret =
   let state = { state with stack = (push_stack state.stack e) } in
   let inferp x = infer x state in
@@ -29,7 +30,9 @@ let rec infer e state : puret =
   (* Expressions with lists of expressions *)
   | List l | Sequence l -> inferpl l
   (* Dictionaries contain key value pairs, level them out *)
-  | Dict (l) -> let _, vl = unzip l in inferpl vl
+  | Dict (l) ->
+    let apl = List.map (fun (_, _, v) -> infer v { state with purity = Impure}) l in
+    List.fold_left level_purity Numerical apl
   | Purity (allowed, body) ->
     if (state.purity = Pure || state.purity = Numerical) && allowed = Impure then
       iraise (PurityError ("Cannot enter an " ^ (show_puret allowed) ^
@@ -37,7 +40,7 @@ let rec infer e state : puret =
       else infer body { state with purity = allowed }
   (* Infer from all the binary operators *)
   | Binop(_, a, b) -> inferp2 a b
-  | Lambda(_, b) -> infer b state
+  | Lambda(_, b) -> infer b { state with purity = Impure}
   | IfThenElse(g, t, f) ->
     let pg = infer g state and pt = infer t state and pf = infer f state in
     level_purity pg (level_purity pt pf)

@@ -20,6 +20,7 @@ type primitiveinfo = (ide * int * puret) [@@deriving show { with_path = false },
 
 (** Represents a binary operation kind *)
 type binop =
+  | Getkey
   | Eq | Gt | Lt | Ge | Le | And | Or
   | Plus | Sub | Div | Mult
   | Cons | Concat | Compose  [@@deriving show { with_path = false }, eq, ord]
@@ -35,7 +36,7 @@ type expr =
   | String of string
   | Symbol of ide
   | List of expr list
-  | Dict of (ide * expr) list
+  | Dict of assignment_type list
   (* Binary Operation *)
   | Binop of binop * expr * expr
   | Not of expr
@@ -167,7 +168,7 @@ let rec show_unpacked_evt e = match e with
   | EvtList l -> "[" ^ (String.concat "; " (List.map show_unpacked_evt l)) ^ "]"
   | EvtDict d -> "{" ^
                  (String.concat ", " 
-                    (List.map (fun (x,y) -> x ^ ":" ^ show_unpacked_evt y) d))
+                    (List.map (fun (x,y) -> x ^ " = " ^ show_unpacked_evt y) d))
                  ^ "}"
   | Closure (name, param, body, _) ->
     (match name with | Some x -> x | None -> "") ^ "(fun " ^ (String.concat " " (param::(findparams body))) ^ " -> ... )"

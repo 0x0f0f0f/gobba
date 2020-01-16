@@ -21,8 +21,8 @@ let mapstr =
       (if l = [] then l else (f (head l))::(aux f (tail l))) in
    if typeof l = "list" then aux f l
    else if typeof l = "dict" then
-      let keys = getkeys l and values = getvalues l in
-      dictfromlists keys (aux f values)
+      let keys = Dict:getkeys l and values = Dict:getvalues l in
+      Dict:dictfromlists keys (aux f values)
    else failwith "value is not iterable"
 |}
 
@@ -38,9 +38,9 @@ let filterstr =
       let aux = fun f kl vl acc ->
          if kl = [] && vl = [] then acc
          else if f (head vl) then
-            aux f (tail kl) (tail vl) (insert (head kl) (head vl) acc)
+            aux f (tail kl) (tail vl) (Dict:insert (head kl) (head vl) acc)
          else aux f (tail kl) (tail vl) acc in
-      aux pred (getkeys l) (getvalues l) {}
+      aux pred (Dict:getkeys l) (Dict:getvalues l) {}
    else failwith "value is not iterable"
 |}
 
@@ -55,7 +55,7 @@ let foldlstr =
       let aux = fun f z kl vl ->
          if kl = [] && vl = [] then z else
          aux f (f z (head vl)) (tail kl) (tail vl)
-      in aux f z (getkeys l) (getvalues l)
+      in aux f z (Dict:getkeys l) (Dict:getvalues l)
    else failwith "value is not iterable"
 |}
 
@@ -70,7 +70,7 @@ let foldrstr =
       let aux = fun f z kl vl ->
          if kl = [] && vl = [] then z else
          f (head vl) (aux f z (tail kl) (tail vl))
-      in aux f z (getkeys l) (getvalues l)
+      in aux f z (Dict:getkeys l) (Dict:getvalues l)
    else failwith "value is not iterable"
 |}
 

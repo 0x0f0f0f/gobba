@@ -100,7 +100,7 @@ directive:
   | s = DIRECTIVE a = STRING
   { match s with
     | "#include" -> Includefile a
-    | "#import" -> Includefileasmodule (a, None)
+    | "#module" -> Includefileasmodule (a, None)
     | _ -> failwith "unknown directive" }
   | s = DIRECTIVE i = INTEGER
   { match s with
@@ -180,7 +180,7 @@ ast_simple_expr:
   | LPAREN e = ast_expr RPAREN
   { e }
   | e = ast_simple_expr COLON s = SYMBOL
-  { Apply(Apply(Symbol "getkey", String(s)), e) }
+  { Binop(Getkey, e, Symbol(s)) }
   | PURE e = ast_expr
   { Purity (Pure, e)}
   | IMPURE e = ast_expr
@@ -188,7 +188,7 @@ ast_simple_expr:
   | l = delimited(LSQUARE, separated_list(SEMI, ast_expr), RSQUARE)
   { List l }
   | l = delimited(LBRACKET, separated_list(SEMI, assignment), RBRACKET)
-  { Dict (List.map (fun (_, k, v) -> (k,v)) l) }
+  { Dict l }
   | b = BOOLEAN
   { Boolean b }
   | s = STRING

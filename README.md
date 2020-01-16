@@ -132,10 +132,10 @@ The declarations in the included file will be included in the current toplevel e
 #include "examples/fibonacci.mini"
 ```
 
-`#import` loads a file like `#import` but the declarations in the included file
-will be included in an object (dictionary):
+`#module` loads a file like `#include` but the declarations in the included file
+will be wrapped in a dictionary, that acts as a module:
 ```ocaml
-#import "examples/fibonacci.mini"
+#module "examples/fibonacci.mini"
 (* Declarations will be available in module *) Fibonacci
 ```
 
@@ -155,6 +155,8 @@ on the left is the real part and the one on the right is the imaginary part.
 Here is how to concatenate strings
 ```haskell
 "hello " ++ "world"
+(* It is the same as *)
+String:concat "hello " "world"
 ```
 
 To convert any value to a string you can use the `show` primitive.
@@ -195,10 +197,38 @@ let f = (fun x y z -> x + y + z) in f 1 2 ;;
 ```
 
 
-### Printing
-The impure primitives `print` and `print_endline` automatically call `show` on a
-value. The difference between them is that `print_endline` automatically adds a
+### Dictionaries and modules.
+Dictionary (object) values are similar to Javascript objects. The difference
+from javascript is that the keys of an existing dictionary are treated as
+symbols, and values can be lazy.
+
+You may have noticed that dictionary fields are syntactically similar to the
+assignments in `let` statements. This is because there is a strict approach
+towards simplicity in the parsing logic and language syntax. A difference from
+`let` statements, is that values in dictionaries can only access the
+lexical scope **outside** of the dictionary.
+
+
+```ocaml
+let n = {hola = 1; lazy mondo = 2; somefunc = fun x -> x + 1 } ;;
+let m = Dict:insert "newkey" 123 n ;;
+m = {newkey = 123; hola = 1; mondo = 2; somefunc = fun x -> x + 1 } (* => true *)
+Dict:haskey "newkey" m (* => true *)
+map (fun x -> x + 1) m
+(* => {newkey = 124; hola = 2; mondo = 3} *)
+```
+
+An element of a dictionary can be accessed using the `:` infix operator.
+```ocaml
+m:hola (* returns 1 *)
+```
+
+### Primitives and printing
+The impure primitives `IO:print` and `IO:print_endline` automatically call `show` on a
+value. The difference between them is that `IO:print_endline` automatically adds a
 newline at the end of the line.
+
+
 
 ### Haskell-like dollar syntax
 Too many parens?
@@ -224,10 +254,10 @@ your code as purely functional as you can.
 let bad_function = fun x ->
     impure (let mystring =
         "I am a bad impure function! Also: " ++ x in
-        print_endline mystring );;
+        IO:print_endline mystring );;
 
 let good_function = fun x ->
-    print_endline ("I am a good function! Also: " ++ x) ;;
+    IO:print_endline ("I am a good function! Also: " ++ x) ;;
 
 bad_function "hello!" ;;
 (* The above statement is causing side effects and will error *)
@@ -270,18 +300,3 @@ let add_one = (fun z -> z + 1) ;;
 (add_one <=< my_sum) = (my_sum >=> add_one) ;;
 (* This is also true! *)
 ```
-
-### Dictionaries
-Dictionary (object) values are similar to Javascript objects.
-The difference is that the keys of an existing dictionary are
-treated as symbols, and they can be manipulated using strings.
-
-```ocaml
-let n = {hola = 1; mondo = 2} ;;
-let m = insert "newkey" 123 n ;;
-m = {newkey = 123; hola = 1; mondo = 2} (* => true *)
-haskey "newkey" m (* => true *)
-map (fun x -> x + 1) m
-(* => {newkey = 124; hola = 2; mondo = 3} *)
-```
-

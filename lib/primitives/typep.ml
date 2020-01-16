@@ -14,7 +14,15 @@ let myfailwith args =
   let msg = unpack_string (List.hd args) in
   let _ = iraise (InternalFailure msg) in EvtUnit
 
+let show args =
+  match args with
+  | [EvtString x] -> (EvtString x)
+  | [x] -> EvtString (show_unpacked_evt x)
+  | _ -> iraise WrongPrimitiveArgs
+
 let table = [
+  ("show",              Primitive (show, ("show", 1, Pure)));
+  ("string_from_value", Primitive (show, ("show", 1, Pure)));
   ("typeof", Primitive (typeofp, ("typeof", 1, Pure)));
   ("failwith", Primitive (myfailwith, ("failwith", 1, Pure)));
 ]

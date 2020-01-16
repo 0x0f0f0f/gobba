@@ -101,7 +101,7 @@ let test_lookup () =
 let test_primitive_abstraction () =
   check "head" (Closure (None, "a", ApplyPrimitive(("head", 1, Pure), [Symbol "a"]), []));
   check "head [1]" (EvtInt 1);
-  check "insert 3" (Closure (None, "b",
+  check "Dict:insert 3" (Closure (None, "b",
                              (Lambda ("c",
                                       (ApplyPrimitive (("insert", 3, Pure),
                                                        [(Symbol "a"); (Symbol "b"); (Symbol "c")]))

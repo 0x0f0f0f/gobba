@@ -10,7 +10,7 @@ let rec optimize (e: expr) : expr = match e with
   | Binop(Gt, NumInt x, NumInt y) -> Boolean (x > y)
   | Binop(Lt, NumInt x, NumInt y) -> Boolean (x < y)
   | List(l) -> List(List.map optimize l)
-  | Dict(d) -> Dict(List.map (fun (k, v) -> (k, optimize v)) d)
+  | Dict(d) -> Dict(List.map (fun (l, k, v) -> (l, k, optimize v)) d)
   | Lambda(params, body) -> Lambda(params, optimize body)
   | Let(declarations, body) -> optimize_let declarations body
   (* Propositional Calculus optimizations *)
@@ -51,12 +51,7 @@ let rec optimize (e: expr) : expr = match e with
 and optimize_let declarations body =
   let od = List.map (fun (l, i, v) -> (l, i, optimize v)) declarations in
   let ob = optimize body in
-  if List.length od = 1 then
-    let (_, ident, value) = List.hd od in
-    if ob = Symbol ident
-    then optimize value
-    else Let(od, ob)
-  else Let(od, ob)
+  Let(od, ob)
 
 (** Apply the optimizer again and again on an expression until it
     is fully reduced and ready to be evaluated *)

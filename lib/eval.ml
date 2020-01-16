@@ -41,10 +41,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
     | Binop (kind, e1, e2) -> eval_binop kind e1 e2 state
     (* Dictionaries and operations *)
     | Dict l ->
-      let el =
-        uniqueorfail
-          (List.map (fun (x, y) -> (x, eval y state)) l)
-      in
+      let el = uniqueorfail (List.map (eval_assignment state) l) in
       EvtDict el
     | Not x -> bool_unop (eval x state) not
     | IfThenElse (guard, first, alt) ->
@@ -61,8 +58,8 @@ let rec eval (e : expr) (state : evalstate) : evt =
     | ApplyPrimitive ((name, _, _), args) ->
       let eargs = List.map (fun x -> eval x state) args in
       let prim = get_primitive_function (match (Dict.get name Primitives.ocaml_table) with
-        | None -> iraise (Fatal "Unbound primitive. This should never happen")
-        | Some p -> p) in
+          | None -> iraise (Fatal "Unbound primitive. This should never happen")
+          | Some p -> p) in
       (try prim eargs with InternalError (loc, err, _) -> raise (InternalError(loc, err, state.stack)))
     (* Eval a sequence of expressions but return the last *)
     | Sequence exprl ->
@@ -78,32 +75,39 @@ let rec eval (e : expr) (state : evalstate) : evt =
   in
   if state.verbosity >= 2 then
     print_message ~color:T.Cyan ~loc:Nowhere "Evaluates to at depth" (Printf.sprintf "%d\n%s\n"
-      (depth_of_stack state.stack)
-      (show_evt evaluated))
+                                                                        (depth_of_stack state.stack)
+                                                                        (show_evt evaluated))
   else ();
   evaluated
 
 and eval_binop (k: binop) (x: expr) (y: expr) state =
   match k with
+  | Getkey ->
+    let key = (match y with Symbol z -> z | _ -> iraise (Fatal "Dictionary access"))
+    and ed = unpack_dict (eval x state) in
+    (match Dict.get key ed with
+     | None -> iraise (DictError "key not found")
+     | Some (LazyExpression z) -> eval z state
+     | Some z -> z)
   | Cons ->
-        let ls = unpack_list (eval y state) in
-  (match ls with
-        | [] -> EvtList [ eval x state ]
-        | lss -> EvtList (eval x state :: lss))
+    let ls = unpack_list (eval y state) in
+    (match ls with
+     | [] -> EvtList [ eval x state ]
+     | lss -> EvtList (eval x state :: lss))
   | Concat ->
-      let ev1 = eval x state and ev2 = eval y state in
-      let t1 = typeof ev1 and t2 = typeof ev2 in
-      (match (t1, t2) with
-        | TString, TString -> EvtString ((unpack_string ev1) ^ (unpack_string ev2))
-        | TList, TList -> EvtList ((unpack_list ev1) @ (unpack_list ev2))
-        | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
-        (show_tinfo t1) (show_tinfo t2))) state.stack )
+    let ev1 = eval x state and ev2 = eval y state in
+    let t1 = typeof ev1 and t2 = typeof ev2 in
+    (match (t1, t2) with
+     | TString, TString -> EvtString ((unpack_string ev1) ^ (unpack_string ev2))
+     | TList, TList -> EvtList ((unpack_list ev1) @ (unpack_list ev2))
+     | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
+                                  (show_tinfo t1) (show_tinfo t2))) state.stack )
   | Compose->
-      let ef1 = eval y state and ef2 = eval x state in
-      stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
-      let params1 = findevtparams ef1 in
-      let appl1 = apply_from_exprlist (symbols_from_strings params1) y in
-      eval (lambda_from_paramlist params1 (Apply (x, appl1))) state
+    let ef1 = eval y state and ef2 = eval x state in
+    stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
+    let params1 = findevtparams ef1 in
+    let appl1 = apply_from_exprlist (symbols_from_strings params1) y in
+    eval (lambda_from_paramlist params1 (Apply (x, appl1))) state
 
   | Plus  ->  Numericalp.add [(eval x state); (eval y state)]
   | Sub  ->   Numericalp.sub [(eval x state); (eval y state)]
@@ -121,12 +125,12 @@ and eval_binop (k: binop) (x: expr) (y: expr) state =
 (* Search for a value in the primitives table and environment *)
 and lookup (ident : ide) (state : evalstate) : evt =
   match (Dict.get ident Primitives.table) with
-    | None -> (match (Dict.get ident state.env) with
+  | None -> (match (Dict.get ident state.env) with
       | None -> iraises (UnboundVariable ident) state.stack
       | Some (LazyExpression e) -> eval e state
       | Some e -> e)
-    | Some (LazyExpression e) -> eval e state
-    | Some e -> e
+  | Some (LazyExpression e) -> eval e state
+  | Some e -> e
 
 and applyfun (closure : evt) (arg : evt) (state : evalstate) : evt =
   (* Evaluate the argument and unpack the evt encapsuled in them *)
@@ -140,42 +144,40 @@ and applyfun (closure : evt) (arg : evt) (state : evalstate) : evt =
     eval body { state with env = appl_env }
   | _ -> traise "Cannot apply a non functional value"
 
-and eval_assignment state (islazy, name, value) : evalstate =
-  let nval =
-    if islazy then  LazyExpression value else
+and eval_assignment state (islazy,name,value)  =
+  if islazy then (name, LazyExpression value) else
     (match value with
     | Lambda(param, fbody) ->
         let rec_env = Dict.insert state.env name (Closure (Some name, param, fbody, state.env)) in
-        eval value { state with env = rec_env }
-    | _ -> eval value state) in
-    { state with env = (Dict.insert state.env name nval) }
+        name, eval value { state with env = rec_env }
+    | _ -> name, eval value state)
 
 and eval_assignment_list assignment_list state : evalstate =
   match assignment_list with
   | [] -> state
   | (islazy, name, value)::xs ->
-    let newstate = eval_assignment state (islazy, name, value) in
-    (eval_assignment_list xs newstate)
+    let _, nval = eval_assignment state (islazy, name, value) in
+    (eval_assignment_list xs { state with env = (Dict.insert state.env name nval) })
 
 and eval_command command state dirscope =
   if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow
       "AST equivalent" (Printf.sprintf "\n%s"
-      (show_command command)) else ();
+                          (show_command command)) else ();
   match command with
   | Directive dir -> eval_directive dir state dirscope
   | Expr e ->
     (* Infer the expression purity and evaluate if appropriate to the current state *)
     let exprpurity = Puritycheck.infer e state in
     if (state.purity = Pure || state.purity = Numerical) && exprpurity = Impure then
-    iraises (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
-      " expression but it is in " ^ (show_puret state.purity) ^ " state!")) state.stack else ();
+      iraises (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
+                            " expression but it is in " ^ (show_puret state.purity) ^ " state!")) state.stack else ();
     if state.verbosity >= 1 then Printf.eprintf "Has purity: %s\n%!" (show_puret exprpurity) else ();
     (* Normalize the expression *)
     let optimized_ast = Optimizer.iterate_optimizer e in
     (* If the expression is NOT already in normal state, print the optimized one if verbosity is enough *)
     if optimized_ast = e then () else
     if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization"
-    (Printf.sprintf "\n%s" (show_expr optimized_ast)) else ();
+        (Printf.sprintf "\n%s" (show_expr optimized_ast)) else ();
     (* Evaluate the expression *)
     let evaluated = eval optimized_ast state in
     (* Print it in its raw form if verbosity is enabled *)
@@ -197,7 +199,7 @@ and eval_command command state dirscope =
     (* Print the definitions if verbosity is enough and they were optimized *)
     if ovall = vall then () else
     if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization"
-    (Printf.sprintf "\n%s" (show_command (Def odl))) else ();
+        (Printf.sprintf "\n%s" (show_command (Def odl))) else ();
     let newstate = eval_assignment_list odl new_purity_state in
     (EvtUnit, newstate )
 
@@ -208,25 +210,25 @@ and eval_command_list cmdlst state dirscope =
 
 and eval_directive dir state dirscope =
   match dir with
-    | Dumpenv -> Printf.eprintf "<env>: %s\n%!" (show_env_type state.env); (EvtUnit, state)
-    | Dumppurityenv -> Printf.eprintf "<purity_env>: %s\n%!" (show_purityenv_type state.purityenv); (EvtUnit, state)
-    | Includefileasmodule (f, m) ->
-      let modulename = (match m with
+  | Dumpenv -> Printf.eprintf "<env>: %s\n%!" (show_env_type state.env); (EvtUnit, state)
+  | Dumppurityenv -> Printf.eprintf "<purity_env>: %s\n%!" (show_purityenv_type state.purityenv); (EvtUnit, state)
+  | Includefileasmodule (f, m) ->
+    let modulename = (match m with
         | Some m -> m
         | None -> Filename.remove_extension f |> Filename.basename |> String.capitalize_ascii) in
-      let file_in_scope = if not (Filename.is_relative f) then f else
-      Filename.concat (dirscope) f in
-      let _, resulting_state = eval_command_list (read_file (Parser.file Lexer.token) file_in_scope)
+    let file_in_scope = if not (Filename.is_relative f) then f else
+        Filename.concat (dirscope) f in
+    let _, resulting_state = eval_command_list (read_file (Parser.file Lexer.token) file_in_scope)
         { state with env = []; purityenv = [] } dirscope in
-      let newmodule = EvtDict resulting_state.env in
-      (EvtUnit, { state with env = (Dict.insert state.env modulename newmodule ) })
-    | Includefile f ->
-      let file_in_scope = if not (Filename.is_relative f) then f else
-      Filename.concat (dirscope) f in
-      (* Eval the file contents *)
-      eval_command_list (read_file (Parser.file Lexer.token) file_in_scope) state dirscope
-    | Setpurity p ->
-      if state.verbosity >= 1 then
+    let newmodule = EvtDict resulting_state.env in
+    (EvtUnit, { state with env = (Dict.insert state.env modulename newmodule ) })
+  | Includefile f ->
+    let file_in_scope = if not (Filename.is_relative f) then f else
+        Filename.concat (dirscope) f in
+    (* Eval the file contents *)
+    eval_command_list (read_file (Parser.file Lexer.token) file_in_scope) state dirscope
+  | Setpurity p ->
+    if state.verbosity >= 1 then
       Printf.eprintf "%s%!" (show_puret state.purity) else ();
-      (EvtUnit, { state with purity = p })
-    | Setverbose v -> (EvtUnit, { state with verbosity = v})
+    (EvtUnit, { state with purity = p })
+  | Setverbose v -> (EvtUnit, { state with verbosity = v})
