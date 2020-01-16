@@ -1,6 +1,5 @@
 open Minicaml
 open Types
-open Repl
 open Eval
 open Util
 
@@ -25,7 +24,7 @@ let eval_one e state = fst (Minicaml.Eval.eval_command (Expr e) state Filename.c
 
 let quickcase (descr, case) = A.test_case descr `Quick case
 
-let parse str = match (read_one parser str) with
+let parse str = match List.hd (Parsedriver.read_one str) with
   | Expr e -> e
   | _ -> failwith "did not expect a definition here"
 
