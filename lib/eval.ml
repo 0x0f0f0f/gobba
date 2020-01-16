@@ -218,7 +218,7 @@ and eval_directive dir state dirscope =
         | None -> Filename.remove_extension f |> Filename.basename |> String.capitalize_ascii) in
     let file_in_scope = if not (Filename.is_relative f) then f else
         Filename.concat (dirscope) f in
-    let _, resulting_state = eval_command_list (read_file (Parser.file Lexer.token) file_in_scope)
+    let _, resulting_state = eval_command_list (Parsedriver.read_file file_in_scope)
         { state with env = []; purityenv = [] } dirscope in
     let newmodule = EvtDict resulting_state.env in
     (EvtUnit, { state with env = (Dict.insert state.env modulename newmodule ) })
@@ -226,7 +226,7 @@ and eval_directive dir state dirscope =
     let file_in_scope = if not (Filename.is_relative f) then f else
         Filename.concat (dirscope) f in
     (* Eval the file contents *)
-    eval_command_list (read_file (Parser.file Lexer.token) file_in_scope) state dirscope
+    eval_command_list (Parsedriver.read_file file_in_scope) state dirscope
   | Setpurity p ->
     if state.verbosity >= 1 then
       Printf.eprintf "%s%!" (show_puret state.purity) else ();

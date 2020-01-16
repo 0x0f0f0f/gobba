@@ -52,41 +52,30 @@
 %left EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
 %left DOT
 
-%start file
-%type <Types.command list> file
-
 %start toplevel
-%type <Types.command> toplevel
+%type <Types.command list> toplevel
 
 %%
 
+optterm_list(separator, X):
+  | separator? {[]}
+  | l=optterm_nonempty_list(separator, X) { l } 
+optterm_nonempty_list(separator, X):
+  | x = X separator? { [ x ] }
+  | x = X
+    separator
+    xs = optterm_nonempty_list(separator, X)
+     { x :: xs }
 
+toplevel: l = optterm_list(SEMISEMI, statement ); EOF { l }
 
-file:
-  | EOF
-    { [] }
-  | e = ast_expr EOF
-    { (Expr e) :: [] }
-  | e = ast_expr SEMISEMI lst = file
-    { Expr(e) :: lst }
-  | d = def SEMISEMI lst = file
-    { (Def d) :: lst }
-  | d = def EOF
-    { (Def d) :: [] }
-  | d = directive SEMISEMI lst = file
-  { (Directive d)::lst }
-  | d = directive EOF lst = file
-  { (Directive d)::lst }
-
-toplevel:
-  | d = directive
+statement:
+  | e = ast_expr
+    { Expr(e) }
+  | d = def 
+  { Def d  }
+  | d = directive 
   { Directive d }
-  | l = separated_list(SEMI, ast_expr) SEMISEMI? EOF
-  { Expr(Sequence(l)) }
-  | d = def SEMISEMI? EOF
-  { Def d }
-  | d = ast_expr SEMISEMI? EOF
-  { Expr d }
 
 assignment:
   | name = SYMBOL EQUAL value = ast_expr
@@ -123,47 +112,47 @@ ast_expr:
   { e }
   | l = delimited(LPAREN, separated_nonempty_list(SEMI, ast_expr), RPAREN)
   { Sequence l }
-  | e = ast_expr CONS ls = ast_expr
+  | e = ast_expr; CONS ls = ast_expr
   { Binop(Cons, e, ls) }
   | NOT e1 = ast_expr
   { Not e1}
-  | e1 = ast_expr ATSIGN e2 = ast_expr
+  | e1 = ast_expr; ATSIGN; e2 = ast_expr
   { Apply(Apply(Symbol "nth", e2), e1) }
-  | e1 = ast_expr CONCAT e2 = ast_expr
+  | e1 = ast_expr; CONCAT; e2 = ast_expr
   { Binop(Concat, e1, e2) }
-  | e1 = ast_expr LAND e2 = ast_expr
+  | e1 = ast_expr; LAND; e2 = ast_expr
   { Binop(And, e1, e2)}
-  | e1 = ast_expr OR e2 = ast_expr
+  | e1 = ast_expr; OR; e2 = ast_expr
   { Binop(Or, e1, e2)}
-  | e1 = ast_expr PLUS e2 = ast_expr
+  | e1 = ast_expr; PLUS; e2 = ast_expr
   { Binop(Plus, e1, e2) }
-  | e1 = ast_expr MINUS e2 = ast_expr
+  | e1 = ast_expr; MINUS; e2 = ast_expr
   { Binop(Sub, e1, e2) }
-  | e1 = ast_expr TIMES e2 = ast_expr
+  | e1 = ast_expr; TIMES; e2 = ast_expr
   { Binop(Mult, e1, e2) }
-  | e1 = ast_expr DIV e2 = ast_expr
+  | e1 = ast_expr; DIV; e2 = ast_expr
   { Binop(Div, e1, e2) }
-  | e1 = ast_expr EQUAL e2 = ast_expr
+  | e1 = ast_expr; EQUAL; e2 = ast_expr
   { Binop(Eq, e1, e2) }
-  | e1 = ast_expr DIFFER e2 = ast_expr
+  | e1 = ast_expr; DIFFER; e2 = ast_expr
   { Not(Binop(Eq, e1, e2)) }
-  | e1 = ast_expr GREATER e2 = ast_expr
+  | e1 = ast_expr; GREATER; e2 = ast_expr
   { Binop(Gt, e1, e2) }
-  | e1 = ast_expr LESS e2 = ast_expr
+  | e1 = ast_expr; LESS; e2 = ast_expr
   { Binop(Lt, e1, e2) }
-  | e1 = ast_expr GREATEREQUAL e2 = ast_expr
+  | e1 = ast_expr; GREATEREQUAL; e2 = ast_expr
   { Binop(Ge, e1, e2) }
-  | e1 = ast_expr LESSEQUAL e2 = ast_expr
+  | e1 = ast_expr; LESSEQUAL; e2 = ast_expr
   { Binop(Le, e1, e2) }
-  | IF g = ast_expr THEN b = ast_expr ELSE e = ast_expr
+  | IF g = ast_expr; THEN b = ast_expr; ELSE e = ast_expr
   { IfThenElse (g, b, e)}
   | d = def IN body = ast_expr
   { Let (d, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
   { lambda_from_paramlist params body }
-  | e1 = ast_expr COMPOSE e2 = ast_expr
+  | e1 = ast_expr; COMPOSE; e2 = ast_expr
   { Binop(Compose, e1, e2) }
-  | e1 = ast_expr PIPE  e2 = ast_expr
+  | e1 = ast_expr; PIPE  e2 = ast_expr
   { Binop(Compose, e2, e1) }
 
 ast_app_expr:
@@ -179,9 +168,9 @@ ast_simple_expr:
   { Unit }
   | DOLLAR e = ast_expr
   { e }
-  | LPAREN e = ast_expr RPAREN
+  | LPAREN e = ast_expr; RPAREN
   { e }
-  | e = ast_simple_expr COLON s = SYMBOL
+  | e = ast_simple_expr; COLON s = SYMBOL
   { Binop(Getkey, e, Symbol(s)) }
   | PURE e = ast_expr
   { Purity (Pure, e)}

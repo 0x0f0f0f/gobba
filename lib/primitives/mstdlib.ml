@@ -8,7 +8,7 @@ since primitives in the standard library should not be able to access external v
 TODO: compute at compile time *)
 let closurize name str =
    try
-      (match (parser (Lexing.from_string (str ^ "\n"))) with
+      (match (List.hd (parser (Lexing.from_string (str ^ "\n")))) with
       | Expr(Lambda(p, body)) -> LazyExpression (Lambda(p, body))
       | _ -> failwith "standard library definition error")
    with
