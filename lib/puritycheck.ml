@@ -22,7 +22,9 @@ let rec infer e state : puret =
     let apl = List.map inferp ls in
     List.fold_left level_purity Numerical apl in
   match e with
-  | NumInt _ | NumFloat _ | NumComplex _ -> Numerical
+  | NumInt _ | NumFloat _ | NumComplex _ | Unit -> Numerical
+  | Boolean _ | String _ -> Pure
+  | Not a -> inferp a 
   (* Expressions with lists of expressions *)
   | List l | Sequence l -> inferpl l
   (* Dictionaries contain key value pairs, level them out *)
@@ -33,7 +35,9 @@ let rec infer e state : puret =
       " context from a " ^ (show_puret state.purity) ^ " one!"))
       else infer body { state with purity = allowed }
   (* Infer from all the binary operators *)
-  | Compose (a, b) | Plus (a, b) | Sub (a, b)
+  | Compose (a, b) | Plus (a, b) | Sub (a, b) | Cons (a, b)
+  | Concat (a, b) | Eq (a, b) | Lt (a, b) | Ge (a, b) | Le (a, b)
+  | Gt (a, b) | And (a, b) | Or (a, b)
   | Mult (a, b) | Div (a, b) -> inferp2 a b
   | Lambda(_, b) -> infer b state
   | IfThenElse(g, t, f) ->
@@ -57,7 +61,6 @@ let rec infer e state : puret =
           (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))
           state.stack
       else purity
-  | _ -> Pure
 
 and lookup (name: ide) (state: evalstate) : puret =
   match Dict.get name Primitives.purity_table with
