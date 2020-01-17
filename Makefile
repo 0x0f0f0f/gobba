@@ -24,10 +24,12 @@ test:
 	dune build -j $(JOBS)
 	dune build @install
 	GOBBA_EXAMPLES=$(realpath ./examples/) dune runtest -f
-	bisect-ppx-report -html coverage/ -coveralls coverage.json -repo-token $(COVERALLS_TOKEN) -I _build/default _build/default/test/bisect*.out
-	if [ -n "$(UPLOAD_COVERAGE)" ]; then \
-		echo "$(UPLOAD_COVERAGE)"; \
+	if [ -n "$(COVERALLS_TOKEN)" ]; then \
+		echo "Uploading to coveralls..."; \
+		bisect-ppx-report -html coverage/ -coveralls coverage.json -repo-token $(COVERALLS_TOKEN) -I _build/default _build/default/test/bisect*.out; \
 		curl -L -F json_file=@./coverage.json  https://coveralls.io/api/v1/jobs; \
+	else \
+		bisect-ppx-report -html coverage/ -I _build/default _build/default/test/bisect*.out; \
 	fi
 
 run:
