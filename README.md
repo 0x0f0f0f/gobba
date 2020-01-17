@@ -99,10 +99,10 @@ Integer division returns an integer if the modulo is 0, and returns a float
 otherwise. Floating point numbers decimal part can be omitted if it is 0.
 Floating point numbers can use the power syntax using `e`.
 ```ocaml
-1 + 2 + 3 * (4 - 1) ;;
-1 + 4.0 - 1. / 2.315 ;;
-1.2e-3 ;;
-true && false || (1 < 2) && (1 = 1) ;;
+1 + 2 + 3 * (4 - 1) ;
+1 + 4.0 - 1. / 2.315 ;
+1.2e-3 ;
+true && false || (1 < 2) && (1 = 1) ;
 ```
 
 
@@ -116,8 +116,8 @@ Global declaration statements create new, purely functional environments in both
 programs and the REPL. Omitting `in` is syntax-sugar, subsequent blocks will
 be evaluated in the resulting new environment.
 ```ocaml
-let a = 2 ;;
-x + 3 ;;
+let a = 2 ;
+x + 3 ;
 ```
 
 ### Toplevel Directives
@@ -147,8 +147,8 @@ will be wrapped in a dictionary, that acts as a module:
 The `:+` and `:-` operators are used to create complex values, the floating point number
 on the left is the real part and the one on the right is the imaginary part.
 ```ocaml
-12. :+ 1.12;;
-0. :- 1.12;;
+12. :+ 1.12;
+0. :- 1.12;
 ```
 
 ### Strings and Lists
@@ -169,8 +169,8 @@ To convert any value to a string you can use the `show` primitive.
 To access nth value of a list, the `@` (at) operator is used. Lists are indexed from 0.
 
 ```ocaml
-[1; 2; 3; 4] @ 0 (* => 1 *)
-[1; 2; 3; 4] @ 2 (* => 3 *)
+[1, 2, 3, 4] @ 0 (* => 1 *)
+[1, 2, 3, 4] @ 2 (* => 3 *)
 ```
 
 
@@ -178,7 +178,7 @@ To access nth value of a list, the `@` (at) operator is used. Lists are indexed 
 For parsing simplicity, only the OCaml anonymous function style of declaring
 functions is supported. The keyword `fun` is interchangeable with `lambda`.  
 ```ocaml
-(fun x -> x + 1) 1;;
+(fun x -> x + 1) 1;
 let fib = fun n -> if n < 2 then n else (fib (n - 1)) + fib (n - 2)
 ```
 
@@ -186,13 +186,13 @@ Functions are abstracted into a single parameter chain of functions, and they
 can be partially applied:
 
 ```ocaml
-(fun x y z -> x + y + z) = (fun x -> fun y -> fun z -> x + y + z) ;;
+(fun x y z -> x + y + z) = (fun x -> fun y -> fun z -> x + y + z) ;
 (* result: true - bool - This is true!! *)
 
-let f = (fun x y z -> x + y + z) in f 1 2 3 ;;
+let f = (fun x y z -> x + y + z) in f 1 2 3 ;
 (* result: 6 - int - Function application *)
 
-let f = (fun x y z -> x + y + z) in f 1 2 ;;
+let f = (fun x y z -> x + y + z) in f 1 2 ;
 (* result: (fun z -> ... ) - fun - Partial application *)
 ```
 
@@ -210,12 +210,12 @@ lexical scope **outside** of the dictionary.
 
 
 ```ocaml
-let n = {hola = 1; lazy mondo = 2; somefunc = fun x -> x + 1 } ;;
-let m = Dict:insert "newkey" 123 n ;;
-m = {newkey = 123; hola = 1; mondo = 2; somefunc = fun x -> x + 1 } (* => true *)
+let n = {hola = 1, lazy mondo = 2, somefunc = fun x -> x + 1 } ;
+let m = Dict:insert "newkey" 123 n ;
+m = {newkey = 123, hola = 1, mondo = 2, somefunc = fun x -> x + 1 } (* => true *)
 Dict:haskey "newkey" m (* => true *)
 map (fun x -> x + 1) m
-(* => {newkey = 124; hola = 2; mondo = 3} *)
+(* => {newkey = 124, hola = 2, mondo = 3} *)
 ```
 
 An element of a dictionary can be accessed using the `:` infix operator.
@@ -254,26 +254,26 @@ your code as purely functional as you can.
 let bad_function = fun x ->
     impure (let mystring =
         "I am a bad impure function! Also: " ++ x in
-        IO:print_endline mystring );;
+        IO:print_endline mystring );
 
 let good_function = fun x ->
-    IO:print_endline ("I am a good function! Also: " ++ x) ;;
+    IO:print_endline ("I am a good function! Also: " ++ x) ;
 
-bad_function "hello!" ;;
+bad_function "hello!" ;
 (* The above statement is causing side effects and will error *)
 
-good_function "hello! I should error" ;;
+good_function "hello! I should error" ;
 (* The above will error, because it is trying to execute
 an impure computation in a pure environment
 Here's a good way of calling it *)
-impure $ good_function "hello!" ;;
+impure $ good_function "hello!" ;
 
 (* You can specify that you DO NOT want to compute impure
 expressions by using the pure statement *)
-pure $ good_function "henlo world! I should error" ;;
+pure $ good_function "henlo world! I should error" ;
 (* The above will error because
 it contains an impure computation*)
-pure $ bad_function "ciao mondo! I should error" ;;
+pure $ bad_function "ciao mondo! I should error" ;
 (* The above will error because a pure contest
 does not allow nesting an impure contest inside *)
 ```
@@ -287,16 +287,19 @@ of `impure` statements
 You can redirect the result of a function to the first argument of another
 function using the `>=>` operator.
 ```ocaml
-let sum_and_add_one = (fun x y -> x + y) >=> (fun z -> z + 1) ;;
+let sum_and_add_one = (fun x y -> x + y) >=> (fun z -> z + 1) ;
 sum_and_add_one 2 3
 (* Will output 6, because 2 + 3 is piped into z + 1*)
 ```
 Yields the same result as normal composition:
 ```ocaml
-let my_sum = (fun x y -> x + y) ;;
-let add_one = (fun z -> z + 1) ;;
-(add_one <=< my_sum) 2 3 = add_one (my_sum 2 3) ;;
+let my_sum = (fun x y -> x + y) ;
+let add_one = (fun z -> z + 1) ;
+(add_one <=< my_sum) 2 3 = add_one (my_sum 2 3) ;
 (* The operator <=< means compose *)
-(add_one <=< my_sum) = (my_sum >=> add_one) ;;
+(add_one <=< my_sum) = (my_sum >=> add_one) ;
 (* This is also true! *)
 ```
+
+### Sequencing (>>) operator
+TODO

@@ -9,7 +9,6 @@
 %token <string> STRING
 %token UNIT
 %token <bool> BOOLEAN
-%token DOT
 %token NOT
 %token LAND
 %token OR
@@ -32,16 +31,17 @@
 %token LPAREN RPAREN
 %token AND
 %token LET LAZY IN
+%token BIND
 %token PIPE COMPOSE
 %token PURE IMPURE
 %token DOLLAR
-%token SEMISEMI
 %token <string> DIRECTIVE
 %token EOF
 
 /* Associativity of operators */
 
 %left PIPE
+%left BIND
 %nonassoc LAMBDA LARROW
 %nonassoc IF THEN ELSE
 %left LAND OR
@@ -50,7 +50,6 @@
 %left TOPOWER
 %left DIV
 %left EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
-%left DOT
 
 %start toplevel
 %type <Types.command list> toplevel
@@ -67,7 +66,7 @@ optterm_nonempty_list(separator, X):
     xs = optterm_nonempty_list(separator, X)
      { x :: xs }
 
-toplevel: l = optterm_nonempty_list(SEMISEMI, statement ); EOF { l }
+toplevel: l = optterm_nonempty_list(SEMI, statement ); EOF { l }
 
 statement:
   | e = ast_expr
@@ -110,12 +109,12 @@ directive:
 ast_expr:
   | e = ast_app_expr
   { e }
-  | l = delimited(LPAREN, separated_nonempty_list(SEMI, ast_expr), RPAREN)
-  { Sequence l }
   | e = ast_expr; CONS ls = ast_expr
   { Binop(Cons, e, ls) }
   | NOT e1 = ast_expr
   { Not e1}
+  | e1 = ast_expr; BIND; e2 = ast_expr
+  { Sequence(e1, e2) }
   | e1 = ast_expr; ATSIGN; e2 = ast_expr
   { Apply(Apply(Symbol "nth", e2), e1) }
   | e1 = ast_expr; CONCAT; e2 = ast_expr
@@ -176,9 +175,9 @@ ast_simple_expr:
   { Purity (Pure, e)}
   | IMPURE e = ast_expr
   { Purity (Impure, e)}
-  | l = delimited(LSQUARE, separated_list(SEMI, ast_expr), RSQUARE)
+  | l = delimited(LSQUARE, separated_list(COMMA, ast_expr), RSQUARE)
   { List l }
-  | l = delimited(LBRACKET, separated_list(SEMI, assignment), RBRACKET)
+  | l = delimited(LBRACKET, separated_list(COMMA, assignment), RBRACKET)
   { Dict l }
   | b = BOOLEAN
   { Boolean b }

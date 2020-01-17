@@ -8,7 +8,7 @@ let read_toplevel () =
       ~prompt:prompt
       ~brackets:[('(', ')'); ('[',']');  ('{','}')]
       ~strings:['"']
-      ";;" in
+      ";" in
   Parsedriver.read_one str
 
 let run_one = Eval.eval_command

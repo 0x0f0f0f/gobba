@@ -1,3 +1,10 @@
+## 0.4.1 2020-01-17
+- Renamed project from minicaml to `gobba`!
+- Syntax is now more haskel-ly: use `,` to separate list and dictionary values,
+  use `>>` to sequence operations (bind) and use `;` to end statements.
+- Improved purity inference algorithm with correct module inference
+- Some minor improvements
+
 ## 0.4 2020-01-16
 - Multiline REPL
 - New dictionary syntax

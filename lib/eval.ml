@@ -62,16 +62,9 @@ let rec eval (e : expr) (state : evalstate) : evt =
           | Some p -> p) in
       (try prim eargs with InternalError (loc, err, _) -> raise (InternalError(loc, err, state.stack)))
     (* Eval a sequence of expressions but return the last *)
-    | Sequence exprl ->
-      let rec unroll el =
-        match el with
-        | [] -> EvtUnit
-        | [ x ] -> eval x state
-        | x :: xs ->
-          let _ = eval x state in
-          unroll xs
-      in
-      unroll exprl
+    | Sequence (e1, e2) ->
+      let _ = eval e1 state in
+      eval e2 state
   in
   if state.verbosity >= 2 then
     print_message ~color:T.Cyan ~loc:Nowhere "Evaluates to at depth" (Printf.sprintf "%d\n%s\n"
@@ -102,7 +95,7 @@ and eval_binop (k: binop) (x: expr) (y: expr) state =
      | TList, TList -> EvtList ((unpack_list ev1) @ (unpack_list ev2))
      | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
                                   (show_tinfo t1) (show_tinfo t2))) state.stack )
-  | Compose->
+  | Compose ->
     let ef1 = eval y state and ef2 = eval x state in
     stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
     let params1 = findevtparams ef1 in

@@ -23,7 +23,7 @@ test:
 	dune clean
 	dune build -j $(JOBS)
 	dune build @install
-	MINICAML_EXAMPLES=$(realpath ./examples/) dune runtest -f
+	GOBBA_EXAMPLES=$(realpath ./examples/) dune runtest -f
 	bisect-ppx-report -html coverage/ -coveralls coverage.json -repo-token $(COVERALLS_TOKEN) -I _build/default _build/default/test/bisect*.out
 	if [ -n "$(UPLOAD_COVERAGE)" ]; then \
 		echo "$(UPLOAD_COVERAGE)"; \

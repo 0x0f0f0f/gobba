@@ -11,9 +11,12 @@ type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
                     "%f:+%f" n.re n.im] [@equal (=)] [@compare compare]
 [@@deriving show { with_path = false }, eq, ord]
 
+(** An environment type containing identifier - purity couples *)
+type purityenv_type = (ide, puret) Util.Dict.t [@@deriving show,eq, ord]
 (** A type representing if a computation is pure or not  *)
-type puret =  Impure | Uncertain | Pure | Numerical
+and puret =  Impure | Uncertain | PurityModule of purityenv_type | Pure | Numerical
 [@@deriving show { with_path = false }, eq, ord]
+
 
 (** Contains a primitive's name, number of arguments and pureness *)
 type primitiveinfo = (ide * int * puret) [@@deriving show { with_path = false }, eq, ord]
@@ -46,7 +49,7 @@ type expr =
   | Lambda of ide * expr
   | Apply of expr * expr
   | ApplyPrimitive of primitiveinfo * expr list
-  | Sequence of expr list
+  | Sequence of expr * expr
 [@@deriving show { with_path = false }, eq, ord]
 
 (* Defines an assignment: laziness, name and value *)
@@ -203,8 +206,6 @@ let lambda_from_primitive prim =
     let lambdas = lambda_from_paramlist primargs (ApplyPrimitive((name, numparams, purity), symprimargs)) in
     lambdas
 
-(** An environment type containing identifier - purity couples *)
-type purityenv_type = (ide, puret) Util.Dict.t [@@deriving show]
 
 (** A recursive type representing a stacktrace frame *)
 type stackframe =

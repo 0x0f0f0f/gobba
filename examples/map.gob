@@ -1,0 +1,1 @@
+impure $ IO:print_endline $ map (fun x -> x * 2) [1, 2, 3, 4]

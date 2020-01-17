@@ -46,6 +46,6 @@ let checkfail exp  = A.(check_raises) exp (Failure("evaluation error"))
 
 let checkpurity exp expected = A.(check mypurity) exp expected (Puritycheck.infer (parse exp) state)
 
-let examples_path = Sys.getenv "MINICAML_EXAMPLES"
+let examples_path = Sys.getenv "GOBBA_EXAMPLES"
 
 let checkprogram fn expected = A.(check myevt) fn expected (fst (Repl.run_file (Filename.concat examples_path fn) state 20 true))

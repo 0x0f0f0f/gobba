@@ -55,7 +55,6 @@ rule token = parse
   | "}"         { RBRACKET }
   | ":"         { COLON }
   | ","         { COMMA }
-  | "."         { DOT }
   | "::"        { CONS }
   | "&&"        { LAND }
   | "||"        { OR }
@@ -73,11 +72,11 @@ rule token = parse
   | ">="        { GREATEREQUAL }
   | "<="        { LESSEQUAL }
   | "not"       { NOT }
+  | ">>"        { BIND }
   | ">=>"       { PIPE }
   | "<=<"       { COMPOSE }
   | "$"         { DOLLAR }
   | ";"         { SEMI }
-  | ";;"        { SEMISEMI }
   | symbol      { SYMBOL (Lexing.lexeme lexbuf) }
   | eof         { EOF }
   | _           { sraise lexbuf ("Unexpected symbol " ^ Lexing.lexeme lexbuf) }

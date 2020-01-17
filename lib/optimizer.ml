@@ -46,7 +46,9 @@ let rec optimize (e: expr) : expr = match e with
   (* Binary cases *)
   | Binop(kind, x, y) -> Binop(kind, optimize x, optimize y)
   | Apply(a, b) ->  Apply(optimize a, optimize b)
-  | Sequence(ls) -> Sequence (List.map optimize ls)
+  | Sequence(a, b) ->
+    let oa = optimize a and ob = optimize b in
+    Sequence (oa, ob)
   | ApplyPrimitive(p, ls) -> ApplyPrimitive(p, List.map optimize ls)
 and optimize_let declarations body =
   let od = List.map (fun (l, i, v) -> (l, i, optimize v)) declarations in

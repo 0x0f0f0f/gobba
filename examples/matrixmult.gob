@@ -4,7 +4,7 @@ let mapn = fun f lists ->
      []
     else
       f (map head lists) :: mapn f (map tail lists)
-  else [];;
+  else [] ;
 
 let matrix_multiply = fun m1 m2 ->
   map
@@ -14,19 +14,19 @@ let matrix_multiply = fun m1 m2 ->
          foldl (fun x y -> x + y) 0
           (map2 (fun x y -> x * y ) row column))
        m2)
-    m1;;
+    m1 ;
 
 let a = [
-  [1; 2];
-  [3; 4];
-  [5; 6]
-];;
+  [1, 2],
+  [3, 4],
+  [5, 6]
+] ;
 
 let b =
 [
-  [1; 2; 3];
-  [4; 5; 6]
-];;
+  [1, 2, 3],
+  [4, 5, 6]
+] ;
 
 
-impure $ IO:print_endline $ matrix_multiply a b;;
+impure $ IO:print_endline $ matrix_multiply a b ;

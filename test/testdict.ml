@@ -3,7 +3,7 @@ open Util
 
 module A = Alcotest
 
-let sample_dict = "{hello = \"world\"; apple = 314}"
+let sample_dict = "{hello = \"world\", apple = 314}"
 
 let test_dict () =
   check sample_dict (EvtDict([("hello", EvtString "world"); ( "apple", EvtInt 314)]));
@@ -35,16 +35,16 @@ let test_getkey () =
   checkfail ("Dict:getkey \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_map () =
-  check "map (fun x -> x + 1) {a=1;b=2;c=3;d=4}"
+  check "map (fun x -> x + 1) {a=1,b=2,c=3,d=4}"
     (EvtDict
        [(("a"), (EvtInt 2)); (("b"), (EvtInt 3));
         (("c"), (EvtInt 4)); (("d"), (EvtInt 5))]);
   checkfail "map \"fail\" \"fail\" \"fail\""
 
 let test_fold () =
-  check "foldl (fun acc x -> x + acc) 10 {a= 1; b= 2; c= 3; d= 4}" (EvtInt 20);
-  check "foldl (fun x y -> x - y) 10 {a=1; b=2; c=3}" (EvtInt 4);
-  check "foldr (fun x y -> x - y) 10 {a=1; b=2; c=3}" (EvtInt (-8));
+  check "foldl (fun acc x -> x + acc) 10 {a= 1, b= 2, c= 3, d= 4}" (EvtInt 20);
+  check "foldl (fun x y -> x - y) 10 {a=1, b=2, c=3}" (EvtInt 4);
+  check "foldr (fun x y -> x - y) 10 {a=1, b=2, c=3}" (EvtInt (-8));
   checkfail "foldl \"fail\" \"fail\"  \"fail\" 0"
 
 let test_filterkeys () =
@@ -53,7 +53,7 @@ let test_filterkeys () =
   checkfail ("filterkeys \"doesntexist\" " ^ sample_dict ^ " " ^ sample_dict)
 
 let test_filter () =
-  check "filter (fun x -> x > 3) {a=1;b=2;c=3;d=4}"
+  check "filter (fun x -> x > 3) {a=1,b=2,c=3,d=4}"
     (EvtDict [(("d"), (EvtInt 4))])
 
 let test_suite = List.map quickcase [

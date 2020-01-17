@@ -48,6 +48,6 @@ step that is done in evaluating an expression.|} in
     `S Manpage.s_bugs;
     `P "Email bug reports to <sudo-woodo3@protonmail.com>"
   ] in
-  Term.info "gobba" ~version:"0.4" ~doc ~exits:Term.default_exits ~man
+  Term.info "gobba" ~version:"0.4.1" ~doc ~exits:Term.default_exits ~man
 
 let () = Term.exit @@ Term.eval (run_gobba_t, info)

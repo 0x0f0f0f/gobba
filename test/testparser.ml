@@ -33,12 +33,12 @@ let test_arithmetic () =
 
 let test_lists () =
   checkparse "[]" (List []);
-  checkparse "[1;2;3]" (List [NumInt 1; NumInt 2; NumInt 3]);
-  checkparse "[1;2;[1;2;3]]" (List [NumInt 1; NumInt 2; List [NumInt 1; NumInt 2; NumInt 3]])
+  checkparse "[1,2,3]" (List [NumInt 1; NumInt 2; NumInt 3]);
+  checkparse "[1,2,[1,2,3]]" (List [NumInt 1; NumInt 2; List [NumInt 1; NumInt 2; NumInt 3]])
 
 let test_dicts () =
   checkparse "{}" (Dict []);
-  checkparse "{a = 1; b = [1; 2; 3]; abcde = fun x -> x}"
+  checkparse "{a = 1, b = [1, 2, 3], abcde = fun x -> x}"
     (Dict
        [(false, "a", (NumInt 1));
         (false, "b", (List [(NumInt 1); (NumInt 2); (NumInt 3)]));
@@ -49,31 +49,30 @@ let test_dicts () =
 
 
 let test_random_hell () =
-  checkparse "[(20; (); ([0; ([]; []; [1]; let f = fun n -> if n < 2 then n else f(n - 1) in f 3)])); [30; 40; 50]; 2]"
-   (List
-      [(Sequence
-          [(NumInt 20); Unit;
-            (List
-               [(NumInt 0);
-                 (Sequence
-                    [(List []); (List []); (List [(NumInt 1)]);
-                      (Let (
-                         [(false, "f",
-                           (Lambda ("n",
-                              (IfThenElse (
-                                 (Binop (Lt, (Symbol "n"), (NumInt 2))),
-                                 (Symbol "n"),
-                                 (Apply ((Symbol "f"),
-                                    (Binop (Sub, (Symbol "n"), (NumInt 1)))))
-                                 ))
-                              )))
-                           ],
-                         (Apply ((Symbol "f"), (NumInt 3)))))
-                      ])
-                 ])
-            ]);
+  checkparse "[(20 >> () >> ([0, ([] >> [] >> [1] >> let f = fun n -> if n < 2 then n else f(n - 1) in f 3)])), [30, 40, 50], 2]"
+  (List
+      [(Sequence ((Sequence ((NumInt 20), Unit)),
+          (List
+             [(NumInt 0);
+               (Sequence (
+                  (Sequence ((Sequence ((List []), (List []))),
+                     (List [(NumInt 1)]))),
+                  (Let (
+                     [(false, "f",
+                       (Lambda ("n",
+                          (IfThenElse (
+                             (Binop (Lt, (Symbol "n"), (NumInt 2))),
+                             (Symbol "n"),
+                             (Apply ((Symbol "f"),
+                                (Binop (Sub, (Symbol "n"), (NumInt 1)))))
+                             ))
+                          )))
+                       ],
+                     (Apply ((Symbol "f"), (NumInt 3)))))
+                  ))
+               ])
+          ));
         (List [(NumInt 30); (NumInt 40); (NumInt 50)]); (NumInt 2)])
-
 
 let test_misc_functions () =
   checkparse
