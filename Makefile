@@ -22,7 +22,9 @@ test:
 	dune build -j $(JOBS)
 	dune build @install
 	GOBBA_EXAMPLES=$(realpath ./examples/) dune runtest -f
-	@if [ -n "$$TRAVIS_JOB_ID" ]; then \
+	bisect-ppx-report -html coverage/ -I _build/default _build/default/test/bisect*.out;
+	# disabled coveralls upload because it is blocked 
+	#@if [ -n "$$TRAVIS_JOB_ID" ]; then \
 		echo "Uploading to coveralls..."; \
 		bisect-ppx-report -html coverage/ -coveralls coverage.json -service-name travis -service-job-id $$TRAVIS_JOB_ID -I _build/default _build/default/test/bisect*.out; \
 		curl -L -F json_file=@./coverage.json  https://coveralls.io/api/v1/jobs > /dev/null ; \
