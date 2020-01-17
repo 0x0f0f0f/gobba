@@ -1,4 +1,4 @@
-![https://travis-ci.org/0x0f0f0f/gobba.svg?branch=master](https://travis-ci.org/0x0f0f0f/gobba) [![Coverage Status](https://coveralls.io/repos/github/0x0f0f0f/gobba/badge.svg?branch=)](https://coveralls.io/github/0x0f0f0f/gobba?branch=)
+[![Build Status](https://travis-ci.org/0x0f0f0f/gobba.svg?branch=master)](https://travis-ci.org/0x0f0f0f/gobba) [![Coverage Status](https://coveralls.io/repos/github/0x0f0f0f/gobba/badge.svg?branch=)](https://coveralls.io/github/0x0f0f0f/gobba?branch=)
 # gobba
 
 **gobba** is a small, dynamically typed purely functional programming
@@ -66,8 +66,8 @@ are immutable by default!
 ### Command Line Options
 
 * `--help[=FMT] (default=auto)`:
-    Show this help in format FMT. The value FMT must be one of `auto',
-    `pager', `groff' or `plain'. With `auto', the format is `pager` or
+    Show this help in format FMT. The value FMT must be one of `auto`,
+    `pager`, `groff` or `plain`. With `auto', the format is `pager` or
     `plain' whenever the TERM env var is `dumb' or undefined.
 
 * `--internals`:
