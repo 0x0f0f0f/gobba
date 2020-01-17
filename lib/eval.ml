@@ -20,11 +20,11 @@ let uniqueorfail l =
 
 (** Evaluate an expression in an environment *)
 let rec eval (e : expr) (state : evalstate) : evt =
-  let state = { state with stack = push_stack state.stack e } in
+  let state = { state with stack = Estack.push_stack state.stack e } in
 
   if state.verbosity >= 2 then
     print_message ~color:T.Blue ~loc:Nowhere "Reduction at depth"
-      (Printf.sprintf "%d\nExpression:\n%s" (depth_of_stack state.stack) (show_expr e))
+      (Printf.sprintf "%d\nExpression:\n%s" (Estack.depth_of_stack state.stack) (show_expr e))
   else ();
   let evaluated =
     match e with
@@ -57,7 +57,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
       applyfun closure earg state
     | ApplyPrimitive ((name, _, _), args) ->
       let eargs = List.map (fun x -> eval x state) args in
-      let prim = get_primitive_function (match (Dict.get name Primitives.ocaml_table) with
+      let prim = Primitives.get_primitive_function (match (Dict.get name Primitives.ocaml_table) with
           | None -> iraise (Fatal "Unbound primitive. This should never happen")
           | Some p -> p) in
       (try prim eargs with InternalError (loc, err, _) -> raise (InternalError(loc, err, state.stack)))
@@ -67,9 +67,13 @@ let rec eval (e : expr) (state : evalstate) : evt =
       eval e2 state
   in
   if state.verbosity >= 2 then
-    print_message ~color:T.Cyan ~loc:Nowhere "Evaluates to at depth" (Printf.sprintf "%d\n%s\n"
-                                                                        (depth_of_stack state.stack)
-                                                                        (show_evt evaluated))
+    print_message
+      ~color:T.Cyan
+      ~loc:Nowhere
+      "Evaluates to at depth"
+      (Printf.sprintf "%d\n%s\n"
+         (Estack.depth_of_stack state.stack)
+         (show_evt evaluated))
   else ();
   evaluated
 
@@ -98,9 +102,9 @@ and eval_binop (k: binop) (x: expr) (y: expr) state =
   | Compose ->
     let ef1 = eval y state and ef2 = eval x state in
     stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
-    let params1 = findevtparams ef1 in
-    let appl1 = apply_from_exprlist (symbols_from_strings params1) y in
-    eval (lambda_from_paramlist params1 (Apply (x, appl1))) state
+    let params1 = Values.findevtparams ef1 in
+    let appl1 = Expr.apply_from_exprlist (Expr.symbols_from_strings params1) y in
+    eval (Expr.lambda_of_paramlist params1 (Apply (x, appl1))) state
 
   | Plus  ->  Numericalp.add [(eval x state); (eval y state)]
   | Sub  ->   Numericalp.sub [(eval x state); (eval y state)]
@@ -140,10 +144,10 @@ and applyfun (closure : evt) (arg : evt) (state : evalstate) : evt =
 and eval_assignment state (islazy,name,value)  =
   if islazy then (name, LazyExpression value) else
     (match value with
-    | Lambda(param, fbody) ->
-        let rec_env = Dict.insert state.env name (Closure (Some name, param, fbody, state.env)) in
-        name, eval value { state with env = rec_env }
-    | _ -> name, eval value state)
+     | Lambda(param, fbody) ->
+       let rec_env = Dict.insert state.env name (Closure (Some name, param, fbody, state.env)) in
+       name, eval value { state with env = rec_env }
+     | _ -> name, eval value state)
 
 and eval_assignment_list assignment_list state : evalstate =
   match assignment_list with
@@ -179,7 +183,7 @@ and eval_command command state dirscope =
     (* Print the fancy result if state.printresult is true *)
     if state.printresult then
       Printf.eprintf "result: %s - %s\n%!"
-        (show_unpacked_evt evaluated)
+        (Values.show_unpacked_evt evaluated)
         (show_tinfo (Typecheck.typeof evaluated))
     else ();
     (evaluated, state)

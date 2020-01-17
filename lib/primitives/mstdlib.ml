@@ -6,7 +6,7 @@ let parser = Parser.toplevel Lexer.token
 to be used as functions in the standard library. An empty environment is used
 since primitives in the standard library should not be able to access external values
 TODO: compute at compile time *)
-let closurize name str =
+let lambda_of_string name str =
    try
       (match (List.hd (parser (Lexing.from_string (str ^ "\n")))) with
       | Expr(Lambda(p, body)) -> LazyExpression (Lambda(p, body))
@@ -75,11 +75,35 @@ let foldrstr =
 |}
 
 
+let map2str =
+{| fun f l1 l2 ->
+   if typeof l1 = "list" && typeof l2 = "list" then
+      let aux = fun f l1 l2 ->
+         if length l1 != length l2 then
+            failwith "lists are not of equal length"
+         else if l1 = [] && l2 = [] then l1 else
+         (f (head l1) (head l2)) :: (aux f (tail l1) (tail l2))
+      in aux f l1 l2
+   else failwith "value is not iterable by map2"
+|}
+
+let mapnstr =
+{| fun f lists ->
+  if (not (lists = [])) then
+    if mem [] lists then
+     []
+    else
+      f (map head lists) :: mapn f (map tail lists)
+  else []
+|}
+
 let table =
-  [("map", (closurize "map" mapstr));
-   ("filter", (closurize "filter" filterstr));
-   ("foldl", (closurize "foldl" foldlstr));
-   ("foldr", (closurize "foldr" foldrstr))
+  [("map", (lambda_of_string "map" mapstr));
+   ("map2", (lambda_of_string "map2" map2str));
+   ("mapn", (lambda_of_string "mapn" mapnstr));
+   ("filter", (lambda_of_string "filter" filterstr));
+   ("foldl", (lambda_of_string "foldl" foldlstr));
+   ("foldr", (lambda_of_string "foldr" foldrstr))
   ]
 
 let purity_table = [("map", Pure); ("filter", Pure); ("foldl", Pure); ("foldr", Pure)]

@@ -1,6 +1,28 @@
 open Types
 
-let w table = List.map (fun (k, v) -> (k, LazyExpression (lambda_from_primitive v))) table
+
+(** Get the purity of a primitive *)
+let get_primitive_purity x = match x with
+  Primitive (_, (_, _, p)) -> p
+
+(** Get the actual function from a primitive type *)
+let get_primitive_function x = match x with
+  Primitive (f, _) -> f
+
+(** Get the information from a primitive type *)
+let get_primitive_info x = match x with
+  Primitive (_, i) -> i
+
+(** Generate a lambda from a native primitive *)
+let lambda_of_primitive prim =
+    let name, numparams, purity = get_primitive_info prim in
+    (* Generate a closure abstraction from a primitive *)
+    let primargs = Util.generate_prim_params numparams in
+    let symprimargs = Expr.symbols_from_strings primargs in
+    let lambdas = Expr.lambda_of_paramlist primargs (ApplyPrimitive((name, numparams, purity), symprimargs)) in
+    lambdas
+
+let w table = List.map (fun (k, v) -> (k, LazyExpression (lambda_of_primitive v))) table
 
 (* The plain table of primitive functions (key - name) *)
 let ocaml_table =

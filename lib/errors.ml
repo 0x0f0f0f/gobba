@@ -73,5 +73,5 @@ let print_message ?color:(color=T.Default) ?(loc=Nowhere) header contents =
 let print_error (loc, err, _) = print_message ~color:T.Red ~loc "Error" (show_internalerrort err)
 
 let print_stacktrace (_, _, s) maxdepth = print_message ~color:T.Red ~loc:Nowhere
-  "Stacktrace" ("\n" ^ (string_of_stack maxdepth s))
+  "Stacktrace" ("\n" ^ (Estack.string_of_stack maxdepth s))
 

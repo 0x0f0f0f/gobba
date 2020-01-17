@@ -113,3 +113,7 @@ let rec zip3 l1 l2 l3 =
   | (x::xs, y::ys, z::zs) -> (x,y,z)::(zip3 xs ys zs)
   | _ -> failwith "lists are not of equal length"
 
+(* Generate a list of parameter names to use in the primitive abstraction *)
+let generate_prim_params n =
+  if n = 0 then ["..."] else
+    Array.to_list(Array.make n 'a' |> Array.mapi (fun i c -> int_of_char c + i |> char_of_int |> Printf.sprintf "%c"))

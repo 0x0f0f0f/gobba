@@ -58,7 +58,7 @@
 
 optterm_list(separator, X):
   | separator? {[]}
-  | l=optterm_nonempty_list(separator, X) { l } 
+  | l=optterm_nonempty_list(separator, X) { l }
 optterm_nonempty_list(separator, X):
   | x = X separator? { [ x ] }
   | x = X
@@ -148,7 +148,7 @@ ast_expr:
   | d = def IN body = ast_expr
   { Let (d, body) }
   | LAMBDA params = SYMBOL+ LARROW body = ast_expr
-  { lambda_from_paramlist params body }
+  { Expr.lambda_of_paramlist params body }
   | e1 = ast_expr; COMPOSE; e2 = ast_expr
   { Binop(Compose, e1, e2) }
   | e1 = ast_expr; PIPE  e2 = ast_expr
@@ -175,9 +175,9 @@ ast_simple_expr:
   { Purity (Pure, e)}
   | IMPURE e = ast_expr
   { Purity (Impure, e)}
-  | l = delimited(LSQUARE, separated_list(COMMA, ast_expr), RSQUARE)
+  | l = delimited(LSQUARE, optterm_list(COMMA, ast_expr), RSQUARE)
   { List l }
-  | l = delimited(LBRACKET, separated_list(COMMA, assignment), RBRACKET)
+  | l = delimited(LBRACKET, optterm_list(COMMA, assignment), RBRACKET)
   { Dict l }
   | b = BOOLEAN
   { Boolean b }

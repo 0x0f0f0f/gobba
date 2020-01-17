@@ -18,7 +18,7 @@ let level_purity a b = match (a, b) with
   @param is_in_lambda If inside a lambda, the list of parameters
    *)
 let rec infer e state : puret =
-  let state = { state with stack = (push_stack state.stack e) } in
+  let state = { state with stack = (Estack.push_stack state.stack e) } in
   let inferp x = infer x state in
   let inferp2 a b = level_purity (inferp a) (inferp b) in
   let inferpl ls =
@@ -46,7 +46,7 @@ let rec infer e state : puret =
       iraise (PurityError ("Cannot enter an " ^ (show_puret allowed) ^
       " context from a " ^ (show_puret state.purity) ^ " one!"))
       else infer body { state with purity = allowed }
-  (* Infer from all the binary operators *)
+  (* Infer from all the other binary operators and sequences *)
   | Binop(_, a, b) | Sequence (a, b) -> inferp2 a b
   | Lambda(_, b) -> infer b { state with purity = Impure}
   | IfThenElse(g, t, f) ->

@@ -41,6 +41,6 @@ let table = [
   ("head",    Primitive (head, ("head", 1, Pure)));
   ("tail",    Primitive (tail, ("tail", 1, Pure)));
   ("mem",     Primitive (mem, ("mem", 2, Pure)));
-  ("length",  Primitive (length, ("length", 2, Pure)));
+  ("length",  Primitive (length, ("length", 1, Pure)));
   ("nth",      Primitive (getat, ("nth", 2, Pure)));
 ]

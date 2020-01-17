@@ -2,8 +2,8 @@ open Gobba.Types
 module A = Alcotest
 
 let test_stack_underflow () =
-  A.check_raises "stack underflow" (Failure "Stack underflow") (fun () -> let _ =
-                                                                            pop_stack EmptyStack in ())
+  A.check_raises "stack underflow" (Failure "Stack underflow")
+  (fun () -> let _ = Gobba.Estack.pop_stack EmptyStack in ())
 
 
 

@@ -4,14 +4,14 @@ open Errors
 let pprint_endline args =
   let x = (match args with
   | [EvtString x] -> x
-  | [x] -> show_unpacked_evt x
+  | [x] -> Values.show_unpacked_evt x
   | _ -> iraise WrongPrimitiveArgs) in
   Printf.printf "%s\n%!" x; EvtUnit
 
 let pprint args =
   let x = (match args with
   | [EvtString x] -> x
-  | [x] -> show_unpacked_evt x
+  | [x] -> Values.show_unpacked_evt x
   | _ -> iraise WrongPrimitiveArgs) in
   Printf.printf "%s%!" x; EvtUnit
 
