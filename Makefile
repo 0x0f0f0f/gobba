@@ -1,5 +1,3 @@
-COVERALLS_TOKEN := $(shell echo $$COVERALLS_TOKEN)
-UPLOAD_COVERAGE := $(shell echo $$UPLOAD_COVERAGE)
 MAKE_PID := $(shell echo $$PPID)
 JOBS := $(shell ps T | sed -n 's/.*$(MAKE_PID).*$(MAKE).* \(-j\|--jobs\) *\([0-9][0-9]*\).*/\2/p')
 ifeq ($(JOBS),)
@@ -24,10 +22,10 @@ test:
 	dune build -j $(JOBS)
 	dune build @install
 	GOBBA_EXAMPLES=$(realpath ./examples/) dune runtest -f
-	if [ -n "$(COVERALLS_TOKEN)" ]; then \
+	@if [ -n "$$TRAVIS_JOB_ID" ]; then \
 		echo "Uploading to coveralls..."; \
-		bisect-ppx-report -html coverage/ -coveralls coverage.json -repo-token $(COVERALLS_TOKEN) -I _build/default _build/default/test/bisect*.out; \
-		curl -L -F json_file=@./coverage.json  https://coveralls.io/api/v1/jobs; \
+		bisect-ppx-report -html coverage/ -coveralls coverage.json -service-name travis -service-job-id $$TRAVIS_JOB_ID -I _build/default _build/default/test/bisect*.out; \
+		curl -L -F json_file=@./coverage.json  https://coveralls.io/api/v1/jobs > /dev/null ; \
 	else \
 		bisect-ppx-report -html coverage/ -I _build/default _build/default/test/bisect*.out; \
 	fi
