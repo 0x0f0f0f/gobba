@@ -1,4 +1,4 @@
-open Minicaml.Types
+open Gobba.Types
 open Util
 
 module A = Alcotest

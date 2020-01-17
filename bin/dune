@@ -1,8 +1,8 @@
 (executable
     (name main)
-    (libraries minicaml cmdliner)
+    (libraries gobba cmdliner)
     (preprocess (pps ppx_deriving.show)))
 
 (install
     (section bin)
-    (files (main.exe as minicaml)))
+    (files (main.exe as gobba)))

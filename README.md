@@ -1,12 +1,12 @@
-![https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master](https://travis-ci.org/0x0f0f0f/minicaml.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/github/0x0f0f0f/minicaml/badge.svg?branch=)](https://coveralls.io/github/0x0f0f0f/minicaml?branch=)
-# minicaml
+![https://travis-ci.org/0x0f0f0f/gobba.svg?branch=master](https://travis-ci.org/0x0f0f0f/gobba.svg?branch=master) [![Coverage Status](https://coveralls.io/repos/github/0x0f0f0f/gobba/badge.svg?branch=)](https://coveralls.io/github/0x0f0f0f/gobba?branch=)
+# gobba
 
-**minicaml** is a small, dynamically typed purely functional programming
+**gobba** is a small, dynamically typed purely functional programming
 language. It is heavily inspired by the OCaml, Haskell and Scheme languages.
-**minicaml** was initially written as a midterm project for  the **Programming
+**gobba** was initially written as a midterm project for  the **Programming
 2** course at the University of Pisa, taught by Professors Gianluigi Ferrari and
 Francesca Levi. Therefore, it is based on the teachers'
-[minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml), a simple
+[gobba](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml), a simple
 evaluation example to show how interpreters work. Parsing and lexing are done
 with menhir and ocamllex ([learn
 more](https://v1.realworldocaml.org/v1/en/html/parsing-with-ocamllex-and-menhir.html)).
@@ -15,7 +15,7 @@ An LLVM compiler is planned for the next future.
 
 ## Documentation
 The internal documentation is available
-[here](https://0x0f0f0f.github.io/minicaml). Please note that the language at
+[here](https://0x0f0f0f.github.io/gobba). Please note that the language at
 the current status is in an experimental phase and therefore the specification
 is not complete, and will be constantly updated. The documentation may not be up
 to date with the latest features in the `master` branch.
@@ -23,9 +23,9 @@ to date with the latest features in the `master` branch.
 ## Installation
 To install, you need to have `opam` (OCaml's package manager) and a recent OCaml
 distribution installed on your system.
-You can install **minicaml** by running
+You can install **gobba** by running
 ```bash
-opam install minicaml
+opam install gobba
 ```
 
 [rlwrap](https://github.com/hanslub42/rlwrap) is suggested for a readline-like
@@ -35,9 +35,9 @@ opam install minicaml
 ### Manual installation
 ```bash
 # clone the repository
-git clone https://github.com/0x0f0f0f/minicaml
+git clone https://github.com/0x0f0f0f/gobba
 # cd into it
-cd minicaml
+cd gobba
 # install dependencies
 opam install dune menhir ANSITerminal cmdliner alcotest bisect_ppx ocamline
 # compile
@@ -48,19 +48,19 @@ make test
 make run
 # rlwrap is suggested
 rlwrap make run
-# you can install minicaml with
+# you can install gobba with
 make install
 # run again
-rlwrap minicaml
+rlwrap gobba
 ```
 
 ## Usage
 
-The executable name is `minicaml`. If a file is specified as the first command
+The executable name is `gobba`. If a file is specified as the first command
 line argument, then it will be ran as a program. If you are running a program you may want to use the flag `-p` to print the results of the expressions that are evaluated. Otherwise, if a program is not specified a REPL session will
 be opened.
 
-Keep in mind that **minicaml** is purely functional and values
+Keep in mind that **gobba** is purely functional and values
 are immutable by default!
 
 ### Command Line Options

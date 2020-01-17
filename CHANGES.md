@@ -7,7 +7,7 @@
 - Print the type in the REPL result
 - Directives on the toplevel: `#include filename` and `#import` to load and run files,
   `#verbose n` to set a verbosity level, `#pure`, `#impure` and `#uncertain` to set the global purity context.
-- Minicaml and OCaml Stack traces on errors!
+- Gobba and OCaml Stack traces on errors!
 - Removed the `let rec` and `let rec lazy` statements.
 - `lazy`-ness is now meant for each single assignment in a let statement, and they
   can be mixed; This is now valid: `let a = ... and lazy b = ... ;;`

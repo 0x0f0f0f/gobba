@@ -1,8 +1,8 @@
-open Minicaml
-open Minicaml.Types
+open Gobba
+open Gobba.Types
 open Cmdliner
 
-let run_minicaml verbose program printresult maxstackdepth ist =
+let run_gobba verbose program printresult maxstackdepth ist =
   Printexc.record_backtrace true; 
   let state = {
     env = (Util.Dict.empty());
@@ -37,17 +37,17 @@ let program =
   let doc = "The program that will be run. If a program is not provided, launch a REPL shell" in
   Arg.(value & pos 0 (some string) None & info [] ~docv:"PROGRAM_FILE" ~doc)
 
-let run_minicaml_t = Term.(const run_minicaml $ verbose $ program $ print_exprs $ maxstackdepth $ internalst)
+let run_gobba_t = Term.(const run_gobba $ verbose $ program $ print_exprs $ maxstackdepth $ internalst)
 
 let info =
   let doc =  String.map (fun c -> if c = '\n' then ' ' else c )
-      {| minicaml is a dynamically typed purely functional programming language,
+      {| gobba is a dynamically typed purely functional programming language,
 heavily inspired by OCaml, Haskell and Scheme. The REPL can show each reduction
 step that is done in evaluating an expression.|} in
   let man = [
     `S Manpage.s_bugs;
     `P "Email bug reports to <sudo-woodo3@protonmail.com>"
   ] in
-  Term.info "minicaml" ~version:"0.3.3" ~doc ~exits:Term.default_exits ~man
+  Term.info "gobba" ~version:"0.4" ~doc ~exits:Term.default_exits ~man
 
-let () = Term.exit @@ Term.eval (run_minicaml_t, info)
+let () = Term.exit @@ Term.eval (run_gobba_t, info)

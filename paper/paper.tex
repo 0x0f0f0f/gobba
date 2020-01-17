@@ -86,14 +86,14 @@ marginparwidth=1cm, marginparsep=0.4cm]{geometry}
 \newtheorem*{note}{Note}
 \newtheorem{caso}{Case}
 
-\title{Minicaml, a purely functional, didactical programming language\\WORK IN PROGRESS DRAFT}
+\title{Gobba, a purely functional, didactical programming language\\WORK IN PROGRESS DRAFT}
 \author{Alessandro Cheli\\Course taught by Prof. Gianluigi Ferrari\\and Prof. Francesca Levi}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-\textbf{minicaml} is a dynamically typed and purely functional interpreted
+\textbf{gobba} is a dynamically typed and purely functional interpreted
 programming language. It is based on the Professor Gianluigi Ferrari and
 Professor Francesca Levi's minicaml, an evaluation example to show students
 attending the Programming 2 course at the University of Pisa how interpreters
@@ -104,22 +104,22 @@ didactical REPL that shows each AST expression and each evaluation step.
 
 \section{REPL and command line interface}
 \subsection{Installation}
-\textbf{minicaml} is available in the opam 2.0 repository.
-(\url{https://opam.ocaml.org/}). The easiest way to install minicaml is with the
+\textbf{gobba} is available in the opam 2.0 repository.
+(\url{https://opam.ocaml.org/}). The easiest way to install gobba is with the
 OCaml package manager \textbf{opam}. To do so, please check that you have a version of opam $\geq$
 2.0.0 and run:
 \begin{lstlisting}[style=bash]
-opam install minicaml
+opam install gobba
 \end{lstlisting}
-Alternatively, \textbf{minicaml} can be installed from source by downloading the
-source code repository and building it manually. \textbf{minicaml} has been tested
+Alternatively, \textbf{gobba} can be installed from source by downloading the
+source code repository and building it manually. \textbf{gobba} has been tested
 only on Linux and macOS systems. It has not been tested yet on Windows and BSD
 derived systems.
 \begin{lstlisting}[style=bash]
 # download the source code
-git clone https://github.com/0x0f0f0f/minicaml
+git clone https://github.com/0x0f0f0f/gobba
 # cd into the source code directory
-cd minicaml
+cd gobba
 # install dependencies
 opam install ANSITerminal dune ppx_deriving menhir \\
   cmdliner alcotest bisect_ppx ocamline
@@ -145,7 +145,7 @@ documented using \textbf{Obelisk}, which generates a clean text file
 containing the language grammar, available in Appendix \ref{grammar}.
 
 \section{Purity Inference}
-An important feature of the minicaml language is the purity inference algorithm,
+An important feature of the gobba language is the purity inference algorithm,
 which is performed statically on expressions before evaluation. It is an interpretation of expressions over the domain of purity, meant to
 prevent side effects by signal an error if they are contained inside the
 programs written in the language. Expressions are tagged by the algorithm with
@@ -198,7 +198,7 @@ Boolean operations are reduced using laws from the propositional calculus, such 
 \section{Types}
 
 \section{Evaluator}
-\texttt{minicaml}'s evaluator is heavily inspired by the Metacircular Evaluator defined in the
+\texttt{gobba}'s evaluator is heavily inspired by the Metacircular Evaluator defined in the
 highly acclaimed textbook \textit{Structure and Interpretation of Computer Programs} \cite{Abelson1996}.
 
 \section{Primitives}
@@ -206,7 +206,7 @@ The language primitives that are implemented in OCaml are organized in modules
 separated by functionality. Each primitive is a function that accepts a list of
 evaluated values and returns a single reduced value; therefore they have a type
 of \texttt{evt list -> evt}. OCaml primitives have to perform internal
-typechecking and unpacking of the arguments they receive from the minicaml
+typechecking and unpacking of the arguments they receive from the gobba
 calls.
 
 From the evaluator's perspective, primitives are organized in a table
@@ -220,15 +220,15 @@ evaluator call. If a primitive is not found when looking up for a symbol, then a
 symbol lookup is performed in the current environment.
 
 Some primitives, such as catamorphic procedures, are not native OCaml functions
-but small expressions written directly in minicaml; those primitives are kept as
+but small expressions written directly in gobba; those primitives are kept as
 lazy expressions into the same table as native OCaml primitives. The key
-difference between the two resides in the fact that those textual minicaml
+difference between the two resides in the fact that those textual gobba
 primitives are not transformed into a function which body contains only an
 \texttt{ApplyPrimitive} call, but are instead parsed and analyzed at run time.
 The resulting additional startup time caused by parsing and analysis is
 proportional to the number of textual form primitives in the table and therefore
 quite irrelevant on non-embedded computer systems. The \textit{fold left} and
-\textit{fold right} catamorphic primitives are written directly in the minicaml
+\textit{fold right} catamorphic primitives are written directly in the gobba
 language and are hereby provided as examples.
 
 \begin{lstlisting}[style=caml,caption=The tail recursive left fold procedure]

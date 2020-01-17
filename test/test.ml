@@ -1,4 +1,4 @@
-open Minicaml.Types
+open Gobba.Types
 module A = Alcotest
 
 let test_stack_underflow () =
@@ -7,7 +7,7 @@ let test_stack_underflow () =
 
 
 
-let () = Printexc.record_backtrace true; A.run "minicaml" [
+let () = Printexc.record_backtrace true; A.run "gobba" [
     "stack", [
       A.test_case "stack underflow" `Quick test_stack_underflow;
       (*  A.test_case "stack overflow" `Quick test_stack_overflow *)

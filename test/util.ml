@@ -1,4 +1,4 @@
-open Minicaml
+open Gobba
 open Types
 open Eval
 open Util
@@ -20,7 +20,7 @@ let mypurity = Alcotest.testable pp_puret equal_puret
 
 
 
-let eval_one e state = fst (Minicaml.Eval.eval_command (Expr e) state Filename.current_dir_name)
+let eval_one e state = fst (Gobba.Eval.eval_command (Expr e) state Filename.current_dir_name)
 
 let quickcase (descr, case) = A.test_case descr `Quick case
 

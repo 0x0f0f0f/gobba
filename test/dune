@@ -1,4 +1,4 @@
 (test 
     (name test) 
-    (libraries minicaml alcotest)
-    (package minicaml))
+    (libraries gobba alcotest)
+    (package gobba))

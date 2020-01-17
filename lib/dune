@@ -1,6 +1,6 @@
 (library
- (name minicaml)
- (public_name minicaml)
+ (name gobba)
+ (public_name gobba)
  (libraries ANSITerminal ocamline menhirLib)
  (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord bisect_ppx -conditional)))
 
