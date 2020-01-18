@@ -26,7 +26,7 @@ let rec infer e state : puret =
     List.fold_left level_purity Numerical apl in
   match e with
   | NumInt _ | NumFloat _ | NumComplex _ | Unit -> Numerical
-  | Boolean _ | String _ -> Pure
+  | Boolean _ | String _ | Character _ -> Pure
   | Not a -> inferp a
   (* Expressions with lists of expressions *)
   | List l  -> inferpl l

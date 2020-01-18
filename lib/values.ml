@@ -6,6 +6,7 @@ let rec show_unpacked_evt e = match e with
   | EvtFloat v -> Printf.sprintf "%f" v
   | EvtComplex n -> show_complext n
   | EvtBool v -> string_of_bool v
+  | EvtChar c -> String.make 1 c
   | EvtString v -> "\"" ^ (String.escaped v) ^ "\""
   | EvtList l -> "[" ^ (String.concat ", " (List.map show_unpacked_evt l)) ^ "]"
   | EvtDict d -> "{" ^

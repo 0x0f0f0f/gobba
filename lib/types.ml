@@ -35,6 +35,7 @@ type expr =
   | NumInt of int
   | NumFloat of float
   | NumComplex of complext
+  | Character of char
   | Boolean of bool
   | String of string
   | Symbol of ide
@@ -82,6 +83,7 @@ type evt =
   | EvtFloat of float     [@compare compare]
   | EvtComplex of complext [@compare compare]
   | EvtBool of bool       [@equal (=)] [@compare compare]
+  | EvtChar of char
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
   | EvtDict of (ide * evt) list [@equal (=)]
@@ -102,6 +104,7 @@ and typeinfo =
   | TFloat
   | TComplex
   | TString
+  | TChar
   | TList
   | TDict
   | TLambda
@@ -114,6 +117,7 @@ let show_tinfo t = match t with
   | TFloat  -> "float"
   | TComplex -> "complex"
   | TString -> "string"
+  | TChar -> "char"
   | TList -> "list"
   | TDict -> "dict"
   | TLambda -> "fun"

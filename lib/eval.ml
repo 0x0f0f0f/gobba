@@ -35,6 +35,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
     | NumFloat n -> EvtFloat n
     | NumComplex n -> EvtComplex n
     | Boolean b -> EvtBool b
+    | Character c -> EvtChar c
     | String s -> EvtString s
     | Symbol x -> lookup x state
     | List x -> EvtList (List.map (fun x -> eval x state) x)

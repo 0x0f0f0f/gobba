@@ -3,7 +3,7 @@ open Types
 (** Normalize an AST expression *)
 let rec optimize (e: expr) : expr = match e with
   (* Redundant cases *)
-  | Unit | NumInt _ | NumFloat _ | NumComplex _
+  | Unit | NumInt _ | NumFloat _ | NumComplex _ | Character _ 
   | String _ | Symbol _ | Boolean _  -> e
   | Purity(_, b) -> optimize b
   | Binop(Eq, NumInt x, NumInt y) -> Boolean (x == y)

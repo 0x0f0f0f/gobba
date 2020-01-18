@@ -33,6 +33,7 @@ rule token = parse
   | "()"        { UNIT }
   | "true"      { BOOLEAN true }
   | "false"     { BOOLEAN false }
+  | '\''        { read_char ' ' 1 lexbuf }
   | '"'         { read_string (Buffer.create 17) lexbuf }
   | "fun"       { LAMBDA }
   | "lambda"    { LAMBDA }
@@ -100,3 +101,8 @@ and read_string buf = parse
   { Buffer.add_string buf (Lexing.lexeme lexbuf); read_string buf lexbuf }
   | _           { sraise lexbuf ("Illegal string character: " ^ Lexing.lexeme lexbuf) }
   | eof         { sraise lexbuf "Unterminated string" }
+and read_char mc count = parse
+  | '\''        { if count != 0 then sraise lexbuf "Malformed character literal"
+                  else CHAR mc}
+  | _ as c      { read_char c (count - 1) lexbuf }
+  | eof         { sraise lexbuf "Unterminated character" }

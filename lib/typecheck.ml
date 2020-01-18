@@ -12,6 +12,7 @@ let typeof e = match e with
   | EvtString _ -> TString
   | EvtList _ -> TList
   | EvtDict _ -> TDict
+  | EvtChar _ -> TChar
   | Closure (_, _, _, _) -> TLambda
   | LazyExpression _ -> TUnit
 
@@ -83,6 +84,7 @@ let unpack_int x = (match x with EvtInt i -> i | e -> terr "int" (show_tinfo (ty
 let unpack_float x = (match x with EvtFloat i -> i | e -> terr "float" (show_tinfo (typeof e)))
 let unpack_complex x = (match x with EvtComplex i -> i | e -> terr "complex" (show_tinfo (typeof e)))
 let unpack_bool x = (match x with EvtBool i -> i | e -> terr "bool" (show_tinfo (typeof e)))
+let unpack_char x = (match x with EvtChar i -> i | e -> terr "char" (show_tinfo (typeof e)))
 let unpack_string x = (match x with EvtString i -> i | e -> terr "string" (show_tinfo (typeof e)))
 let unpack_list x = (match x with EvtList i -> i | e -> terr "list" (show_tinfo (typeof e)))
 let unpack_dict x = (match x with EvtDict i -> i | e -> terr "dict" (show_tinfo (typeof e)))

@@ -6,6 +6,7 @@
 %token <int> INTEGER
 %token <float> FLOAT
 %token CPLUS CMIN
+%token <char> CHAR
 %token <string> STRING
 %token UNIT
 %token <bool> BOOLEAN
@@ -181,7 +182,9 @@ ast_simple_expr:
   { Dict l }
   | b = BOOLEAN
   { Boolean b }
-  | s = STRING
+  | c = CHAR
+  { Character c }
+    | s = STRING
   { String s }
   | n = INTEGER
   { NumInt n }

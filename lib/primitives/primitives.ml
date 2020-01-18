@@ -29,6 +29,7 @@ let ocaml_table =
   Numericalp.table @
   Dictp.table @
   Listp.table @
+  Charp.table @ 
   Stringp.table @
   Typep.table @
   Iop.table
@@ -37,6 +38,7 @@ let ocaml_table =
 let wrapped_ocaml_table =
   (w Numericalp.table) @
   ["Dict", EvtDict (w Dictp.table)] @
+  ["Char", EvtDict (w Charp.table)] @
   ["String", EvtDict (w Stringp.table)] @
   (w Listp.table) @
   (w Typep.table) @

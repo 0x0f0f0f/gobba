@@ -87,8 +87,6 @@ are immutable by default!
 * `--version`
     Show version information.
 
-
-
 ## Examples
 Check the `examples/` directory for some example programs.
 
@@ -150,6 +148,10 @@ on the left is the real part and the one on the right is the imaginary part.
 12. :+ 1.12;
 0. :- 1.12;
 ```
+
+### Character literals.
+The same as all the other languages: Single characters enclosed in `'` are character literals,
+such as `'a'` or `'\n'`. UTF-8 support is planned for a future release.
 
 ### Strings and Lists
 Here is how to concatenate strings
