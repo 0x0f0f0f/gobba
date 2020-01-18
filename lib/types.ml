@@ -11,8 +11,40 @@ type complext = Complex.t [@polyprinter fun fmt (n: Complex.t) -> fprintf fmt
                     "%f:+%f" n.re n.im] [@equal (=)] [@compare compare]
 [@@deriving show { with_path = false }, eq, ord]
 
+
+(** A type containing all the types that a values can assume *)
+type typeinfo =
+  | TVect of int * typeinfo
+  | TUnit
+  | TBool
+  | TNumber
+  | TInt
+  | TFloat
+  | TComplex
+  | TString
+  | TChar
+  | TList
+  | TDict
+  | TLambda
+  [@@deriving eq, ord]
+
+let rec show_typeinfo t = match t with
+  | TVect (length, x) ->  "vect of " ^ (string_of_int length) ^ " " ^ (show_typeinfo x)
+  | TUnit   -> "unit"
+  | TBool   -> "bool"
+  | TNumber -> "number"
+  | TInt    -> "int"
+  | TFloat  -> "float"
+  | TComplex -> "complex"
+  | TString -> "string"
+  | TChar -> "char"
+  | TList -> "list"
+  | TDict -> "dict"
+  | TLambda -> "fun"
+
 (** An environment type containing identifier - purity couples *)
 type purityenv_type = (ide, puret) Util.Dict.t [@@deriving show,eq, ord]
+
 (** A type representing if a computation is pure or not  *)
 and puret =  Impure | Uncertain | PurityModule of purityenv_type | Pure | Numerical
 [@@deriving show { with_path = false }, eq, ord]
@@ -40,6 +72,7 @@ type expr =
   | String of string
   | Symbol of ide
   | List of expr list
+  | Vect of expr list
   | Dict of assignment_type list
   (* Binary Operation *)
   | Binop of binop * expr * expr
@@ -61,7 +94,7 @@ type directive =
   | Dumpenv
   | Dumppurityenv
   | Includefile of string
-  | Includefileasmodule of string * ide option 
+  | Includefileasmodule of string * ide option
   | Setpurity of puret
   | Setverbose of int
 [@@deriving show,eq,ord]
@@ -86,6 +119,7 @@ type evt =
   | EvtChar of char
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
+  | EvtVect of (typeinfo * evt vect_type) [@printer fun fmt (tinfo, _) -> fprintf fmt "(%s, <vector>)" (show_typeinfo tinfo)]
   | EvtDict of (ide * evt) list [@equal (=)]
   (** Recursion is achieved by keeping an optional function name in the constructor *)
   | Closure of ide option * ide * expr * env_type  [@equal (=)]
@@ -95,32 +129,9 @@ type evt =
 (* An environment of already evaluated values  *)
 and env_type = (ide, evt) D.t [@@deriving show { with_path = false }, eq, ord]
 
-(** A type containing information about types *)
-and typeinfo =
-  | TUnit
-  | TBool
-  | TNumber
-  | TInt
-  | TFloat
-  | TComplex
-  | TString
-  | TChar
-  | TList
-  | TDict
-  | TLambda
-
-let show_tinfo t = match t with
-  | TUnit   -> "unit"
-  | TBool   -> "bool"
-  | TNumber -> "number"
-  | TInt    -> "int"
-  | TFloat  -> "float"
-  | TComplex -> "complex"
-  | TString -> "string"
-  | TChar -> "char"
-  | TList -> "list"
-  | TDict -> "dict"
-  | TLambda -> "fun"
+(* A type wrapper for vectors where equality, ordering
+    and showing are defined  *)
+and 'a vect_type = 'a array [@@deriving show, eq,ord]
 
 
 (** A type representing a primitive *)

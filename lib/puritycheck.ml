@@ -29,6 +29,7 @@ let rec infer e state : puret =
   | Boolean _ | String _ | Character _ -> Pure
   | Not a -> inferp a
   (* Expressions with lists of expressions *)
+  | Vect l  -> inferpl l
   | List l  -> inferpl l
   (* Dictionaries contain key value pairs, level them out *)
   | Dict (l) ->

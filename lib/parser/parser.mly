@@ -24,6 +24,7 @@
 %token IF THEN ELSE
 %token SEMI
 %token LSQUARE RSQUARE
+%token LVECT RVECT
 %token CONS
 %token COLON COMMA
 %token LBRACKET RBRACKET
@@ -168,16 +169,28 @@ ast_simple_expr:
   { Unit }
   | DOLLAR e = ast_expr
   { e }
+  /* Parenthesized expression */
   | LPAREN e = ast_expr; RPAREN
   { e }
+  /* Retrieve a dictionary property */
   | e = ast_simple_expr; COLON s = SYMBOL
   { Binop(Getkey, e, Symbol(s)) }
+  /* Purity Blocks */
   | PURE e = ast_expr
   { Purity (Pure, e)}
   | IMPURE e = ast_expr
   { Purity (Impure, e)}
+  /* List and vector literals */
   | l = delimited(LSQUARE, optterm_list(COMMA, ast_expr), RSQUARE)
   { List l }
+  /* Vectors must be non-empty to infer the type, otherwise they have to be allocated with a
+  primitive */
+  | l = delimited(LVECT, optterm_nonempty_list(COMMA, ast_expr), RVECT)
+  { Vect l }
+  | LVECT RVECT
+  { failwith "Empty Vector" }
+
+  /* Dictionary literals */
   | l = delimited(LBRACKET, optterm_list(COMMA, assignment), RBRACKET)
   { Dict l }
   | b = BOOLEAN

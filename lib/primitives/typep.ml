@@ -7,7 +7,7 @@ open Typecheck
 
 let typeofp args =
   if List.length args != 1 then iraise WrongPrimitiveArgs else
-  EvtString (show_tinfo (typeof (List.hd args)))
+  EvtString (show_typeinfo (typeof (List.hd args)))
 
 let myfailwith args =
   if List.length args != 1 then iraise WrongPrimitiveArgs else

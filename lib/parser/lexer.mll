@@ -50,6 +50,8 @@ rule token = parse
   | "impure"    { IMPURE }
   | "["         { LSQUARE }
   | "]"         { RSQUARE }
+  | "[|"        { LVECT }
+  | "|]"        { RVECT }
   | "("         { LPAREN }
   | ")"         { RPAREN }
   | "{"         { LBRACKET }

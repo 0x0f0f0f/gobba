@@ -18,7 +18,9 @@ let uniqueorfail l =
   if Dict.dup_exists l then iraise (DictError "Duplicate key in dictionary")
   else l
 
-(** Evaluate an expression in an environment *)
+(** Evaluate an expression in a state
+  @param e The expression to evaluate
+  @param state The current evaluation state (immutable) altered in recursive calls *)
 let rec eval (e : expr) (state : evalstate) : evt =
   let state = { state with stack = Estack.push_stack state.stack e } in
 
@@ -28,9 +30,11 @@ let rec eval (e : expr) (state : evalstate) : evt =
   else ();
   let evaluated =
     match e with
-    | Unit -> EvtUnit
+    (* Purity blocks call eval on the body with an altered purity in the state *)
     | Purity (allowed, ee) ->
       eval ee { state with purity = allowed }
+    (* Simple types *)
+    | Unit -> EvtUnit
     | NumInt n -> EvtInt n
     | NumFloat n -> EvtFloat n
     | NumComplex n -> EvtComplex n
@@ -38,8 +42,20 @@ let rec eval (e : expr) (state : evalstate) : evt =
     | Character c -> EvtChar c
     | String s -> EvtString s
     | Symbol x -> lookup x state
-    | List x -> EvtList (List.map (fun x -> eval x state) x)
+    (* Binary operations *)
     | Binop (kind, e1, e2) -> eval_binop kind e1 e2 state
+    (* Lists and vectors *)
+    | List x -> EvtList (List.map (fun x -> eval x state) x)
+    | Vect x ->
+      if List.length x < 1 then
+      traises "Cannot infer type of empty vector literal" state.stack
+      else let head = eval (List.hd x) state in
+      let head_type = typeof head in
+      let rest = (List.map (fun x -> eval x state) x) in
+      (* Check if the rest of the vector literal contains value of the same type as
+      the first element, if not, fail because vectors must be homogeneous *)
+      List.iter (fun y -> stcheck (typeof y) head_type) rest;
+      EvtVect(head_type, Array.of_list rest)
     (* Dictionaries and operations *)
     | Dict l ->
       let el = uniqueorfail (List.map (eval_assignment state) l) in
@@ -99,7 +115,7 @@ and eval_binop (k: binop) (x: expr) (y: expr) state =
      | TString, TString -> EvtString ((unpack_string ev1) ^ (unpack_string ev2))
      | TList, TList -> EvtList ((unpack_list ev1) @ (unpack_list ev2))
      | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
-                                  (show_tinfo t1) (show_tinfo t2))) state.stack )
+                                  (show_typeinfo t1) (show_typeinfo t2))) state.stack )
   | Compose ->
     let ef1 = eval y state and ef2 = eval x state in
     stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
@@ -185,7 +201,7 @@ and eval_command command state dirscope =
     if state.printresult then
       Printf.eprintf "result: %s - %s\n%!"
         (Values.show_unpacked_evt evaluated)
-        (show_tinfo (Typecheck.typeof evaluated))
+        (show_typeinfo (Typecheck.typeof evaluated))
     else ();
     (evaluated, state)
   | Def dl ->
@@ -211,15 +227,27 @@ and eval_directive dir state dirscope =
   | Dumpenv -> Printf.eprintf "<env>: %s\n%!" (show_env_type state.env); (EvtUnit, state)
   | Dumppurityenv -> Printf.eprintf "<purity_env>: %s\n%!" (show_purityenv_type state.purityenv); (EvtUnit, state)
   | Includefileasmodule (f, m) ->
+    (* Inclue a file as a module: *)
+    (* Extract the module name from the file name. *)
+    (* TODO fix invalid names *)
     let modulename = (match m with
         | Some m -> m
         | None -> Filename.remove_extension f |> Filename.basename |> String.capitalize_ascii) in
+    (* If the file name is relative, load it from the currently evaluated
+    file position and not from the CWD *)
     let file_in_scope = if not (Filename.is_relative f) then f else
         Filename.concat (dirscope) f in
+    (* Evaluate the contents of the file with inside new environments
+      and get the resulting state *)
     let _, resulting_state = eval_command_list (Parsedriver.read_file file_in_scope)
         { state with env = []; purityenv = [] } dirscope in
+    (* Create a dictionary (module) from the resulting state's value environment *)
     let newmodule = EvtDict resulting_state.env in
-    (EvtUnit, { state with env = (Dict.insert state.env modulename newmodule ) })
+    (* Return a new state by binding the resulting state environments to the module name *)
+    (EvtUnit, {
+      state with
+      env = (Dict.insert state.env modulename newmodule); 
+      purityenv = (Dict.insert state.purityenv modulename (PurityModule resulting_state.purityenv)) })
   | Includefile f ->
     let file_in_scope = if not (Filename.is_relative f) then f else
         Filename.concat (dirscope) f in

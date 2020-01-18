@@ -3,13 +3,14 @@ open Types
 (** Normalize an AST expression *)
 let rec optimize (e: expr) : expr = match e with
   (* Redundant cases *)
-  | Unit | NumInt _ | NumFloat _ | NumComplex _ | Character _ 
+  | Unit | NumInt _ | NumFloat _ | NumComplex _ | Character _
   | String _ | Symbol _ | Boolean _  -> e
   | Purity(_, b) -> optimize b
   | Binop(Eq, NumInt x, NumInt y) -> Boolean (x == y)
   | Binop(Gt, NumInt x, NumInt y) -> Boolean (x > y)
   | Binop(Lt, NumInt x, NumInt y) -> Boolean (x < y)
   | List(l) -> List(List.map optimize l)
+  | Vect(l) -> Vect(List.map optimize l)
   | Dict(d) -> Dict(List.map (fun (l, k, v) -> (l, k, optimize v)) d)
   | Lambda(params, body) -> Lambda(params, optimize body)
   | Let(declarations, body) -> optimize_let declarations body

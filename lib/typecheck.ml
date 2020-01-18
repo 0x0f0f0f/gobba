@@ -4,6 +4,7 @@ open Errors
 let terr e f = traise ("expected a value of type: " ^ e ^ ", found a value of type: " ^ f )
 
 let typeof e = match e with
+  | EvtVect (t, a) -> TVect ((Array.length a), t)
   | EvtUnit -> TUnit
   | EvtInt _ -> TInt
   | EvtFloat _ -> TFloat
@@ -47,7 +48,7 @@ let flatten_numbert_list l =
 
 (* Static typechecking *)
 let stcheck (f: typeinfo) (e: typeinfo) =
-  let rterr () = terr (show_tinfo e) (show_tinfo f) in
+  let rterr () = terr (show_typeinfo e) (show_typeinfo f) in
   match e with
   | TNumber -> (match f with
       | TInt | TFloat | TComplex | TNumber -> ()
@@ -70,7 +71,7 @@ let rec sinfer (e: expr) (state: evalstate) : typeinfo = match e with
         | TString, TString -> TString
         | TList, TList -> TList
         | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
-          (show_tinfo ta) (show_tinfo tb))) state.stack )
+          (show_typeinfo ta) (show_typeinfo tb))) state.stack )
   | Binop(Plus, a, b) | Binop(Sub, a, b)
   | Binop(Mult, a, b) | Binop(Div, a, b) ->
     (stcheck (sinfer a state) TNumber);
@@ -80,12 +81,12 @@ let rec sinfer (e: expr) (state: evalstate) : typeinfo = match e with
 
 (** Unpacking functions: extract a value or throw an err *)
 
-let unpack_int x = (match x with EvtInt i -> i | e -> terr "int" (show_tinfo (typeof e)))
-let unpack_float x = (match x with EvtFloat i -> i | e -> terr "float" (show_tinfo (typeof e)))
-let unpack_complex x = (match x with EvtComplex i -> i | e -> terr "complex" (show_tinfo (typeof e)))
-let unpack_bool x = (match x with EvtBool i -> i | e -> terr "bool" (show_tinfo (typeof e)))
-let unpack_char x = (match x with EvtChar i -> i | e -> terr "char" (show_tinfo (typeof e)))
-let unpack_string x = (match x with EvtString i -> i | e -> terr "string" (show_tinfo (typeof e)))
-let unpack_list x = (match x with EvtList i -> i | e -> terr "list" (show_tinfo (typeof e)))
-let unpack_dict x = (match x with EvtDict i -> i | e -> terr "dict" (show_tinfo (typeof e)))
-let unpack_closure x = (match x with Closure (n, p, b, e) -> (n, p,b,e) | e -> terr "fun" (show_tinfo (typeof e)))
+let unpack_int x = (match x with EvtInt i -> i | e -> terr "int" (show_typeinfo (typeof e)))
+let unpack_float x = (match x with EvtFloat i -> i | e -> terr "float" (show_typeinfo (typeof e)))
+let unpack_complex x = (match x with EvtComplex i -> i | e -> terr "complex" (show_typeinfo (typeof e)))
+let unpack_bool x = (match x with EvtBool i -> i | e -> terr "bool" (show_typeinfo (typeof e)))
+let unpack_char x = (match x with EvtChar i -> i | e -> terr "char" (show_typeinfo (typeof e)))
+let unpack_string x = (match x with EvtString i -> i | e -> terr "string" (show_typeinfo (typeof e)))
+let unpack_list x = (match x with EvtList i -> i | e -> terr "list" (show_typeinfo (typeof e)))
+let unpack_dict x = (match x with EvtDict i -> i | e -> terr "dict" (show_typeinfo (typeof e)))
+let unpack_closure x = (match x with Closure (n, p, b, e) -> (n, p,b,e) | e -> terr "fun" (show_typeinfo (typeof e)))

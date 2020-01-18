@@ -25,7 +25,7 @@ let add args =
   | TFloat -> EvtFloat (List.fold_left (+.) 0. (unpackFloatList numlist))
   | TComplex -> EvtComplex (List.fold_left (Complex.add) Complex.zero
   (unpackComplexList numlist))
-  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_tinfo found ))
+  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_typeinfo found ))
 
 let mult args =
   let found, numlist = flatten_numbert_list args in
@@ -34,7 +34,7 @@ let mult args =
   | TFloat -> EvtFloat (List.fold_left ( *. ) 1. (unpackFloatList numlist))
   | TComplex -> EvtComplex (List.fold_left (Complex.mul) {re = 1.; im = 1.}
   (unpackComplexList numlist))
-  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_tinfo found ))
+  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_typeinfo found ))
 
 
 let sub args =
@@ -46,7 +46,7 @@ let sub args =
   | TInt -> EvtInt (unpack_int x - unpack_int y)
   | TFloat -> EvtFloat (unpack_float x -. unpack_float y)
   | TComplex -> EvtComplex (Complex.sub (unpack_complex x) (unpack_complex y))
-  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_tinfo found ))
+  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_typeinfo found ))
 
 let div args =
   let found, numlist = flatten_numbert_list args in
@@ -60,7 +60,7 @@ let div args =
     else EvtFloat (float_of_int (unpack_int x) /. float_of_int (unpack_int y))
   | TFloat -> EvtFloat (unpack_float x /. unpack_float y)
   | TComplex -> EvtComplex (Complex.div (unpack_complex x) (unpack_complex y))
-  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_tinfo found ))
+  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_typeinfo found ))
 
 let flatnum = (fun x -> flatten_numbert_list x |> snd |> fun y -> EvtList y)
 

@@ -8,6 +8,7 @@ let rec show_unpacked_evt e = match e with
   | EvtBool v -> string_of_bool v
   | EvtChar c -> String.make 1 c
   | EvtString v -> "\"" ^ (String.escaped v) ^ "\""
+  | EvtVect (_, l) -> "[|" ^ (String.concat ", " (Array.map show_unpacked_evt l |> Array.to_list)) ^ "|]"  
   | EvtList l -> "[" ^ (String.concat ", " (List.map show_unpacked_evt l)) ^ "]"
   | EvtDict d -> "{" ^
                  (String.concat ", " 
