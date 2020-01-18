@@ -11,8 +11,10 @@ doc: "https://0x0f0f0f.github.io/gobba"
 
 build: [
   ["dune" "build" "-p" name "-j" jobs]
-  [make "test" "-j" jobs] {with-test}
+  ["sh" "-c" "GOBBA_EXAMPLES=$(realpath ./examples/) dune runtest -p %{name}% -j %{jobs}%"] {with-test}
+  ["sh" "-c" "bisect-ppx-report -html coverage/ -I _build/default _build/default/test/bisect*.out"] {with-test}
 ]
+
 depends: [
     "dune" {>= "2.0"}
     "ocaml" {>= "4.05.0"}
