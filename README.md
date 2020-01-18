@@ -1,5 +1,5 @@
 
-# <p align="center"><img alt="gobba" src="assets/gobba.png" width = 45% /></p>
+# <p align="center"><img alt="gobba" src="assets/gobba.png" width = 25% /></p>
 
 [![Build Status](https://travis-ci.org/0x0f0f0f/gobba.svg?branch=master)](https://travis-ci.org/0x0f0f0f/gobba) [![Coverage Status](https://coveralls.io/repos/github/0x0f0f0f/gobba/badge.svg?branch=)](https://coveralls.io/github/0x0f0f0f/gobba?branch=)
 
