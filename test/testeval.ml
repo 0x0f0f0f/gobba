@@ -98,8 +98,8 @@ let test_lookup () =
   checkeval (Let([true, "a", NumInt 1; true, "b", NumInt 2], Symbol "a")) (EvtInt 1)
 
 let test_primitive_abstraction () =
-  check "head" (Closure (None, "a", ApplyPrimitive(("head", 1, Pure), [Symbol "a"]), []));
-  check "head [1]" (EvtInt 1);
+  check "List:head" (Closure (None, "a", ApplyPrimitive(("head", 1, Pure), [Symbol "a"]), []));
+  check "List:head [1]" (EvtInt 1);
   check "Dict:insert 3" (Closure (None, "b",
                              (Lambda ("c",
                                       (ApplyPrimitive (("insert", 3, Pure),

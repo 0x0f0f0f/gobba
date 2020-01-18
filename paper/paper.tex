@@ -6,6 +6,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{caption}
 \usepackage{mathtools}
 \usepackage{amsthm}
 \usepackage[title]{appendix}
@@ -92,21 +93,29 @@ marginparwidth=1cm, marginparsep=0.4cm]{geometry}
 \begin{document}
 \maketitle
 
+\begin{figure}[htbp!]
+	\centering
+	\includegraphics[width=0.15\textwidth]{../assets/gobba.png}
+	\captionsetup{labelformat=empty}
+	\caption{The gobba logo by Kevin Fontanari}
+\end{figure}
+
 \begin{abstract}
 \textbf{gobba} is a dynamically typed and purely functional interpreted
 programming language. It is based on the Professor Gianluigi Ferrari and
 Professor Francesca Levi's minicaml, an evaluation example to show students
 attending the Programming 2 course at the University of Pisa how interpreters
 work. It is an interpreted language heavily inspired from the OCaml, Haskell and
-Scheme languages, with static (lexical scoping), eager and lazy evaluation and a
-didactical REPL that shows each AST expression and each evaluation step.
+Scheme languages, with static (lexical scoping), a simple but effective module
+system, eager and lazy evaluation and a didactical REPL that shows each AST
+expression and each evaluation step.
 \end{abstract}
 
 \section{REPL and command line interface}
 \subsection{Installation}
-\textbf{gobba} is available in the opam 2.0 repository.
-(\url{https://opam.ocaml.org/}). The easiest way to install gobba is with the
-OCaml package manager \textbf{opam}. To do so, please check that you have a version of opam $\geq$
+
+The easiest way to install gobba is with the
+OCaml package manager \textbf{opam} (\url{https://opam.ocaml.org/}). gobba is available in the opam 2.0 repository; to install the language from opam, please check that you have a version of opam $\geq$
 2.0.0 and run:
 \begin{lstlisting}[style=bash]
 opam install gobba
@@ -125,12 +134,8 @@ opam install ANSITerminal dune ppx_deriving menhir \\
   cmdliner alcotest bisect_ppx ocamline
 # compile
 make
-# test
-make test
-# execute
-make run
-# install
-make install
+# test, execute and install
+make test; make run; make install
 \end{lstlisting}
 
 \clearpage
@@ -275,6 +280,7 @@ Integration system.
 \begin{itemize}
 	\item Prof. Gian-Luigi Ferrari and Francesca Levi for teaching us how to project and develop
 	interpreters in OCaml
+	\item Kevin Fontanari for the pixel art gobba mascotte.
 	\item Antonio DeLucreziis for helping me implement lazy evaluation.
 	\item Prof. Alessandro Berarducci for helping me study lambda calculus in deep.
 	\item Giorgio Mossa for helping me polish the lambda-closure mechanism.

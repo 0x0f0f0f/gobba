@@ -1,6 +1,7 @@
 open Types
 open Errors
 open Typecheck
+open Primutil
 open Util
 
 (** Insert a key-value pair in a dictionary *)
@@ -54,6 +55,49 @@ let dict_from_lists args =
     | [kl; vl] -> (List.map (unpack_string) (unpack_list kl), unpack_list vl)
     | _ -> iraise WrongPrimitiveArgs) in
   EvtDict(zip kl vl)
+
+let mapstr =
+{| fun f l ->
+    let keys = Dict:getkeys l and values = Dict:getvalues l in
+    Dict:dictfromlists keys (List:map f values)
+|}
+
+let foldlstr =
+{| fun f z l ->
+  let aux = fun f z kl vl ->
+    if kl = [] && vl = [] then z else
+    aux f (f z (List:head vl)) (List:tail kl) (List:tail vl)
+  in aux f z (Dict:getkeys l) (Dict:getvalues l)
+|}
+
+let foldrstr =
+{| fun f z l ->
+  let aux = fun f z kl vl ->
+    if kl = [] && vl = [] then z else
+    f (List:head vl) (aux f z (List:tail kl) (List:tail vl))
+  in aux f z (Dict:getkeys l) (Dict:getvalues l)
+|}
+
+let filterstr =
+{| fun pred l ->
+  let aux = fun f kl vl acc ->
+      if kl = [] && vl = [] then acc
+      else if f (List:head vl) then
+        aux f (List:tail kl) (List:tail vl) (Dict:insert (List:head kl) (List:head vl) acc)
+    else aux f (List:tail kl) (List:tail vl) acc in
+  aux pred (Dict:getkeys l) (Dict:getvalues l) {}
+
+|}
+
+
+let lambda_table = [
+  ("map", (lambda_of_string "map" mapstr));
+  ("filter", (lambda_of_string "filter" filterstr));
+  ("foldl", (lambda_of_string "foldl" foldlstr));
+  ("foldr", (lambda_of_string "foldr" foldrstr))
+]
+
+
 
 let table = [
   ("insert",         Primitive (insert_dict, ("insert", 3, Pure)));

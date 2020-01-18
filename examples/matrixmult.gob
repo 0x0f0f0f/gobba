@@ -1,18 +1,18 @@
 let mapn = fun f lists ->
   if (not (lists = [])) then
-    if mem [] lists then
+    if List:mem [] lists then
      []
     else
-      f (map head lists) :: mapn f (map tail lists)
+      f (List:map (List:head) lists) :: mapn f (List:map (List:tail) lists)
   else [] ;
 
 let matrix_multiply = fun m1 m2 ->
-  map
+  List:map
     (fun row ->
       mapn
        (fun column ->
-         foldl (fun x y -> x + y) 0
-          (map2 (fun x y -> x * y ) row column))
+        List:foldl (fun x y -> x + y) 0
+          (List:map2 (fun x y -> x * y ) row column))
        m2)
     m1 ;
 

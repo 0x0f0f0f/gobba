@@ -179,6 +179,16 @@ To access nth value of a list, the `@` (at) operator is used. Lists are indexed 
 [1, 2, 3, 4] @ 2 (* => 3 *)
 ```
 
+In gobba, the classic functional programming functions and morphisms on lists
+are defined in the `List` module:
+```ocaml
+List:head [1, 2, 3, 4] ;
+List:tail [1, 2, 3, 4] ;
+List:map (fun x -> x + 1) [1, 2, 3, 4] ;
+List:foldl (fun x y -> x - y) 10 [1, 2, 3, 4] ;
+List:foldr (fun x y -> x - y) 10 [1, 2, 3, 4] ;
+```
+
 
 ### Functions and recursion
 For parsing simplicity, only the OCaml anonymous function style of declaring
@@ -220,13 +230,19 @@ let n = {hola = 1, lazy mondo = 2, somefunc = fun x -> x + 1 } ;
 let m = Dict:insert "newkey" 123 n ;
 m = {newkey = 123, hola = 1, mondo = 2, somefunc = fun x -> x + 1 } (* => true *)
 Dict:haskey "newkey" m (* => true *)
-map (fun x -> x + 1) m
 (* => {newkey = 124, hola = 2, mondo = 3} *)
 ```
 
 An element of a dictionary can be accessed using the `:` infix operator.
 ```ocaml
 m:hola (* returns 1 *)
+```
+
+Some morphisms are defined in the `Dict` module.
+```ocaml
+Dict:map (fun x -> x + 1) m;
+Dict:foldl (fun x y -> x + y) 0 m;
+Dict:foldr (fun x y -> x - y) 10 m;
 ```
 
 ### Primitives and printing

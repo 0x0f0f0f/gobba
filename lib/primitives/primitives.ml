@@ -29,23 +29,20 @@ let ocaml_table =
   Numericalp.table @
   Dictp.table @
   Listp.table @
-  Charp.table @ 
+  Charp.table @
   Stringp.table @
   Typep.table @
   Iop.table
 
 (* The table of primitives or primitive modules wrapped in an Evt *)
-let wrapped_ocaml_table =
+let table: env_type =
   (w Numericalp.table) @
-  ["Dict", EvtDict (w Dictp.table)] @
+  (w Typep.table) @
+  ["Dict", EvtDict ((w Dictp.table) @ Dictp.lambda_table)] @
   ["Char", EvtDict (w Charp.table)] @
   ["String", EvtDict (w Stringp.table)] @
-  (w Listp.table) @
-  (w Typep.table) @
+  ["List", EvtDict ((w Listp.table) @ Listp.lambda_table)] @
   ["IO", EvtDict (w Iop.table)]
-
-(* The table of primitives (textual and native) *)
-let table: env_type = Mstdlib.table @ wrapped_ocaml_table
 
 
 let rec purity_from_env (m: env_type) : purityenv_type = match m with
@@ -54,10 +51,9 @@ let rec purity_from_env (m: env_type) : purityenv_type = match m with
   | (pname, _)::xs ->
     let prim = (match (Util.Dict.get pname ocaml_table) with
       | Some p -> get_primitive_purity p
-      | None -> failwith "Fatal Error: could not allocate primitive purity table") in
+      | None -> Pure ) in
     (pname, prim) :: (purity_from_env xs)
 
   (* (pname, PurityValue (get_primitive_purity (Dict.get name ocaml_table))::(purity_from_env xs)
  *)
-let purity_table: purityenv_type =
-  Mstdlib.purity_table @ (purity_from_env wrapped_ocaml_table)
+let purity_table: purityenv_type = (purity_from_env table)

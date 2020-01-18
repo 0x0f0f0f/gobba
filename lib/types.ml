@@ -154,3 +154,6 @@ type evalstate = {
   purity: puret;
 }
 
+let empty_evalstate = {
+  env = []; purityenv = []; verbosity = 0; stack = EmptyStack; printresult = false; purity = Uncertain 
+}
