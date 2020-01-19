@@ -5,24 +5,24 @@
 
 # gobba
 
-**gobba** is a small, dynamically typed purely functional programming
-language. It is heavily inspired by the OCaml, Haskell and Scheme languages.
-**gobba** was initially written as a midterm project for  the **Programming
-2** course at the University of Pisa, taught by Professors Gianluigi Ferrari and
-Francesca Levi. Therefore, it is based on the teachers'
-[minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml), a simple
-evaluation example to show how interpreters work. Parsing and lexing are done
-with menhir and ocamllex ([learn
-more](https://v1.realworldocaml.org/v1/en/html/parsing-with-ocamllex-and-menhir.html)).
-The REPL can show each reduction step that is done in evaluating an expression.
-An LLVM compiler is planned for the next future.
+**gobba** is a dynamically typed and purely functional interpreted
+programming language, heavily inspired from the OCaml,
+Haskell and Scheme languages. It is based on Professors Gianluigi Ferrari and Francesca Levi's
+[minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml) interpreter example. The goal for gobba is to be a practical language
+with built in support for scientific computing, solving some of the problems
+that exist in other dynamically typed interpreted languages like python and
+Javascript. It features static (lexical scoping), a simple but
+effective module system, eager and lazy evaluation and an interactive didactical
+REPL that shows completion hints and can print insights about each recursive evaluation step.
 
 ## Documentation
+
+Parsing and lexing are done with menhir and ocamllex ([learn more](https://v1.realworldocaml.org/v1/en/html/parsing-with-ocamllex-and-menhir.html)).
 The internal documentation is available
-[here](https://0x0f0f0f.github.io/gobba). Please note that the language at
-the current status is in an experimental phase and therefore the specification
-is not complete, and will be constantly updated. The documentation may not be up
-to date with the latest features in the `master` branch.
+[here](https://0x0f0f0f.github.io/gobba). Please note that the language at the
+current status is in an experimental phase and therefore the specification is
+not complete, and will be constantly updated. The documentation may not be up to
+date with the latest features in the `master` branch.
 
 ## Installation
 To install, you need to have `opam` (OCaml's package manager) and a recent OCaml

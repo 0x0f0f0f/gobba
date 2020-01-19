@@ -10,6 +10,7 @@
 \usepackage{mathtools}
 \usepackage{amsthm}
 \usepackage[title]{appendix}
+\usepackage[nottoc]{tocbibind}
 \usepackage{collectbox}
 %\usepackage{tgpagella} % text only
 %\usepackage{mathpazo}
@@ -26,7 +27,7 @@ marginparwidth=1cm, marginparsep=0.4cm]{geometry}
 
 %% Useful packages
 \usepackage{graphicx} %allows you to use jpg or png images. PDF is still recommended
-\usepackage[colorlinks=False]{hyperref} % add links inside PDF files
+\usepackage[hidelinks]{hyperref} % add links inside PDF files
 \usepackage{amsmath}  % Math fonts
 \usepackage{amsfonts} %
 \usepackage{amssymb}  %
@@ -54,8 +55,8 @@ marginparwidth=1cm, marginparsep=0.4cm]{geometry}
 
 
 %% Citation package
-%\usepackage[authoryear]{natbib}
-\bibliographystyle{unsrt}
+\usepackage[square,numbers]{natbib}
+\bibliographystyle{abbrvnat}
 %\setcitestyle{authoryear,open={(},close={)}}
 
 \newcommand{\te}[1]{\text{#1}}
@@ -102,14 +103,14 @@ marginparwidth=1cm, marginparsep=0.4cm]{geometry}
 
 \begin{abstract}
 \textbf{gobba} is a dynamically typed and purely functional interpreted
-programming language. Based on Professors Gianluigi Ferrari and Francesca Levi's
-minicaml interpreter example, the goal for gobba is to be a practical language with
-built in support for scientific computing, solving some of the problems that
-exist in other dynamically typed interpreted languages like python and Javascript. It is an
-interpreted language heavily inspired from the OCaml, Haskell and Scheme
-languages, with static (lexical scoping), a simple but effective module system,
-eager and lazy evaluation and a didactical REPL that can show each AST
-expression and each evaluation step.
+programming language, heavily inspired from the OCaml,
+Haskell and Scheme languages. It is based on Professors Gianluigi Ferrari and Francesca Levi's
+minicaml interpreter example. The goal for gobba is to be a practical language
+with built in support for scientific computing, solving some of the problems
+that exist in other dynamically typed interpreted languages like python and
+Javascript. It features static (lexical scoping), a simple but
+effective module system, eager and lazy evaluation and an interactive didactical
+REPL that shows completions and can show insights about each recursive evaluation step.
 \end{abstract}
 
 \section{Installing gobba}
@@ -152,10 +153,10 @@ dependencies.
 
 \section{Syntax and Parser}
 Lexing is achieved with \texttt{ocamllex}, the default tool for generating
-scanners in OCaml.
-The parser is realized with the \textbf{Menhir} parser generator, and is
-documented using \textbf{Obelisk}, which generates a clean text file
-containing the language grammar, available in Appendix \ref{grammar}.
+scanners in OCaml. The parser is realized with the \textbf{Menhir} parser
+generator library \cite{menhir}, and is documented using \textbf{Obelisk}, which
+generates a clean text file containing the language grammar, available in
+Appendix \ref{grammar}.
 
 \section{Purity Inference}
 An important feature of the gobba language is the purity inference algorithm,

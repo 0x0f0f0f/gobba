@@ -42,6 +42,8 @@ let all_completions = (fstl directives)
 (* Extend a mutable list of completion names with the properties from a dictionary
 if it exists in the environment, or from the table of primitives *)
 let extend_completions_with_dictionary_properties state varnames last_word  =
+  (*
+TODO Fixme! *)
   if str_ends_with last_word ":" then
     let last_word = String.sub last_word 0 (String.length last_word - 1) in
   (* If the current word is a dictionary in the env + the ':' character
