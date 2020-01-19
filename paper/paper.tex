@@ -102,17 +102,17 @@ marginparwidth=1cm, marginparsep=0.4cm]{geometry}
 
 \begin{abstract}
 \textbf{gobba} is a dynamically typed and purely functional interpreted
-programming language. It is based on the Professor Gianluigi Ferrari and
-Professor Francesca Levi's minicaml, an evaluation example to show students
-attending the Programming 2 course at the University of Pisa how interpreters
-work. It is an interpreted language heavily inspired from the OCaml, Haskell and
-Scheme languages, with static (lexical scoping), a simple but effective module
-system, eager and lazy evaluation and a didactical REPL that shows each AST
+programming language. Based on Professors Gianluigi Ferrari and Francesca Levi's
+minicaml interpreter example, the goal for gobba is to be a practical language with
+built in support for scientific computing, solving some of the problems that
+exist in other dynamically typed interpreted languages like python and Javascript. It is an
+interpreted language heavily inspired from the OCaml, Haskell and Scheme
+languages, with static (lexical scoping), a simple but effective module system,
+eager and lazy evaluation and a didactical REPL that can show each AST
 expression and each evaluation step.
 \end{abstract}
 
-\section{REPL and command line interface}
-\subsection{Installation}
+\section{Installing gobba}
 
 The easiest way to install gobba is with the
 OCaml package manager \textbf{opam} (\url{https://opam.ocaml.org/}). gobba is available in the opam 2.0 repository; to install the language from opam, please check that you have a version of opam $\geq$
@@ -141,6 +141,14 @@ make test; make run; make install
 \clearpage
 
 \begin{multicols}{2}
+
+\section{Interactive Command Line Interface}
+If no filename is passed to \texttt{gobba} executable, the interactive shell
+interface is launched. The REPL shell is built upon a simple library called
+\texttt{ocamline} \cite{ocamline}, which itself relies on a library called
+\texttt{ocaml-linenoise} \cite{linenoise} that provides \texttt{readline}
+navigation and completion functionality without additional system
+dependencies.
 
 \section{Syntax and Parser}
 Lexing is achieved with \texttt{ocamllex}, the default tool for generating

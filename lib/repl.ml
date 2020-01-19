@@ -2,13 +2,16 @@ open Types
 open Errors
 
 
-let read_toplevel () =
+let read_toplevel state =
   let prompt = "> " in
   let str = Ocamline.read
       ~prompt:prompt
       ~brackets:[('(', ')'); ('[',']');  ('{','}')]
       ~strings:['"']
-      ";" in
+      ~delim:";"
+      ~hints_callback:(Completion.hints_callback state)
+      ~completion_callback:(Completion.completion_callback state)
+      ~history_loc:(Filename.concat (Unix.getenv "HOME") ".gobba-history") () in
   Parsedriver.read_one str
 
 let run_one = Eval.eval_command
@@ -16,7 +19,7 @@ let run_one = Eval.eval_command
 let rec repl_loop state maxdepth internalst =
   while true do
     try
-      let cmd = List.hd (read_toplevel ()) in
+      let cmd = List.hd (read_toplevel state) in
       state := snd (Eval.eval_command cmd !state (Filename.current_dir_name))
     with
     | End_of_file -> raise End_of_file

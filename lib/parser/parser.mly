@@ -104,8 +104,8 @@ directive:
     | "#pure"   -> Setpurity Pure
     | "#impure"   -> Setpurity Impure
     | "#uncertain" -> Setpurity Uncertain
-    | "#dumppurityenv" -> Dumppurityenv
     | "#dumpenv" -> Dumpenv
+    | "#dumppurityenv" -> Dumppurityenv
     | _ -> failwith "unknown directive" }
 
 
