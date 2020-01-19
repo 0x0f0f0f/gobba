@@ -25,7 +25,7 @@ type typeinfo =
   | TList
   | TDict
   | TLambda
-  [@@deriving eq, ord]
+  [@@deriving show { with_path = false }, eq, ord]
 
 let rec show_typeinfo t = match t with
   | TVect (length, x) ->  "vect of " ^ (string_of_int length) ^ " " ^ (show_typeinfo x)
@@ -42,7 +42,7 @@ let rec show_typeinfo t = match t with
   | TLambda -> "fun"
 
 (** An environment type containing identifier - purity couples *)
-type purityenv_type = (ide, puret) Util.Dict.t [@@deriving show,eq, ord]
+type purityenv_type = (ide, puret) Util.Dict.t [@@deriving show { with_path = false } ,eq, ord]
 
 (** A type representing if a computation is pure or not  *)
 and puret =  Impure | Uncertain | PurityModule of purityenv_type | Pure | Numerical
@@ -97,7 +97,7 @@ type directive =
   | Includefileasmodule of string * ide option
   | Setpurity of puret
   | Setverbose of int
-[@@deriving show,eq,ord]
+[@@deriving show { with_path = false },eq,ord]
 
 
 (** A type useful for evaluating files, stating if a command is
