@@ -146,11 +146,11 @@ will be wrapped in a dictionary, that acts as a module:
 `#impure ()` and `#uncertain ()` set the globally allowed purity level.
 
 ### Complex numbers
-The `:+` and `:-` operators are used to create complex values, the floating point number
-on the left is the real part and the one on the right is the imaginary part.
+The `:+` and operators are used to create complex values, the number
+on the left will be the real part and the one on the right will be allocated as the imaginary part.
 ```ocaml
-12. :+ 1.12;
-0. :- 1.12;
+12.1 :+ 1.23;
+0 :+ 1.12;
 ```
 
 ### Character literals.
