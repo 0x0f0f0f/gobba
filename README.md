@@ -10,7 +10,7 @@ language. It is heavily inspired by the OCaml, Haskell and Scheme languages.
 **gobba** was initially written as a midterm project for  the **Programming
 2** course at the University of Pisa, taught by Professors Gianluigi Ferrari and
 Francesca Levi. Therefore, it is based on the teachers'
-[gobba](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml), a simple
+[minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml), a simple
 evaluation example to show how interpreters work. Parsing and lexing are done
 with menhir and ocamllex ([learn
 more](https://v1.realworldocaml.org/v1/en/html/parsing-with-ocamllex-and-menhir.html)).

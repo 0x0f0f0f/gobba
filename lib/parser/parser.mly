@@ -5,7 +5,7 @@
 %token <string> SYMBOL
 %token <int> INTEGER
 %token <float> FLOAT
-%token CPLUS CMIN
+%token COMPLEX
 %token <char> CHAR
 %token <string> STRING
 %token UNIT
@@ -50,6 +50,7 @@
 %left PLUS MINUS
 %left TIMES
 %left TOPOWER
+%left COMPLEX
 %left DIV
 %left EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
 
@@ -129,6 +130,8 @@ ast_expr:
   { Binop(Plus, e1, e2) }
   | e1 = ast_expr; MINUS; e2 = ast_expr
   { Binop(Sub, e1, e2) }
+  | e1 = ast_expr; COMPLEX; e2 = ast_expr
+  { Binop(MakeComplex, e1, e2) }
   | e1 = ast_expr; TIMES; e2 = ast_expr
   { Binop(Mult, e1, e2) }
   | e1 = ast_expr; DIV; e2 = ast_expr
@@ -203,9 +206,5 @@ ast_simple_expr:
   { NumInt n }
   | n = FLOAT
   { NumFloat n }
-  | r = FLOAT CPLUS i = FLOAT
-  { NumComplex {Complex.re = r; Complex.im = i} }
-    | r = FLOAT CMIN i = FLOAT
-  { NumComplex {Complex.re = r; Complex.im = -1. *. i} }
 
 %%

@@ -95,45 +95,49 @@ let rec eval (e : expr) (state : evalstate) : evt =
   evaluated
 
 and eval_binop (k: binop) (x: expr) (y: expr) state =
+  let ev1 = eval x state in
+  let t1 = typeof ev1 in
   match k with
   | Getkey ->
     let key = (match y with Symbol z -> z | _ -> iraise (Fatal "Dictionary access"))
-    and ed = unpack_dict (eval x state) in
+    and ed = unpack_dict (ev1) in
     (match Dict.get key ed with
      | None -> iraise (DictError "key not found")
      | Some (LazyExpression z) -> eval z state
      | Some z -> z)
   | Cons ->
-    let ls = unpack_list (eval y state) in
+    let ev2 = eval y state in
+    let ls = unpack_list ev2 in
     (match ls with
-     | [] -> EvtList [ eval x state ]
-     | lss -> EvtList (eval x state :: lss))
+     | [] -> EvtList [ ev1 ]
+     | lss -> EvtList (ev1 :: lss))
   | Concat ->
-    let ev1 = eval x state and ev2 = eval y state in
-    let t1 = typeof ev1 and t2 = typeof ev2 in
+    let ev2 = eval y state in let t2 = typeof ev2 in
     (match (t1, t2) with
      | TString, TString -> EvtString ((unpack_string ev1) ^ (unpack_string ev2))
      | TList, TList -> EvtList ((unpack_list ev1) @ (unpack_list ev2))
      | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
                                   (show_typeinfo t1) (show_typeinfo t2))) state.stack )
   | Compose ->
-    let ef1 = eval y state and ef2 = eval x state in
+    let ev2 = eval y state in
+    let ef1 = ev2 and ef2 = ev1 in
     stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
     let params1 = Values.findevtparams ef1 in
     let appl1 = Expr.apply_from_exprlist (Expr.symbols_from_strings params1) y in
     eval (Expr.lambda_of_paramlist params1 (Apply (x, appl1))) state
 
-  | Plus  ->  Numericalp.add [(eval x state); (eval y state)]
-  | Sub  ->   Numericalp.sub [(eval x state); (eval y state)]
-  | Div  ->   Numericalp.div [(eval x state); (eval y state)]
-  | Mult  ->  Numericalp.mult [(eval x state); (eval y state)]
-  | And  -> bool_binop (eval x state, eval y state) ( && )
-  | Or -> bool_binop (eval x state, eval y state) ( || )
-  | Eq -> EvtBool (compare_evt (eval x state) (eval y state) = 0)
-  | Gt -> EvtBool (compare_evt (eval x state) (eval y state) > 0)
-  | Lt -> EvtBool (compare_evt (eval x state) (eval y state) < 0)
-  | Ge -> EvtBool (compare_evt (eval x state) (eval y state) >= 0)
-  | Le -> EvtBool (compare_evt (eval x state) (eval y state) <= 0)
+  | MakeComplex -> Numericalp.makecomplex [ev1; (eval y state)]
+  | Plus  ->  Numericalp.add [ev1; (eval y state)]
+  | Sub  ->   Numericalp.sub [ev1; (eval y state)]
+  | Div  ->   Numericalp.div [ev1; (eval y state)]
+  | Mult  ->  Numericalp.mult [ev1; (eval y state)]
+  | And  -> bool_binop (ev1, (eval y state)) ( && )
+  | Or -> bool_binop (ev1, (eval y state)) ( || )
+  | Eq -> EvtBool (compare_evt ev1 (eval y state) = 0)
+  | Gt -> EvtBool (compare_evt ev1 (eval y state) > 0)
+  | Lt -> EvtBool (compare_evt ev1 (eval y state) < 0)
+  | Ge -> EvtBool (compare_evt ev1 (eval y state) >= 0)
+  | Le -> EvtBool (compare_evt ev1 (eval y state) <= 0)
 
 
 (* Search for a value in the primitives table and environment *)

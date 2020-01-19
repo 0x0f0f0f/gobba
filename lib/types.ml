@@ -1,6 +1,5 @@
 module T = ANSITerminal
 module D = Util.Dict
-
 (** A value identifier*)
 type ide = string
 [@@deriving show, eq, ord]
@@ -57,6 +56,7 @@ type primitiveinfo = (ide * int * puret) [@@deriving show { with_path = false },
 type binop =
   | Getkey
   | Eq | Gt | Lt | Ge | Le | And | Or
+  | MakeComplex 
   | Plus | Sub | Div | Mult
   | Cons | Concat | Compose  [@@deriving show { with_path = false }, eq, ord]
 
@@ -120,6 +120,14 @@ type evt =
   | EvtString of string   [@equal (=)] [@compare compare]
   | EvtList of evt list   [@equal (=)]
   | EvtVect of (typeinfo * evt vect_type) [@printer fun fmt (tinfo, _) -> fprintf fmt "(%s, <vector>)" (show_typeinfo tinfo)]
+(*   | EvtFloatMatrix of Owl.Dense.Matrix.D.mat
+    [@printer fun fmt _ -> fprintf fmt "<float matrix>"]
+    [@equal Owl.Dense.Matrix.D.equal]
+    [@compare fun x y -> if Owl.Dense.Matrix.D.(x > y) then 1 else if Owl.Dense.Matrix.D.(x = y) then 0 else -1]
+  | EvtComplexMatrix of Owl.Dense.Matrix.Z.mat
+    [@equal Owl.Dense.Matrix.Z.equal]
+    [@compare fun x y -> if Owl.Dense.Matrix.Z.(x > y) then 1 else if Owl.Dense.Matrix.Z.(x = y) then 0 else -1]
+    [@printer fun fmt _ -> fprintf fmt "<complex matrix>"] *)
   | EvtDict of (ide * evt) list [@equal (=)]
   (** Recursion is achieved by keeping an optional function name in the constructor *)
   | Closure of ide option * ide * expr * env_type  [@equal (=)]
@@ -155,5 +163,5 @@ type evalstate = {
 }
 
 let empty_evalstate = {
-  env = []; purityenv = []; verbosity = 0; stack = EmptyStack; printresult = false; purity = Uncertain 
+  env = []; purityenv = []; verbosity = 0; stack = EmptyStack; printresult = false; purity = Uncertain
 }

@@ -18,11 +18,11 @@ let typeof e = match e with
   | LazyExpression _ -> TUnit
 
 (** Get the lowest (most inclusive set) number type from a list of numbers *)
-let rec infer_lowest_numbert low ls = match ls with
+let rec level_number_list low ls = match ls with
   | [] -> low
   | (EvtComplex _)::_ -> TComplex
-  | (EvtInt _)::xs -> infer_lowest_numbert low xs
-  | (EvtFloat _)::xs -> infer_lowest_numbert TFloat xs
+  | (EvtInt _)::xs -> level_number_list low xs
+  | (EvtFloat _)::xs -> level_number_list TFloat xs
   | (_)::_ -> traise "value is not a number in arithmetical operator"
 
 let cast_numbert lowerto num = match lowerto with
@@ -42,7 +42,7 @@ let cast_numbert lowerto num = match lowerto with
 (** Accept a list of numbers and flatten out their
     kind on the numerical tower hierarchy *)
 let flatten_numbert_list l =
-  let found = infer_lowest_numbert TInt l in
+  let found = level_number_list TInt l in
   (found, List.map (cast_numbert found) l)
 
 

@@ -3,14 +3,13 @@ open Util
 
 module A = Alcotest
 
-let test_int () =
-  A.(check bool) "integers" true (equal_expr (parse "3") (NumInt(3)))
-
-let test_neg_int () =
-  checkparse "-3" (NumInt(-3));
-  checkparse "-1251356125" (NumInt(-1251356125));
-  checkparse "-32" (NumInt(-32));
-  checkparse "0" (NumInt(0))
+let test_numbers () =
+   checkparse "-3" (NumInt(-3));
+   checkparse "-1251356125" (NumInt(-1251356125));
+   checkparse "-32" (NumInt(-32));
+   checkparse "0" (NumInt(0));
+   checkparse "0" (NumInt(0));
+   checkparse "2.3 :+ 4.5" (Binop(MakeComplex, NumFloat 2.3, NumFloat 4.5))
 
 let test_bool () =
   checkparse "true" (Boolean(true));
@@ -127,8 +126,8 @@ let test_pipeline () =
       ))
 
 let test_suite = List.map quickcase [
-    ("parse integers", test_int);
-    ("parse negative integers", test_neg_int);
+    ("parse numbers", test_numbers);
+
     ("booleans", test_bool);
     ("unit", test_unit);
     ("lists", test_lists);

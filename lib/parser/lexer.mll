@@ -28,8 +28,6 @@ rule token = parse
   | int         { INTEGER (int_of_string (Lexing.lexeme lexbuf))}
   | float       { FLOAT (try float_of_string (Lexing.lexeme lexbuf) with _ -> sraise lexbuf "Invalid use of the dot symbol")}
   | directive   { DIRECTIVE (Lexing.lexeme lexbuf) }
-  | ":+"        { CPLUS }
-  | ":-"        { CMIN }
   | "()"        { UNIT }
   | "true"      { BOOLEAN true }
   | "false"     { BOOLEAN false }
@@ -63,6 +61,7 @@ rule token = parse
   | "||"        { OR }
   | "^"         { TOPOWER }
   | "@"         { ATSIGN }
+  | ":+"        { COMPLEX }
   | "++"        { CONCAT }
   | "+"         { PLUS }
   | "-"         { MINUS }
