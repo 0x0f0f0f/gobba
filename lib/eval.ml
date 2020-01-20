@@ -73,7 +73,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
       let earg = eval arg state in
       applyfun closure earg state
     | ApplyPrimitive ((name, _, _), args) ->
-      let eargs = List.map (fun x -> eval x state) args in
+      let eargs = Array.map (fun x -> eval x state) args in
       let prim = Primitives.get_primitive_function (match (Dict.get name Primitives.ocaml_table) with
           | None -> iraise (Fatal "Unbound primitive. This should never happen")
           | Some p -> p) in
@@ -126,11 +126,11 @@ and eval_binop (k: binop) (x: expr) (y: expr) state =
     let appl1 = Expr.apply_from_exprlist (Expr.symbols_from_strings params1) y in
     eval (Expr.lambda_of_paramlist params1 (Apply (x, appl1))) state
 
-  | MakeComplex -> Numericalp.makecomplex [ev1; (eval y state)]
-  | Plus  ->  Numericalp.add [ev1; (eval y state)]
-  | Sub  ->   Numericalp.sub [ev1; (eval y state)]
-  | Div  ->   Numericalp.div [ev1; (eval y state)]
-  | Mult  ->  Numericalp.mult [ev1; (eval y state)]
+  | MakeComplex -> Numericalp.makecomplex [|ev1; (eval y state)|]
+  | Plus  ->  Numericalp.add [|ev1; (eval y state)|]
+  | Sub  ->   Numericalp.sub [|ev1; (eval y state)|]
+  | Div  ->   Numericalp.div [|ev1; (eval y state)|]
+  | Mult  ->  Numericalp.mult [|ev1; (eval y state)|]
   | And  -> bool_binop (ev1, (eval y state)) ( && )
   | Or -> bool_binop (ev1, (eval y state)) ( || )
   | Eq -> EvtBool (compare_evt ev1 (eval y state) = 0)

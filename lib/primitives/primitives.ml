@@ -15,11 +15,10 @@ let get_primitive_info x = match x with
 
 (** Generate a lambda from a native primitive *)
 let lambda_of_primitive prim =
-    let name, numparams, purity = get_primitive_info prim in
+    let name, params, purity = get_primitive_info prim in
     (* Generate a closure abstraction from a primitive *)
-    let primargs = Util.generate_prim_params numparams in
-    let symprimargs = Expr.symbols_from_strings primargs in
-    let lambdas = Expr.lambda_of_paramlist primargs (ApplyPrimitive((name, numparams, purity), symprimargs)) in
+    let symparams = Array.map (fun x -> Symbol x) params in
+    let lambdas = Expr.lambda_of_paramarr params (ApplyPrimitive((name, params, purity), symparams)) in
     lambdas
 
 let w table = List.map (fun (k, v) -> (k, LazyExpression (lambda_of_primitive v))) table

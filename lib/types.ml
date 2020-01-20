@@ -50,7 +50,7 @@ and puret =  Impure | Uncertain | PurityModule of purityenv_type | Pure | Numeri
 
 
 (** Contains a primitive's name, number of arguments and pureness *)
-type primitiveinfo = (ide * int * puret) [@@deriving show { with_path = false }, eq, ord]
+type primitiveinfo = (ide * string array * puret) [@@deriving show { with_path = false }, eq, ord]
 
 (** Represents a binary operation kind *)
 type binop =
@@ -82,7 +82,7 @@ type expr =
   | Let of assignment_type list * expr
   | Lambda of ide * expr
   | Apply of expr * expr
-  | ApplyPrimitive of primitiveinfo * expr list
+  | ApplyPrimitive of primitiveinfo * expr array
   | Sequence of expr * expr
 [@@deriving show { with_path = false }, eq, ord]
 
@@ -143,7 +143,7 @@ and 'a vect_type = 'a array [@@deriving show, eq,ord]
 
 
 (** A type representing a primitive *)
-type primitive = Primitive of (evt list -> evt) * primitiveinfo
+type primitive = Primitive of (evt array -> evt) * primitiveinfo
 
 
 (** A recursive type representing a stacktrace frame *)

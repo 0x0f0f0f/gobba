@@ -19,6 +19,10 @@ let rec findparams l = match l with
 (** Creates a nested Lambda from a list of params*)
 let lambda_of_paramlist l body = List.fold_right (fun p e -> Lambda (p, e)) l body
 
+(** Creates a nested Lambda from an array of params*)
+let lambda_of_paramarr l body = Array.fold_right (fun p e -> Lambda (p, e)) l body
+
+
 (** Creates a nested Apply from a list of expressions*)
 let apply_from_exprlist l f = List.fold_left (fun e p -> Apply (e, p)) f l
 

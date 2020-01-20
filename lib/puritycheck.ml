@@ -64,8 +64,8 @@ let rec infer e state : puret =
           (Printf.sprintf "Tried to apply a %s value in a %s state" (show_puret fp) (show_puret state.purity)))
           state.stack
     else level_purity fp argp
-  | ApplyPrimitive ((name, numparams, purity), args) ->
-      if List.length args != numparams then (iraise (Fatal "Primitive Application Error"))
+  | ApplyPrimitive ((name, params, purity), args) ->
+      if Array.length args != Array.length params then (iraise (Fatal "Primitive Application Error"))
       else if state.purity <> Impure && purity = Impure then
         iraises
           (PurityError ("Tried to apply an impure primitive in a pure block: " ^ name))

@@ -50,7 +50,7 @@ let rec optimize (e: expr) : expr = match e with
   | Sequence(a, b) ->
     let oa = optimize a and ob = optimize b in
     Sequence (oa, ob)
-  | ApplyPrimitive(p, ls) -> ApplyPrimitive(p, List.map optimize ls)
+  | ApplyPrimitive(p, ls) -> ApplyPrimitive(p, Array.map optimize ls)
 and optimize_let declarations body =
   let od = List.map (fun (l, i, v) -> (l, i, optimize v)) declarations in
   let ob = optimize body in

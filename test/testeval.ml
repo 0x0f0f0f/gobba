@@ -9,16 +9,16 @@ let fib = "fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2))"
 
 
 let test_constants () =
-  checkeval (NumInt 32) (EvtInt 32);
-  checkeval (Boolean true) (EvtBool true);
-  checkeval (Unit) (EvtUnit)
+  check "32" (EvtInt 32);
+  check "true" (EvtBool true);
+  check "()" (EvtUnit)
 
 let test_apply () =
   check ("let fib = " ^ fib ^ " in fib 10") (EvtInt 55);
   check ("let lazy fib = " ^ fib ^ " in fib 10") (EvtInt 55);
-  checkeval (Let([false, "f", plus_one], (Apply(Symbol "f", NumInt 1)))) (EvtInt 2);
-  checkevalfail (Let([false, "f", plus_one], (Apply (Apply (Symbol "f", NumInt 1), NumInt 2))));
-  checkevalfail (Apply(NumInt 5, NumInt 5))
+  check "let f = fun n -> n + 1 in f 1" (EvtInt 2);
+  checkfail "let f = fun n -> n + 1 in f 1 2";
+  checkfail "5 5 "
 
 let test_curry () =
   check "let f = fun x y -> x + y in f 3"
@@ -98,14 +98,14 @@ let test_lookup () =
   checkeval (Let([true, "a", NumInt 1; true, "b", NumInt 2], Symbol "a")) (EvtInt 1)
 
 let test_primitive_abstraction () =
-  check "List:head" (Closure (None, "a", ApplyPrimitive(("head", 1, Pure), [Symbol "a"]), []));
+  check "List:head" (Closure (None, "list", ApplyPrimitive(("head", [|"list"|], Pure), [|Symbol "list"|]), []));
   check "List:head [1]" (EvtInt 1);
-  check "Dict:insert 3" (Closure (None, "b",
-                             (Lambda ("c",
-                                      (ApplyPrimitive (("insert", 3, Pure),
-                                                       [(Symbol "a"); (Symbol "b"); (Symbol "c")]))
+  check "Dict:insert 3" (Closure (None, "value",
+                             (Lambda ("dict",
+                                      (ApplyPrimitive (("insert", [|"key";"value";"dict"|], Pure),
+                                                       [|(Symbol "key"); (Symbol "value"); (Symbol "dict")|]))
                                      )),
-                             [("a",  (EvtInt 3))]))
+                             [("key",  (EvtInt 3))]))
 
 let test_suite = List.map quickcase [
     ("constants", test_constants);

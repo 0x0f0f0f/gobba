@@ -5,20 +5,20 @@ open Util
 open Primutil
 
 let head args  =
-  if List.length args > 1 then iraise WrongPrimitiveArgs else
-    let ls= unpack_list (List.hd args) in
+  if Array.length args > 1 then iraise WrongPrimitiveArgs else
+    let ls= unpack_list args.(0) in
     (match ls with
      | [] -> iraise (ListError "empty list")
      | v::_ -> v )
 
 let length args  =
-  if List.length args > 1 then iraise WrongPrimitiveArgs else
-    let ls= unpack_list (List.hd args) in
+  if Array.length args > 1 then iraise WrongPrimitiveArgs else
+    let ls= unpack_list args.(0) in
     EvtInt(List.length ls)
 
 let getat args =
   let at, ls = (match args with
-      | [EvtInt a; EvtList l] -> (a,l)
+      | [|EvtInt a; EvtList l|] -> (a,l)
       | _ -> iraise WrongPrimitiveArgs) in
   let curln = List.length ls in
   let nat = if at < 0 then curln + at else at in
@@ -26,15 +26,15 @@ let getat args =
   else List.hd (drop nat ls)
 
 let tail args =
-  if List.length args > 1 then iraise WrongPrimitiveArgs else
-    let ls= unpack_list (List.hd args) in
+  if Array.length args > 1 then iraise WrongPrimitiveArgs else
+    let ls= unpack_list args.(0) in
     (match ls with
      | [] -> iraise (ListError "empty list")
      | _::r -> EvtList r)
 
 let mem args =
   let (elem, ls)= (match args with
-      | [elem; ls] -> (elem, unpack_list ls)
+      | [|elem; ls|] -> (elem, unpack_list ls)
       | _ -> iraise WrongPrimitiveArgs) in
   EvtBool(List.mem elem ls)
 
@@ -106,9 +106,9 @@ let lambda_table = [
 ]
 
 let table = [
-  ("head",    Primitive (head, ("head", 1, Pure)));
-  ("tail",    Primitive (tail, ("tail", 1, Pure)));
-  ("mem",     Primitive (mem, ("mem", 2, Pure)));
-  ("length",  Primitive (length, ("length", 1, Pure)));
-  ("nth",      Primitive (getat, ("nth", 2, Pure)));
+  ("head",    Primitive (head, ("head", [|"list"|], Pure)));
+  ("tail",    Primitive (tail, ("tail", [|"list"|], Pure)));
+  ("mem",     Primitive (mem, ("mem", [|"element";"list"|], Pure)));
+  ("length",  Primitive (length, ("length", [|"list"|], Pure)));
+  ("nth",      Primitive (getat, ("nth", [|"position"; "list"|], Pure)));
 ]
