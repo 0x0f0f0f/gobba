@@ -46,38 +46,14 @@ let flatten_numbert_list l =
   (found, List.map (cast_numbert found) l)
 
 
-(* Static typechecking *)
-let stcheck (f: typeinfo) (e: typeinfo) =
+(* Dynamic typechecking *)
+let dyncheck (f: typeinfo) (e: typeinfo) =
   let rterr () = terr (show_typeinfo e) (show_typeinfo f) in
   match e with
   | TNumber -> (match f with
       | TInt | TFloat | TComplex | TNumber -> ()
       | _ -> rterr () )
   | _ -> if e = f then () else rterr()
-
-
-(** Static typechecking inferer *)
-let rec sinfer (e: expr) (state: evalstate) : typeinfo = match e with
-  (* Inference only on TNumber. Rely on strict checking for precise number type checking *)
-  | NumInt _ | NumFloat _ | NumComplex _ -> TNumber
-  | Boolean _ -> TBool
-  | String _ -> TString
-  | List _ -> TList
-  | Purity (_, x) -> sinfer x state
-  | Binop(Cons, _, b) -> (stcheck (sinfer b state) TList); TList
-  | Binop(Concat, a, b) ->
-    let ta = sinfer a state and tb = sinfer b state in
-    (match (ta, tb) with
-        | TString, TString -> TString
-        | TList, TList -> TList
-        | _ -> iraises (TypeError (Printf.sprintf "Cannot concatenate a two values of type %s and %s"
-          (show_typeinfo ta) (show_typeinfo tb))) state.stack )
-  | Binop(Plus, a, b) | Binop(Sub, a, b)
-  | Binop(Mult, a, b) | Binop(Div, a, b) ->
-    (stcheck (sinfer a state) TNumber);
-    (stcheck (sinfer b state) TNumber);
-    TNumber
-  | _ -> traise "Could not infer type!"
 
 (** Unpacking functions: extract a value or throw an err *)
 

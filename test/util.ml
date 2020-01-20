@@ -1,6 +1,5 @@
 open Gobba
 open Types
-open Eval
 open Util
 
 module A = Alcotest
@@ -32,11 +31,6 @@ let checkparse e result = A.(check myexpr) e result (parse e)
 
 let checkparsefail exp = A.check_raises exp (Failure("syntax error"))
   (fun () -> try let _ = (parse exp) in () with _ -> failwith "syntax error")
-
-let checkeval exp expected = A.(check myevt) (show_expr exp) expected (eval exp state)
-
-let checkevalfail exp = A.(check_raises) (show_expr exp)
-(Failure("evaluation error")) (fun () -> try let _ = (eval exp state) in () with _ -> failwith "evaluation error")
 
 let check exp expected = A.(check myevt) exp expected (eval_one (parse exp) state)
 

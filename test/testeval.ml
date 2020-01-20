@@ -55,23 +55,25 @@ let test_curry () =
              ))
 
 let test_let () =
-  checkeval (Let([false, "f", NumInt 5], Symbol "f")) (EvtInt 5);
-  checkeval (Let([true, "f", NumInt 5], Symbol "f")) (EvtInt 5);
+  check "let f = 5 in f" (EvtInt 5);
   check "let fib = fun n -> if n < 2 then n else fib (n - 1) + fib (n - 2) and fiba =  fun n -> if n < 2 then n else fib (n - 1) + fiba (n - 2) in fiba 10"
     (EvtInt 55)
 
 let test_arithmetic () =
-  checkeval (Binop(Plus,NumInt 4, NumInt 3)) (EvtInt 7);
-  checkeval (Binop(Sub,NumInt 4, NumInt 3)) (EvtInt 1);
-  checkeval (Binop(Mult,NumInt 4, NumInt 3)) (EvtInt 12);
+  check "4 + 3" (EvtInt 7);
+  check "4 - 3" (EvtInt 1);
+  check "4 * 3" (EvtInt 12);
   check "5 * 2 * 212 + (134 * 2 - 2 + 1 ) * 1 + 2 * 1 + 2 + 1" (EvtInt 2392);
-  checkevalfail (Binop(Plus,NumInt 4, String "x"))
+  checkfail "4 + x";
+  checkfail "4 - \"ciao\"";
+  checkfail "4 * 'a'"
+
 
 let test_boolops () =
-  checkeval (Binop(And,Boolean true, Boolean false)) (EvtBool false);
-  checkeval (Binop(Or,Boolean true, Boolean false)) (EvtBool true);
-  checkeval (Not (Boolean true)) (EvtBool false);
-  checkeval (Not (Not (Boolean true))) (EvtBool true)
+  check "let x = true in x && false" (EvtBool false);
+  check "let x = true in x || false" (EvtBool true);
+  check "let x = true in not x" (EvtBool false);
+  check "let x = true in not not true" (EvtBool true)
 
 let test_comparisons () =
   check "5 = 5" (EvtBool true);
@@ -90,12 +92,11 @@ let test_pipe () =
     (EvtInt 56)
 
 let test_sequence () =
-  checkeval (Sequence(NumInt 1, NumInt 2)) (EvtInt 2)
+  check "(1 >> 2)"  (EvtInt 2)
 
 let test_lookup () =
-  checkevalfail (Symbol "");
-  checkevalfail (Symbol "notbound");
-  checkeval (Let([true, "a", NumInt 1; true, "b", NumInt 2], Symbol "a")) (EvtInt 1)
+  checkfail "notbound";
+  check "let lazy a = 1 and lazy b = 2 in a + b" (EvtInt 3)
 
 let test_primitive_abstraction () =
   check "List:head" (Closure (None, "list", ApplyPrimitive(("head", [|"list"|], Pure), [|Symbol "list"|]), []));

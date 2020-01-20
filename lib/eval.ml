@@ -31,7 +31,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
   let evaluated =
     match e with
     (* Purity blocks call eval on the body with an altered purity in the state *)
-    | Purity (allowed, ee) ->
+    | SetPurity (allowed, ee) ->
       eval ee { state with purity = allowed }
     (* Simple types *)
     | Unit -> EvtUnit
@@ -54,7 +54,7 @@ let rec eval (e : expr) (state : evalstate) : evt =
       let rest = (List.map (fun x -> eval x state) x) in
       (* Check if the rest of the vector literal contains value of the same type as
       the first element, if not, fail because vectors must be homogeneous *)
-      List.iter (fun y -> stcheck (typeof y) head_type) rest;
+      List.iter (fun y -> dyncheck (typeof y) head_type) rest;
       EvtVect(head_type, Array.of_list rest)
     (* Dictionaries and operations *)
     | Dict l ->
@@ -121,7 +121,7 @@ and eval_binop (k: binop) (x: expr) (y: expr) state =
   | Compose ->
     let ev2 = eval y state in
     let ef1 = ev2 and ef2 = ev1 in
-    stcheck (typeof ef1) TLambda; stcheck (typeof ef2) TLambda;
+    dyncheck (typeof ef1) TLambda; dyncheck (typeof ef2) TLambda;
     let params1 = Values.findevtparams ef1 in
     let appl1 = Expr.apply_from_exprlist (Expr.symbols_from_strings params1) y in
     eval (Expr.lambda_of_paramlist params1 (Apply (x, appl1))) state

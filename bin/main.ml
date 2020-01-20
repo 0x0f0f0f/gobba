@@ -4,14 +4,7 @@ open Cmdliner
 
 let run_gobba verbose program printresult maxstackdepth ist =
   Printexc.record_backtrace true; 
-  let state = {
-    env = (Util.Dict.empty());
-    purityenv = (Util.Dict.empty());
-    verbosity = verbose;
-    stack = EmptyStack;
-    printresult = printresult;
-    purity = Uncertain;
-  } in
+  let state = {default_evalstate with verbosity = verbose; printresult = printresult }in
   match program with
   | None -> Repl.repl {state with printresult = true} maxstackdepth ist
   | Some name -> let _ = Repl.run_file name state maxstackdepth ist in ()
@@ -48,6 +41,6 @@ step that is done in evaluating an expression.|} in
     `S Manpage.s_bugs;
     `P "Email bug reports to <sudo-woodo3@protonmail.com>"
   ] in
-  Term.info "gobba" ~version:"0.4.1" ~doc ~exits:Term.default_exits ~man
+  Term.info "gobba" ~version:"%%VERSION%%" ~doc ~exits:Term.default_exits ~man
 
 let () = Term.exit @@ Term.eval (run_gobba_t, info)

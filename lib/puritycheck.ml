@@ -13,9 +13,8 @@ let level_purity a b = match (a, b) with
 
 (** Infer the purity of an expression. Note: this is a naive approach.
   This function is an abstract interpretation of expressions over primitives and environments.
-  @param pt The primitives table
+  @param e The expression to infer
   @param state The current computation state
-  @param is_in_lambda If inside a lambda, the list of parameters
    *)
 let rec infer e state : puret =
   let state = { state with stack = (Estack.push_stack state.stack e) } in
@@ -42,7 +41,7 @@ let rec infer e state : puret =
     (match dp with
       | PurityModule m -> lookup_env kk m Numerical
       | _ -> traises "Cannot access a property of a value that is not a dictionary" state.stack)
-  | Purity (allowed, body) ->
+  | SetPurity (allowed, body) ->
     if (state.purity = Pure || state.purity = Numerical) && allowed = Impure then
       iraise (PurityError ("Cannot enter an " ^ (show_puret allowed) ^
       " context from a " ^ (show_puret state.purity) ^ " one!"))

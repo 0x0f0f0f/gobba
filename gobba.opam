@@ -10,6 +10,7 @@ description: "A simple, didactical, purely functional programming language writt
 doc: "https://0x0f0f0f.github.io/gobba"
 
 build: [
+  ["dune" "subst"] {pinned}
   ["dune" "build" "-p" name "-j" jobs]
   ["sh" "-c" "GOBBA_EXAMPLES=$(realpath ./examples/) dune runtest -p %{name}% -j %{jobs}%"] {with-test}
 ]

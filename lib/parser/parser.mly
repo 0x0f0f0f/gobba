@@ -47,12 +47,15 @@
 %nonassoc LAMBDA LARROW
 %nonassoc IF THEN ELSE
 %left LAND OR
+/* Comparison operators have the same precedence level */
+%left EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
+/* Complex binding */
+%left COMPLEX
+/* Arithmetical operators have precedence over comparison ones */
 %left PLUS MINUS
 %left TIMES
 %left TOPOWER
-%left COMPLEX
 %left DIV
-%left EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
 
 %start toplevel
 %type <Types.command list> toplevel
@@ -126,16 +129,7 @@ ast_expr:
   { Binop(And, e1, e2)}
   | e1 = ast_expr; OR; e2 = ast_expr
   { Binop(Or, e1, e2)}
-  | e1 = ast_expr; PLUS; e2 = ast_expr
-  { Binop(Plus, e1, e2) }
-  | e1 = ast_expr; MINUS; e2 = ast_expr
-  { Binop(Sub, e1, e2) }
-  | e1 = ast_expr; COMPLEX; e2 = ast_expr
-  { Binop(MakeComplex, e1, e2) }
-  | e1 = ast_expr; TIMES; e2 = ast_expr
-  { Binop(Mult, e1, e2) }
-  | e1 = ast_expr; DIV; e2 = ast_expr
-  { Binop(Div, e1, e2) }
+  /* Comparison operators */
   | e1 = ast_expr; EQUAL; e2 = ast_expr
   { Binop(Eq, e1, e2) }
   | e1 = ast_expr; DIFFER; e2 = ast_expr
@@ -148,6 +142,18 @@ ast_expr:
   { Binop(Ge, e1, e2) }
   | e1 = ast_expr; LESSEQUAL; e2 = ast_expr
   { Binop(Le, e1, e2) }
+  /* Arithmetical operators have precedence over comparisons */
+  | e1 = ast_expr; PLUS; e2 = ast_expr
+  { Binop(Plus, e1, e2) }
+  | e1 = ast_expr; MINUS; e2 = ast_expr
+  { Binop(Sub, e1, e2) }
+  | e1 = ast_expr; COMPLEX; e2 = ast_expr
+  { Binop(MakeComplex, e1, e2) }
+  | e1 = ast_expr; TIMES; e2 = ast_expr
+  { Binop(Mult, e1, e2) }
+  | e1 = ast_expr; DIV; e2 = ast_expr
+  { Binop(Div, e1, e2) }
+  /* Other recursive cases */
   | IF g = ast_expr; THEN b = ast_expr; ELSE e = ast_expr
   { IfThenElse (g, b, e)}
   | d = def IN body = ast_expr
@@ -180,9 +186,9 @@ ast_simple_expr:
   { Binop(Getkey, e, Symbol(s)) }
   /* Purity Blocks */
   | PURE e = ast_expr
-  { Purity (Pure, e)}
+  { SetPurity (Pure, e)}
   | IMPURE e = ast_expr
-  { Purity (Impure, e)}
+  { SetPurity (Impure, e)}
   /* List and vector literals */
   | l = delimited(LSQUARE, optterm_list(COMMA, ast_expr), RSQUARE)
   { List l }

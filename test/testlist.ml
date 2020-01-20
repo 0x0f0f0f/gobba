@@ -4,36 +4,34 @@ open Types
 
 module A = Alcotest
 
-let sample_list = (List([String "hello"; String "world"; String "apple"; NumInt 314]))
+let sample_list = "[\"hello\", \"world\", \"apple\", 314]"
 let sample_list_evt = (EvtList([EvtString "hello"; EvtString "world"; EvtString "apple"; EvtInt 314]))
 
 let test_list () =
-  checkeval sample_list sample_list_evt
+  check sample_list sample_list_evt
 
 let test_head () =
-  checkeval (Apply((Binop (Getkey, (Symbol "List"), (Symbol "head"))), sample_list)) (EvtString "hello");
-  checkevalfail (Expr.apply_from_exprlist [List([]); List([])] (Binop (Getkey, (Symbol "List"), (Symbol "tail"))));
-  checkevalfail (Expr.apply_from_exprlist [List([])] (Binop (Getkey, (Symbol "List"), (Symbol "tail"))))
+  check ("List:head " ^ sample_list) (EvtString "hello");
+  checkfail "List:head []";
+  checkfail "List:head [] 2";
+  checkfail "List:head 2 3"
 
 let test_tail () =
-  checkeval (Apply((Binop (Getkey, (Symbol "List"), (Symbol "tail"))), sample_list)) (EvtList([EvtString "world"; EvtString "apple"; EvtInt 314]));
-  checkevalfail (Expr.apply_from_exprlist [List([]); List([])] (Binop (Getkey, (Symbol "List"), (Symbol "tail"))));
-  checkevalfail (Apply((Binop (Getkey, (Symbol "List"), (Symbol "tail"))), List([])))
+  check ("List:tail " ^ sample_list) (EvtList([EvtString "world"; EvtString "apple"; EvtInt 314]));
+  checkfail "List:tail []";
+  checkfail "List:tail [] 2";
+  checkfail "List:tail 2 3"
 
 let test_cons () =
-  checkeval (Binop(Cons,String "hello", List [])) (EvtList [EvtString "hello"]);
-  checkeval (Binop(Cons,String "hello", List [String "world"])) (EvtList [EvtString
-                                                                      "hello"; EvtString "world"])
+  check "\"hello\"::[]"(EvtList [EvtString "hello"]);
+  check "\"hello\"::[\"world\"]"  (EvtList [EvtString "hello"; EvtString "world"]);
+  checkfail "4::2"
 
 let test_map () =
-  checkeval (Expr.apply_from_exprlist
-               [(Lambda ("x", Binop(Plus, (NumInt 1), (Symbol "x"))));
-                (List [NumInt 1; NumInt 2; NumInt 3; NumInt 4])] (Binop (Getkey, (Symbol "List"), (Symbol "map"))))
-    (EvtList [EvtInt 2; EvtInt 3; EvtInt 4; EvtInt 5]);
-  checkevalfail (Expr.apply_from_exprlist [String "fail"; String "fail"; String
-                                        "Fail"] (Binop (Getkey, (Symbol "List"), (Symbol "map"))));
-  checkevalfail (Expr.apply_from_exprlist [(Lambda ("x", Binop(Plus,(NumInt 1),
-                                                           (Symbol "x")))); (String "x")] (Binop (Getkey, (Symbol "List"), (Symbol "map"))))
+  check "List:map (fun x -> x + 1) [1, 2, 3, 4]" (EvtList [EvtInt 2; EvtInt 3; EvtInt 4; EvtInt 5]);
+  checkfail "List:map \"fail\" \"fail\" \"fail\"";
+  checkfail "List:map (fun x -> x + 1) 3";
+  checkfail "List:map 3 [1, 2]"
 
 let test_fold () =
   check "List:foldl (fun acc x -> acc + x) 0 [1,2,3,4]"
@@ -44,23 +42,11 @@ let test_fold () =
   checkfail "List:foldl (fun x -> 1 + x) 0 \"x\""
 
 let test_filter () =
-  checkeval
-    (Expr.apply_from_exprlist
-       [(Lambda ("x", Binop(Gt,(Symbol "x"), (NumInt 3))));
-        (List
-           [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
-            (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)])
-       ] (Binop (Getkey, (Symbol "List"), (Symbol "filter"))))
-    (EvtList [(EvtInt 4); (EvtInt 5); (EvtInt 4)]);
-  checkevalfail
-    (Expr.apply_from_exprlist
-       [(Lambda ("x", Binop(Gt,(Symbol "x"), (NumInt 3))));
-        (List
-           [(NumInt 1); (NumInt 2); (NumInt 3); (NumInt 4); (NumInt 5);
-            (NumInt 4); (NumInt 3); (NumInt 2); (NumInt 1)]); NumInt 3
-       ] (Binop (Getkey, (Symbol "List"), (Symbol "filter"))));
-  checkevalfail
-    (Expr.apply_from_exprlist [(Lambda ("x", Binop(Gt,(Symbol "x"), (NumInt 3)))); NumInt 3 ] (Binop (Getkey, (Symbol "List"), (Symbol "filter"))))
+  check "List:filter (fun x -> x > 3) [1,2,3,4,5,4,3,2,1]" (EvtList [(EvtInt 4); (EvtInt 5); (EvtInt 4)]);
+  check "List:filter (fun x -> x < 0) [1,2,3,4,5,4,3,2,1]" (EvtList []);
+  checkfail "List:filter (fun x -> x > 3) [1,2,3,4,5,4,3,2,1] 3";
+  checkfail "List:filter 3 [1,2,3]";
+  checkfail "List:filter (fun x -> x > 3) 3"
 
 let test_concat () =
   check ("[1] ++ [2]") (EvtList [EvtInt 1; EvtInt 2])

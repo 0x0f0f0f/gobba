@@ -1,7 +1,21 @@
 open Types
 open Errors
 
+(** Parse and evaluate a gobba expression from a string, in a default state,
+returning a couple consisting of an evaluated value (of type evt), that you can
+unpack using the [Gobba.Typecheck.unpack_<name>], and the new state resulting
+from the command evaluation. This is useful for embedding gobba in your ocaml
+programs.
+@param str The gobba string to parse and evaluate
+@param dirscope A directory path: where gobba will look for files imported with a relative path. Defaults to the current directory.
+@param state Specifies the current computation state with options. Uses the default state (with an empty environment) if not provided
+@return A couple containing the result of the expression evaluation and the resulting state.
+*)
+let run_string str ?(dirscope=(Filename.current_dir_name)) ?(state=default_evalstate) () =
+  let ast = Parsedriver.read_one str in
+  Eval.eval_command (List.hd ast) state dirscope
 
+(** Read a line from the CLI using ocamline and parse it *)
 let read_toplevel state =
   let prompt = "> " in
   let str = Ocamline.read
@@ -13,8 +27,6 @@ let read_toplevel state =
       ~completion_callback:(Completion.completion_callback state)
       ~history_loc:(Filename.concat (Unix.getenv "HOME") ".gobba-history") () in
   Parsedriver.read_one str
-
-let run_one = Eval.eval_command
 
 let rec repl_loop state maxdepth internalst =
   while true do
@@ -49,7 +61,7 @@ let repl state maxstackdepth internalst =
 
 let run_file fn state maxstackdepth internalst =
   try
-    Eval.eval_command_list (Parsedriver.read_file  fn) state (Filename.dirname fn)
+    Eval.eval_command_list (Parsedriver.read_file fn) state (Filename.dirname fn)
   with
   | InternalError err ->
     if internalst then Printexc.print_backtrace stderr;

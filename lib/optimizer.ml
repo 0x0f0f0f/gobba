@@ -5,7 +5,7 @@ let rec optimize (e: expr) : expr = match e with
   (* Redundant cases *)
   | Unit | NumInt _ | NumFloat _ | NumComplex _ | Character _
   | String _ | Symbol _ | Boolean _  -> e
-  | Purity(_, b) -> optimize b
+  | SetPurity(_, b) -> optimize b
   | Binop(Eq, NumInt x, NumInt y) -> Boolean (x == y)
   | Binop(Gt, NumInt x, NumInt y) -> Boolean (x > y)
   | Binop(Lt, NumInt x, NumInt y) -> Boolean (x < y)

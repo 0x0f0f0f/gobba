@@ -63,7 +63,7 @@ type binop =
 (** The type representing Abstract Syntax Tree expressions *)
 type expr =
   | Unit
-  | Purity of puret * expr
+  | SetPurity of puret * expr
   | NumInt of int
   | NumFloat of float
   | NumComplex of complext
@@ -162,6 +162,6 @@ type evalstate = {
   purity: puret;
 }
 
-let empty_evalstate = {
+let default_evalstate = {
   env = []; purityenv = []; verbosity = 0; stack = EmptyStack; printresult = false; purity = Uncertain
 }

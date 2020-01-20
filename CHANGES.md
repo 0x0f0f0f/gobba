@@ -1,3 +1,13 @@
+## 0.4.2 2020-01-??
+### Added
+- The REPL now has `readline` features by default (without the readline dependency) and more!
+- REPL tab completion and auto hints
+- A cute mascotte called gcamel
+- Optimized the primitive call abstraction
+- Separated list and dictionary primitives in their appropriate modules `Dict` and `List`
+### Fixes
+- Complex number parsing, allocation and arithmetics
+
 ## 0.4.1 2020-01-17
 - Renamed project from minicaml to `gobba`!
 - Syntax is now more haskel-ly: use `,` to separate list and dictionary values,
