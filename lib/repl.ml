@@ -16,22 +16,21 @@ let run_string str ?(dirscope=(Filename.current_dir_name)) ?(state=default_evals
   Eval.eval_command (List.hd ast) state dirscope
 
 (** Read a line from the CLI using ocamline and parse it *)
-let read_toplevel state =
+let read_toplevel () =
   let prompt = "> " in
   let str = Ocamline.read
       ~prompt:prompt
       ~brackets:[('(', ')'); ('[',']');  ('{','}')]
       ~strings:['"']
-      ~delim:";"
-      ~hints_callback:(Completion.hints_callback state)
-      ~completion_callback:(Completion.completion_callback state)
-      ~history_loc:(Filename.concat (Unix.getenv "HOME") ".gobba-history") () in
+      (* ~delim:";" *)
+      (* ~history_loc:(Filename.concat (Unix.getenv "HOME") ".gobba-history") *)
+      ";" in
   Parsedriver.read_one str
 
 let rec repl_loop state maxdepth internalst =
   while true do
     try
-      let cmd = List.hd (read_toplevel state) in
+      let cmd = List.hd (read_toplevel ()) in
       state := snd (Eval.eval_command cmd !state (Filename.current_dir_name))
     with
     | End_of_file -> raise End_of_file

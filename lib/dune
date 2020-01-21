@@ -1,7 +1,7 @@
 (library
  (name gobba)
  (public_name gobba)
- (libraries ANSITerminal ocamline menhirLib linenoise str) ;owl)
+ (libraries ANSITerminal ocamline menhirLib) ;owl)
  (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord bisect_ppx -conditional)))
 
 (copy_files primitives/*.ml)
