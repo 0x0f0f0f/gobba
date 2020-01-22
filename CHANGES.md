@@ -1,12 +1,15 @@
 ## 0.4.2 2020-01-??
 ### Added
 - The REPL now has `readline` features by default (without the readline dependency) and more!
-- REPL tab completion and auto hints
-- A cute mascotte called gcamel
+- REPL tab completion and hints.
 - Optimized the primitive call abstraction
 - Separated list and dictionary primitives in their appropriate modules `Dict` and `List`
+- Fixed size vectors and characters
+- A lot of improvements in the stdlib primitives.
+- A cute mascotte called gamel
 ### Fixes
 - Complex number parsing, allocation and arithmetics
+- Operator precedence
 
 ## 0.4.1 2020-01-17
 - Renamed project from minicaml to `gobba`!

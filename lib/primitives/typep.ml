@@ -22,7 +22,6 @@ let show args =
 
 let table = [
   ("show",              Primitive (show, ("show", [|"anything"|], Pure)));
-  ("string_from_value", Primitive (show, ("show", [|"anything"|], Pure)));
   ("typeof", Primitive (typeofp, ("typeof", [|"anything"|], Pure)));
   ("failwith", Primitive (myfailwith, ("failwith", [|"message"|], Pure)));
 ]

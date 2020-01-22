@@ -71,8 +71,3 @@ let makecomplex args =
 
 let flatnum args =
   flatten_numbert_list (Array.to_list args) |> snd |> fun y -> EvtList y
-
-let table = [
-  ("flatnum", Primitive (flatnum, ("flatnum", [||], Pure)));
-  ("complex_of_num", Primitive (div, ("complex_of_num", [|"real"; "imag";|], Numerical)))
-]

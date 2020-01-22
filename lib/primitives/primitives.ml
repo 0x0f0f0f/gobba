@@ -23,9 +23,8 @@ let lambda_of_primitive prim =
 
 let w table = List.map (fun (k, v) -> (k, LazyExpression (lambda_of_primitive v))) table
 
-(* The plain table of primitive functions (key - name) *)
+(** The table of primitive functions (key - name) *)
 let ocaml_table =
-  Numericalp.table @
   Dictp.table @
   Listp.table @
   Charp.table @
@@ -33,9 +32,8 @@ let ocaml_table =
   Typep.table @
   Iop.table
 
-(* The table of primitives or primitive modules wrapped in an Evt *)
+(* The table of primitives or primitive modules, wrapped in an Evt *)
 let table: env_type =
-  (w Numericalp.table) @
   (w Typep.table) @
   ["Dict", EvtDict ((w Dictp.table) @ Dictp.lambda_table)] @
   ["Char", EvtDict (w Charp.table)] @
@@ -53,6 +51,4 @@ let rec purity_from_env (m: env_type) : purityenv_type = match m with
       | None -> Pure ) in
     (pname, prim) :: (purity_from_env xs)
 
-  (* (pname, PurityValue (get_primitive_purity (Dict.get name ocaml_table))::(purity_from_env xs)
- *)
 let purity_table: purityenv_type = (purity_from_env table)
