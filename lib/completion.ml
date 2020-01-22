@@ -59,7 +59,7 @@ module Trie = struct
   let insert_string tree kwd =
   tree := insert !tree (explode kwd)
 
-  let insert_many_strings tree kwdl = List.iter (insert_string tree) kwdl; tree
+  let insert_many_strings tree kwdl = List.iter (insert_string tree) kwdl
 
 
   let rec find_in_subtree tree path =

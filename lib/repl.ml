@@ -30,9 +30,11 @@ let directives = [
 
 let all_completions = (Util.fstl directives)
 
-let tree = Completion.Trie.insert_many_strings (Completion.Trie.empty ()) all_completions
+let tree = let t = Completion.Trie.empty () in Completion.Trie.insert_many_strings t all_completions; t
 
-let varnames = ref []
+module StringSet = Set.Make(String)
+
+let varnames = ref @@ StringSet.of_list (Util.Dict.getkeys Primitives.table)
 
 (** Read a line from the CLI using ocamline and parse it *)
 let read_toplevel () =
@@ -50,10 +52,10 @@ let read_toplevel () =
 let rec repl_loop state maxdepth internalst =
   while true do
     try
+      varnames := StringSet.add_seq (Util.Dict.getkeys !state.env |> List.to_seq) !varnames ;
+      Completion.Trie.insert_many_strings tree @@ StringSet.elements !varnames;
       let cmd = List.hd (read_toplevel ()) in
       state := snd (Eval.eval_command cmd !state (Filename.current_dir_name));
-      varnames := (Util.Dict.getkeys !state.env) @ (Util.Dict.getkeys Primitives.table);
-      let _ = Completion.Trie.insert_many_strings tree !varnames in ()
     with
     | End_of_file -> raise End_of_file
     | InternalError err ->
