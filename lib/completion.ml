@@ -11,7 +11,7 @@ let explode s =
   exp (String.length s - 1) []
 
 module Trie = struct
-  type t = Start of t list | Stop | Node of char * t list
+  type t = Start of t list | Stop | Node of char * t list [@@deriving show]
 
   let empty () = ref @@ Start []
 
@@ -102,27 +102,6 @@ module Trie = struct
   | Some x -> (flatten_subtree_completions x |> List.map implode)
 end
 
-let str_starts_with s1 s2 =
-  let len1 = String.length s1
-  and len2 = String.length s2 in
-  if len1 < len2 then false else
-    let sub = String.sub s1 0 len2 in
-    (sub = s2)
-
-let str_ends_with s1 s2 =
-  let len1 = String.length s1
-  and len2 = String.length s2 in
-  if len1 < len2 then false else
-    let sub = String.sub s1 (len1 - len2) len2 in
-    (sub = s2)
-
-let str_get_rest s1 s2 =
-  let len1 = String.length s1
-  and len2 = String.length s2 in
-  if len1 <= len2 then "" else
-  let len2 = (String.length s2) in
-  String.sub s1 len2 (String.length s1 - len2)
-
 (* A list of pairs of directives and their completion hints *)
 let directives = [
   ("#pure ();", "#pure () ; (* Enforce only pure computations! *)");
@@ -139,51 +118,24 @@ let all_completions = (fstl directives)
 
 let tree = Trie.insert_many_strings (Trie.empty ()) all_completions
 
-(* Extend a mutable list of completion names with the properties from a dictionary
-if it exists in the environment, or from the table of primitives *)
-let extend_completions_with_dictionary_properties state varnames last_word  =
-  (*
-TODO Fixme! *)
-  if str_ends_with last_word ":" then
-    let last_word = String.sub last_word 0 (String.length last_word - 1) in
-  (* If the current word is a dictionary in the env + the ':' character
-  then add the props to the current completion list*)
-    match Dict.get last_word Primitives.table with
-    | Some (EvtDict d) ->
-      let propertynames = Dict.getkeys d in
-      varnames := ((List.map (fun prop -> last_word ^ ":" ^ prop ) propertynames) @ !varnames)
-    | _ -> ();
-    match Dict.get last_word !state.env with
-    | Some (EvtDict d) ->
-      let propertynames = Dict.getkeys d in
-      varnames := ((List.map (fun prop -> last_word ^ ":" ^ prop ) propertynames) @ !varnames)
-    | _ -> ()
+let varnames = ref []
+
 
 let hints_callback state line =
-  if line = "" then None else
-  try
-  (* Try to complete from directives *)
-  List.find (fun x -> str_starts_with x line) (sndl directives) |> fun x -> str_get_rest x line
-  |> fun x -> Some (x, LNoise.Yellow, true)
-  (* If there's no directive, try to complete from the current environment *)
-  with Not_found -> try
-    (* Get currently defined variable names from the state pointer *)
-    let varnames = ref ((Dict.getkeys !state.env) @ (Dict.getkeys Primitives.table)) in
-    let last_word = String.split_on_char ' ' line |> last in
-    extend_completions_with_dictionary_properties state varnames last_word;
-    List.find (fun x -> str_starts_with x last_word) !varnames |> fun x -> str_get_rest x line
-    |> fun x -> Some (x, LNoise.Yellow, true)
-  with Not_found -> None
+  if line = "" then None else begin
+    varnames := (Dict.getkeys !state.env) @ (Dict.getkeys Primitives.table);
+    let tree = Trie.insert_many_strings tree !varnames in
+    let last_word = String.split_on_char ' ' line |> List.map String.trim |> last in
+    Trie.gen_completions !tree last_word
+    |> List.map (fun x ->  String.sub x 1 (String.length x - 1))
+    |> fun x -> Printf.printf "%s" @@ String.concat "," x ; x
+    |> fun x -> match x with [] -> None | x::_ -> Some (x, LNoise.Cyan, true)
+  end
 
-let completion_callback state line_so_far ln_completions =
-  (* Get currently defined variable names from the state pointer *)
-  let varnames = ref ((Dict.getkeys !state.env) @ (Dict.getkeys Primitives.table)) in
+let completion_callback line_so_far ln_completions =
   if line_so_far <> "" then
-  let tree = Trie.insert_many_strings tree !varnames in
-  let last_word = String.split_on_char ' ' line_so_far |> last in
-  Trie.gen_completions !tree last_word |> List.iter (LNoise.add_completion ln_completions)
-  (* let last_word = String.split_on_char ' ' line_so_far |> last in
-  extend_completions_with_dictionary_properties state varnames last_word;
-  List.filter (fun x -> str_starts_with x last_word) (all_completions @ !varnames)
+  let last_word = String.split_on_char ' ' line_so_far |> List.map String.trim |> last in
+  Trie.gen_completions !tree last_word
+  |> List.map (fun x ->  String.sub x 1 (String.length x - 1))
+  |> List.map (fun x -> line_so_far ^ x)
   |> List.iter (LNoise.add_completion ln_completions)
- *)

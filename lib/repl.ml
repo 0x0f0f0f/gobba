@@ -24,7 +24,7 @@ let read_toplevel state =
       ~strings:['"']
       ~delim:";"
       ~hints_callback:(Completion.hints_callback state)
-      ~completion_callback:(Completion.completion_callback state)
+      ~completion_callback:(Completion.completion_callback)
       ~history_loc:(Filename.concat (Unix.getenv "HOME") ".gobba-history") () in
   Parsedriver.read_one str
 
