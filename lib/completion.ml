@@ -1,7 +1,6 @@
 (** This module provides the completion callback for the linenoise REPL *)
 
 open Util
-open Types
 
 let implode cl = String.concat "" (List.map (String.make 1) cl)
 
@@ -102,39 +101,20 @@ module Trie = struct
   | Some x -> (flatten_subtree_completions x |> List.map implode)
 end
 
-(* A list of pairs of directives and their completion hints *)
-let directives = [
-  ("#pure ();", "#pure () ; (* Enforce only pure computations! *)");
-  ("#impure ();", "#impure (); (* Allow impure computations globally! *)");
-  ("#uncertain ();", "#uncertain (); (* Reset to the default purity state *)");
-  ("#dumppurityenv ();", "#dumppurityenv (); (* Dump the purity of each value in the environment*)");
-  ("#dumpenv ();", "#dumpenv (); (* Dump the all values in the environment*)");
-  ("#verbose ", "#verbose <int> (* Set the verbosity level *)");
-  ("#module ", "#module <string> (* Load and run a file and export declarations to a module *)");
-  ("#include ", "#include <string> (* Load and run a file and import the declarations *)");
-]
-
-let all_completions = (fstl directives)
-
-let tree = Trie.insert_many_strings (Trie.empty ()) all_completions
-
-let varnames = ref []
 
 
-let hints_callback state line =
+
+let hints_callback tree line =
   if line = "" then None else begin
-    varnames := (Dict.getkeys !state.env) @ (Dict.getkeys Primitives.table);
-    let tree = Trie.insert_many_strings tree !varnames in
     let last_word = String.split_on_char ' ' line |> List.map String.trim |> last in
-    if last_word <> "" then 
+    if last_word <> "" then
     Trie.gen_completions !tree last_word
     |> List.map (fun x ->  String.sub x 1 (String.length x - 1))
-    |> fun x -> Printf.printf "%s" @@ String.concat "," x ; x
     |> fun x -> match x with [] -> None | x::_ -> Some (x, LNoise.Cyan, true)
     else None
   end
 
-let completion_callback line_so_far ln_completions =
+let completion_callback tree line_so_far ln_completions =
   if line_so_far <> "" then
   let last_word = String.split_on_char ' ' line_so_far |> List.map String.trim |> last in
   if last_word <> "" then

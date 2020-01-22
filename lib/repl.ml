@@ -15,24 +15,45 @@ let run_string str ?(dirscope=(Filename.current_dir_name)) ?(state=default_evals
   let ast = Parsedriver.read_one str in
   Eval.eval_command (List.hd ast) state dirscope
 
+
+(* A list of pairs of directives and their completion hints *)
+let directives = [
+  ("#pure ();", "#pure () ; (* Enforce only pure computations! *)");
+  ("#impure ();", "#impure (); (* Allow impure computations globally! *)");
+  ("#uncertain ();", "#uncertain (); (* Reset to the default purity state *)");
+  ("#dumppurityenv ();", "#dumppurityenv (); (* Dump the purity of each value in the environment*)");
+  ("#dumpenv ();", "#dumpenv (); (* Dump the all values in the environment*)");
+  ("#verbose ", "#verbose <int> (* Set the verbosity level *)");
+  ("#module ", "#module <string> (* Load and run a file and export declarations to a module *)");
+  ("#include ", "#include <string> (* Load and run a file and import the declarations *)");
+]
+
+let all_completions = (Util.fstl directives)
+
+let tree = Completion.Trie.insert_many_strings (Completion.Trie.empty ()) all_completions
+
+let varnames = ref []
+
 (** Read a line from the CLI using ocamline and parse it *)
-let read_toplevel state =
+let read_toplevel () =
   let prompt = "> " in
   let str = Ocamline.read
       ~prompt:prompt
       ~brackets:[('(', ')'); ('[',']');  ('{','}')]
       ~strings:['"']
       ~delim:";"
-      ~hints_callback:(Completion.hints_callback state)
-      ~completion_callback:(Completion.completion_callback)
+      ~hints_callback:(Completion.hints_callback tree)
+      ~completion_callback:(Completion.completion_callback tree)
       ~history_loc:(Filename.concat (Unix.getenv "HOME") ".gobba-history") () in
   Parsedriver.read_one str
 
 let rec repl_loop state maxdepth internalst =
   while true do
     try
-      let cmd = List.hd (read_toplevel state) in
-      state := snd (Eval.eval_command cmd !state (Filename.current_dir_name))
+      let cmd = List.hd (read_toplevel ()) in
+      state := snd (Eval.eval_command cmd !state (Filename.current_dir_name));
+      varnames := (Util.Dict.getkeys !state.env) @ (Util.Dict.getkeys Primitives.table);
+      let _ = Completion.Trie.insert_many_strings tree !varnames in ()
     with
     | End_of_file -> raise End_of_file
     | InternalError err ->
