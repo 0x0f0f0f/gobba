@@ -126,15 +126,18 @@ let hints_callback state line =
     varnames := (Dict.getkeys !state.env) @ (Dict.getkeys Primitives.table);
     let tree = Trie.insert_many_strings tree !varnames in
     let last_word = String.split_on_char ' ' line |> List.map String.trim |> last in
+    if last_word <> "" then 
     Trie.gen_completions !tree last_word
     |> List.map (fun x ->  String.sub x 1 (String.length x - 1))
     |> fun x -> Printf.printf "%s" @@ String.concat "," x ; x
     |> fun x -> match x with [] -> None | x::_ -> Some (x, LNoise.Cyan, true)
+    else None
   end
 
 let completion_callback line_so_far ln_completions =
   if line_so_far <> "" then
   let last_word = String.split_on_char ' ' line_so_far |> List.map String.trim |> last in
+  if last_word <> "" then
   Trie.gen_completions !tree last_word
   |> List.map (fun x ->  String.sub x 1 (String.length x - 1))
   |> List.map (fun x -> line_so_far ^ x)
