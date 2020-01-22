@@ -1,18 +1,18 @@
 open Types
 
-let rec show_unpacked_evt e = match e with
+let rec show_evt_fancy e = match e with
   | EvtUnit -> "()"
   | EvtInt v -> string_of_int v
   | EvtFloat v -> Printf.sprintf "%f" v
   | EvtComplex n -> show_complext n
   | EvtBool v -> string_of_bool v
-  | EvtChar c -> String.make 1 c
+  | EvtChar c -> "'" ^ String.make 1 c ^ "'"
   | EvtString v -> "\"" ^ (String.escaped v) ^ "\""
-  | EvtVect (_, l) -> "[|" ^ (String.concat ", " (Array.map show_unpacked_evt l |> Array.to_list)) ^ "|]"  
-  | EvtList l -> "[" ^ (String.concat ", " (List.map show_unpacked_evt l)) ^ "]"
+  | EvtVect (_, l) -> "[|" ^ (String.concat ", " (Array.map show_evt_fancy l |> Array.to_list)) ^ "|]"  
+  | EvtList l -> "[" ^ (String.concat ", " (List.map show_evt_fancy l)) ^ "]"
   | EvtDict d -> "{" ^
                  (String.concat ", " 
-                    (List.map (fun (x,y) -> x ^ " = " ^ show_unpacked_evt y) d))
+                    (List.map (fun (x,y) -> x ^ " = " ^ show_evt_fancy y) d))
                  ^ "}"
   | Closure (name, param, body, _) ->
     (match name with | Some x -> x | None -> "") ^ "(fun " ^ (String.concat " " (param::(Expr.findparams body))) ^ " -> ... )"

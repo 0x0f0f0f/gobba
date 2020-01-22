@@ -17,7 +17,7 @@ let myfailwith args =
 let show args =
   match args with
   | [|EvtString x|] -> (EvtString x)
-  | [|x|] -> EvtString (Values.show_unpacked_evt x)
+  | [|x|] -> EvtString (Values.show_evt_fancy x)
   | _ -> iraise WrongPrimitiveArgs
 
 let table = [

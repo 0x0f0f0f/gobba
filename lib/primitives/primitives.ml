@@ -39,7 +39,7 @@ let table: env_type =
   (w Typep.table) @
   ["Dict", EvtDict ((w Dictp.table) @ Dictp.lambda_table)] @
   ["Char", EvtDict (w Charp.table)] @
-  ["String", EvtDict (w Stringp.table)] @
+  ["String", EvtDict ((w Stringp.table) @ Stringp.lambda_table)] @
   ["List", EvtDict ((w Listp.table) @ Listp.lambda_table)] @
   ["IO", EvtDict (w Iop.table)]
 

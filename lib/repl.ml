@@ -18,23 +18,26 @@ let run_string str ?(dirscope=(Filename.current_dir_name)) ?(state=default_evals
 
 (* A list of pairs of directives and their completion hints *)
 let directives = [
-  ("#pure ();", "#pure () ; (* Enforce only pure computations! *)");
-  ("#impure ();", "#impure (); (* Allow impure computations globally! *)");
-  ("#uncertain ();", "#uncertain (); (* Reset to the default purity state *)");
-  ("#dumppurityenv ();", "#dumppurityenv (); (* Dump the purity of each value in the environment*)");
-  ("#dumpenv ();", "#dumpenv (); (* Dump the all values in the environment*)");
-  ("#verbose ", "#verbose <int> (* Set the verbosity level *)");
-  ("#module ", "#module <string> (* Load and run a file and export declarations to a module *)");
-  ("#include ", "#include <string> (* Load and run a file and import the declarations *)");
+  "#pure ();";
+  "#impure ();";
+  "#dumppurityenv ();";
+  "#dumpenv ();";
+  "#verbose ";
+  "#module ";
+  "#include ";
 ]
 
-let all_completions = (Util.fstl directives)
-
-let tree = let t = Completion.Trie.empty () in Completion.Trie.insert_many_strings t all_completions; t
+let tree = ref @@ Completion.Trie.insert_many_strings (Completion.Trie.empty ()) directives
 
 module StringSet = Set.Make(String)
 
-let varnames = ref @@ StringSet.of_list (Util.Dict.getkeys Primitives.table)
+let rec gen_keywords_from_env env =
+  match env with
+  | (n, EvtDict d)::xs ->  n :: (gen_keywords_from_env d |> List.map (fun v -> n ^ ":" ^ v )) @ gen_keywords_from_env xs
+  | (n, _)::xs -> n::(gen_keywords_from_env xs)
+  | [] -> []
+
+let varnames = ref @@ StringSet.of_list @@ gen_keywords_from_env Primitives.table
 
 (** Read a line from the CLI using ocamline and parse it *)
 let read_toplevel () =
@@ -52,8 +55,8 @@ let read_toplevel () =
 let rec repl_loop state maxdepth internalst =
   while true do
     try
-      varnames := StringSet.add_seq (Util.Dict.getkeys !state.env |> List.to_seq) !varnames ;
-      Completion.Trie.insert_many_strings tree @@ StringSet.elements !varnames;
+      varnames := StringSet.add_seq (gen_keywords_from_env !state.env |> List.to_seq) !varnames ;
+      tree := Completion.Trie.insert_many_strings !tree @@ StringSet.elements !varnames;
       let cmd = List.hd (read_toplevel ()) in
       state := snd (Eval.eval_command cmd !state (Filename.current_dir_name));
     with

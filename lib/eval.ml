@@ -204,7 +204,7 @@ and eval_command command state dirscope =
     (* Print the fancy result if state.printresult is true *)
     if state.printresult then
       Printf.eprintf "result: %s - %s\n%!"
-        (Values.show_unpacked_evt evaluated)
+        (Values.show_evt_fancy evaluated)
         (show_typeinfo (Typecheck.typeof evaluated))
     else ();
     (evaluated, state)
