@@ -5,17 +5,6 @@ open Typecheck
 
 (** String Primitives *)
 
-let string_binop (op : string -> string -> string) args =
-  let (x, y) = match args with
-    | [|x; y|] -> (unpack_string x, unpack_string y)
-    | _ -> iraise WrongPrimitiveArgs in
-  EvtString (op x y)
-
-let string_unop (op : string -> string) args =
-  let x = match args with
-    | [|x|] -> unpack_string x
-    | _ -> iraise WrongPrimitiveArgs in
-  EvtString (op x)
 
 let compare (comp: (int -> int -> bool)) args =
   let (x,y) = match args with
@@ -28,6 +17,6 @@ let concat args = match args with
   | _ -> iraise WrongPrimitiveArgs
 
 let table = [
-  ("concat",            Primitive (concat, ("concat", [|"a"; "b"|], Pure)));
+  ("concat", Primitive (concat, ("concat", [|"a"; "b"|], Pure)));
 ]
 

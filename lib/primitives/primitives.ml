@@ -28,6 +28,7 @@ let ocaml_table =
   Dictp.table @
   Listp.table @
   Charp.table @
+  Complexp.table @
   Stringp.table @
   Typep.table @
   Iop.table
@@ -37,6 +38,7 @@ let table: env_type =
   (w Typep.table) @
   ["Dict", EvtDict ((w Dictp.table) @ Dictp.lambda_table)] @
   ["Char", EvtDict (w Charp.table)] @
+  ["Complex", EvtDict (w Complexp.table)] @
   ["String", EvtDict (w Stringp.table)] @
   ["List", EvtDict ((w Listp.table) @ Listp.lambda_table)] @
   ["IO", EvtDict (w Iop.table)]

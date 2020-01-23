@@ -5,13 +5,15 @@
 
 # gobba
 
-**gobba** is a dynamically typed and purely functional interpreted
-programming language, heavily inspired from the OCaml,
-Haskell and Scheme languages. It is based on Professors Gianluigi Ferrari and Francesca Levi's
-[minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml) interpreter example. The goal for gobba is to be a practical language
-with built in support for scientific computing, solving some of the problems
-that exist in other dynamically typed interpreted languages like python and
-Javascript.
+**gobba** is a dynamically typed and purely functional interpreted programming
+language, heavily inspired from the OCaml, Haskell and Scheme languages. It is
+based on Professors Gianluigi Ferrari and Francesca Levi's
+[minicaml](http://pages.di.unipi.it/levi/codice-18/evalFunEnvFull.ml)
+interpreter example. The goal for gobba is to be a practical language with built
+in support for scientific computing, solving some of the problems that exist in
+other dynamically typed interpreted languages like python and Javascript. A
+primary goal is also to offer a compromise between solidity, ease of learning and
+the ability to express ideas quickly in the language.
 
 ## Features
 * C and Haskell-like syntax with lexical scoping
@@ -32,7 +34,7 @@ You can read the Gobba documentation in the [Gobba Programming Language Handbook
 
 The internal documentation is available
 [here](https://0x0f0f0f.github.io/gobba). Please note that the language at the
-current status is in an experimental phase and therefore the specification is
+current status is in an **experimental phase** and therefore the specification is
 not complete, and will be constantly updated. The documentation may not be up to
 date with the latest features in the `master` branch.
 

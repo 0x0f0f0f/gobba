@@ -1,4 +1,6 @@
 open Types
+
+
 let parser = Parser.toplevel Lexer.token
 
 (** An helper function that helps extracting closures from strings,
