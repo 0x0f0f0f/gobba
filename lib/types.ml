@@ -26,6 +26,7 @@ type typeinfo =
   | TList
   | TDict
   | TLambda
+  (* | TAdt of ide * (... costruttori e cosa contengono ) *)
   [@@deriving show { with_path = false }, eq, ord]
 
 let rec show_typeinfo t = match t with
@@ -133,6 +134,7 @@ type evt =
   (** Recursion is achieved by keeping an optional function name in the constructor *)
   | Closure of ide option * ide * expr * env_type  [@equal (=)]
   | LazyExpression of expr
+  (* TODO ADT | EvtInAdt of ide (costruttore) * typeinfo * evt *)
 [@@deriving show { with_path = false }, eq, ord]
 
 (* An environment of already evaluated values  *)

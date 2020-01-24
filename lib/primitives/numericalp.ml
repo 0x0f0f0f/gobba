@@ -1,6 +1,7 @@
 open Types
 open Errors
 open Typecheck
+open Owl_base_maths
 
 let rec unpackIntList l = match l with
   | [] -> []
@@ -24,31 +25,22 @@ let first_two_numbers (args: evt array) =
     | [x; y] -> (found, x, y)
     | _ -> iraise (WrongPrimitiveArgs))
 
-let add args =
-  let found, numlist = flatten_numbert_list (Array.to_list args) in
-  match found with
-  | TInt -> EvtInt (List.fold_left (+) 0 (unpackIntList numlist))
-  | TFloat -> EvtFloat (List.fold_left (+.) 0. (unpackFloatList numlist))
-  | TComplex -> EvtComplex (List.fold_left (Complex.add) Complex.zero
-  (unpackComplexList numlist))
-  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_typeinfo found ))
-
-let mult args =
+let dynamic_binop 
+  (opint : int -> int -> int)
+  (opfloat : float -> float -> float)
+  (opcomplex : Complex.t -> Complex.t -> Complex.t)
+  args = 
   let t, x, y = first_two_numbers args in
   match t with
-  | TInt -> EvtInt (unpack_int x * unpack_int y)
-  | TFloat -> EvtFloat (unpack_float x *. unpack_float y)
-  | TComplex -> EvtComplex (Complex.mul (unpack_complex x) (unpack_complex y))
+  | TInt -> EvtInt (opint (unpack_int x) (unpack_int y))
+  | TFloat -> EvtFloat (opfloat (unpack_float x) (unpack_float y))
+  | TComplex -> EvtComplex (opcomplex (unpack_complex x) (unpack_complex y))
   | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_typeinfo t ))
 
 
-let sub args =
-  let t, x, y = first_two_numbers args in
-  match t with
-  | TInt -> EvtInt (unpack_int x - unpack_int y)
-  | TFloat -> EvtFloat (unpack_float x -. unpack_float y)
-  | TComplex -> EvtComplex (Complex.sub (unpack_complex x) (unpack_complex y))
-  | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_typeinfo t ))
+let add args = dynamic_binop (+) (+.) Complex.add args
+let mult args = dynamic_binop ( * ) ( *. ) Complex.mul args 
+let sub args = dynamic_binop (-) (-.) Complex.sub args
 
 let div args =
   let t, x, y = first_two_numbers args in
@@ -71,3 +63,56 @@ let makecomplex args =
 
 let flatnum args =
   flatten_numbert_list (Array.to_list args) |> snd |> fun y -> EvtList y
+
+(* Numerical primitive wrappers *)
+let int_unop (op: int -> int) args =
+  let x = (match args with
+  | [|x|] -> unpack_int @@ cast_numbert TFloat x
+  | _ -> iraise WrongPrimitiveArgs ) in
+  EvtInt(op x)
+
+let float_unop (op: float -> float) args =
+  let x = (match args with
+  | [|x|] -> unpack_float @@ cast_numbert TFloat x
+  | _ -> iraise WrongPrimitiveArgs ) in
+  EvtFloat(op x)
+
+let float_binop (op: float -> float -> float) args =
+  let x, y = (match args with
+  | [|x; y|] -> (unpack_float @@ cast_numbert TFloat x), unpack_float @@ cast_numbert TFloat y
+  | _ -> iraise WrongPrimitiveArgs ) in
+  EvtFloat(op x y)
+
+let table = [
+  (* Exponentiation and Roots *)
+  ("exp", Primitive (float_unop exp, ("exp", [|"number"|], Numerical)));
+  ("pow", Primitive (float_binop pow, ("pow", [|"number"|], Numerical)));
+  ("sqrt", Primitive (float_unop sqrt, ("sqrt", [|"number"|], Numerical)));
+  ("cbrt", Primitive (float_unop cbrt, ("cbrt", [|"number"|], Numerical)));
+  (* Trigonometry *)
+  ("cos", Primitive (float_unop cos, ("cos", [|"number"|], Numerical)));
+  ("sin", Primitive (float_unop sin, ("sin", [|"number"|], Numerical)));
+  ("tan", Primitive (float_unop tan, ("tan", [|"number"|], Numerical)));
+  ("cot", Primitive (float_unop cot, ("cot", [|"number"|], Numerical)));
+  ("acos", Primitive (float_unop acos, ("acos", [|"number"|], Numerical)));
+  ("asin", Primitive (float_unop asin, ("asin", [|"number"|], Numerical)));
+  ("atan", Primitive (float_unop atan, ("atan", [|"number"|], Numerical)));
+  ("acot", Primitive (float_unop acot, ("acot", [|"number"|], Numerical)));
+  ("cosh", Primitive (float_unop cosh, ("cosh", [|"number"|], Numerical)));
+  ("sinh", Primitive (float_unop sinh, ("sinh", [|"number"|], Numerical)));
+  ("tanh", Primitive (float_unop tanh, ("tanh", [|"number"|], Numerical)));
+  ("acosh", Primitive (float_unop acosh, ("acosh", [|"number"|], Numerical)));
+  ("asinh", Primitive (float_unop asinh, ("asinh", [|"number"|], Numerical)));
+  ("atanh", Primitive (float_unop atanh, ("atanh", [|"number"|], Numerical)));
+  (* Error function *)
+  ("erf", Primitive (float_unop erf, ("erf", [|"number"|], Numerical)));  
+  (* Misc *)
+  (* ("is_prime", Primitive (int_unop is_prime, ("is_prime", [|"number"|], Numerical))); *)
+  
+]
+
+let constants = [
+  ("e", EvtFloat(exp 1.));
+  ("pi", EvtFloat(3.1415926535897932384626433));
+  ("nan", EvtFloat(nan))
+]

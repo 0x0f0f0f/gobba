@@ -5,7 +5,6 @@ open Typecheck
 
 (** String Primitives *)
 
-
 let compare (comp: (int -> int -> bool)) args =
   let (x,y) = match args with
     | [|x;y|] -> (x, y)

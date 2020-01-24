@@ -25,6 +25,7 @@ let w table = List.map (fun (k, v) -> (k, LazyExpression (lambda_of_primitive v)
 
 (** The table of primitive functions (key - name) *)
 let ocaml_table =
+  Numericalp.table @
   Dictp.table @
   Listp.table @
   Charp.table @
@@ -36,8 +37,10 @@ let ocaml_table =
 (* The table of primitives or primitive modules, wrapped in an Evt *)
 let table: env_type =
   (w Typep.table) @
+(*   (w Numericalp.table) @ *)
   ["Dict", EvtDict ((w Dictp.table) @ Dictp.lambda_table)] @
   ["Char", EvtDict (w Charp.table)] @
+  ["Math", EvtDict (w Numericalp.table @ Numericalp.constants)] @
   ["Complex", EvtDict (w Complexp.table)] @
   ["String", EvtDict (w Stringp.table)] @
   ["List", EvtDict ((w Listp.table) @ Listp.lambda_table)] @
