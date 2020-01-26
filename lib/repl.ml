@@ -15,6 +15,30 @@ let run_string str ?(dirscope=(Filename.current_dir_name)) ?(state=default_evals
   let ast = Parsedriver.read_one str in
   Eval.eval_command (List.hd ast) state dirscope
 
+
+(* A list of pairs of directives and their completion hints *)
+let directives = [
+  "#pure ();";
+  "#impure ();";
+  "#dumppurityenv ();";
+  "#dumpenv ();";
+  "#verbose ";
+  "#module ";
+  "#include ";
+]
+
+let tree = ref @@ Completion.Trie.insert_many_strings (Completion.Trie.empty ()) directives
+
+module StringSet = Set.Make(String)
+
+let rec gen_keywords_from_env env =
+  match env with
+  | (n, EvtDict d)::xs ->  n :: (gen_keywords_from_env d |> List.map (fun v -> n ^ ":" ^ v )) @ gen_keywords_from_env xs
+  | (n, _)::xs -> n::(gen_keywords_from_env xs)
+  | [] -> []
+
+let varnames = ref @@ StringSet.of_list @@ gen_keywords_from_env Primitives.table
+
 (** Read a line from the CLI using ocamline and parse it *)
 let read_toplevel () =
   let prompt = "> " in
@@ -22,16 +46,19 @@ let read_toplevel () =
       ~prompt:prompt
       ~brackets:[('(', ')'); ('[',']');  ('{','}')]
       ~strings:['"']
-      (* ~delim:";" *)
-      (* ~history_loc:(Filename.concat (Unix.getenv "HOME") ".gobba-history") *)
-      ";" in
+      ~delim:";"
+      ~hints_callback:(Completion.hints_callback tree)
+      ~completion_callback:(Completion.completion_callback tree)
+      ~history_loc:(Filename.concat (Unix.getenv "HOME") ".gobba-history") () in
   Parsedriver.read_one str
 
 let rec repl_loop state maxdepth internalst =
   while true do
     try
+      varnames := StringSet.add_seq (gen_keywords_from_env !state.env |> List.to_seq) !varnames ;
+      tree := Completion.Trie.insert_many_strings !tree @@ StringSet.elements !varnames;
       let cmd = List.hd (read_toplevel ()) in
-      state := snd (Eval.eval_command cmd !state (Filename.current_dir_name))
+      state := snd (Eval.eval_command cmd !state (Filename.current_dir_name));
     with
     | End_of_file -> raise End_of_file
     | InternalError err ->

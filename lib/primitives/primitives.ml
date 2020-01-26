@@ -42,7 +42,7 @@ let table: env_type =
   ["Char", EvtDict (w Charp.table)] @
   ["Math", EvtDict (w Numericalp.table @ Numericalp.constants)] @
   ["Complex", EvtDict (w Complexp.table)] @
-  ["String", EvtDict (w Stringp.table)] @
+  ["String", EvtDict ((w Stringp.table ) @ Stringp.lambda_table)] @
   ["List", EvtDict ((w Listp.table) @ Listp.lambda_table)] @
   ["IO", EvtDict (w Iop.table)]
 

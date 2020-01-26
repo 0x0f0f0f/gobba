@@ -106,14 +106,28 @@ let rec zip l1 l2 =
   | (x::xs, y::ys) -> (x,y)::(zip xs ys)
   | _ -> failwith "lists are not of equal length"
 
-(* Zip together two lists with in single list of couples *)
+(** Zip together two lists with in single list of couples *)
 let rec zip3 l1 l2 l3 =
   match (l1, l2, l3) with
   | ([], [], []) -> []
   | (x::xs, y::ys, z::zs) -> (x,y,z)::(zip3 xs ys zs)
   | _ -> failwith "lists are not of equal length"
 
-(* Generate a list of parameter names to use in the primitive abstraction *)
-let generate_prim_params n =
+(** Generate a list of parameter names to use in the primitive abstraction *)
+let gen_n_letters n =
   if n = 0 then ["..."] else
     Array.to_list(Array.make n 'a' |> Array.mapi (fun i c -> int_of_char c + i |> char_of_int |> Printf.sprintf "%c"))
+
+(** Make a list of characters from a string *)
+let explode s =
+  let rec exp i l =
+    if i < 0 then l else exp (i - 1) (s.[i] :: l) in
+  exp (String.length s - 1) []
+
+(** Make a string of a list of characters *)
+let implode l =
+  let res = Bytes.create (List.length l) in
+  let rec imp i = function
+  | [] -> res
+  | c :: l -> Bytes.set res i c; imp (i + 1) l in
+  Bytes.to_string @@ imp 0 l;;

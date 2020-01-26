@@ -64,6 +64,7 @@ let test_arithmetic () =
   check "4 - 3" (EvtInt 1);
   check "4 * 3" (EvtInt 12);
   check "5 * 2 * 212 + (134 * 2 - 2 + 1 ) * 1 + 2 * 1 + 2 + 1" (EvtInt 2392);
+  check "2 * (4 :+ 2)" (EvtComplex {Complex.re = 8.; Complex.im = 4. });
   checkfail "4 + x";
   checkfail "4 - \"ciao\"";
   checkfail "4 * 'a'"

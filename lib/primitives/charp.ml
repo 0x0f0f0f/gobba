@@ -8,7 +8,15 @@ let toupper args =
     | _ -> iraise WrongPrimitiveArgs in
   EvtChar(Char.uppercase_ascii x)
 
+let tolower args =
+  let x = match args with
+    | [|x|] -> unpack_char x
+    | _ -> iraise WrongPrimitiveArgs in
+  EvtChar(Char.lowercase_ascii x)
+
+
 let table = [
-  ("upcase", Primitive (toupper, ("upcase", [|"char"|], Pure)));
+  ("toupper", Primitive (toupper, ("toupper", [|"char"|], Pure)));
+  ("tolower", Primitive (toupper, ("tolower", [|"char"|], Pure)));
 ]
 
