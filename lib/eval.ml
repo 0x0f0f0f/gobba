@@ -184,12 +184,6 @@ and eval_command command state dirscope =
   match command with
   | Directive dir -> eval_directive dir state dirscope
   | Expr e ->
-    (* Infer the expression purity and evaluate if appropriate to the current state *)
-    let exprpurity = Puritycheck.infer e state in
-    if (state.purity = Pure || state.purity = Numerical) && exprpurity = Impure then
-      iraises (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
-                            " expression but it is in " ^ (show_puret state.purity) ^ " state!")) state.stack else ();
-    if state.verbosity >= 1 then Printf.eprintf "Has purity: %s\n%!" (show_puret exprpurity) else ();
     (* Normalize the expression *)
     let optimized_ast = Optimizer.iterate_optimizer e in
     (* If the expression is NOT already in normal state, print the optimized one if verbosity is enough *)
@@ -210,15 +204,13 @@ and eval_command command state dirscope =
     (evaluated, state)
   | Def dl ->
     let (islazyl, idel, vall) = unzip3 dl in
-    (* Infer the values purity and evaluate if appropriate to the current state *)
-    let new_purity_state = Puritycheck.infer_assignment_list dl state in
     let ovall = (List.map (Optimizer.iterate_optimizer) vall) in
     let odl = zip3 islazyl idel ovall in
     (* Print the definitions if verbosity is enough and they were optimized *)
     if ovall = vall then () else
     if state.verbosity >= 1 then print_message ~loc:(Nowhere) ~color:T.Yellow "After AST optimization"
         (Printf.sprintf "\n%s" (show_command (Def odl))) else ();
-    let newstate = eval_assignment_list odl new_purity_state in
+    let newstate = eval_assignment_list odl state in
     (EvtUnit, newstate )
 
 and eval_command_list cmdlst state dirscope =
@@ -233,7 +225,7 @@ and eval_directive dir state dirscope =
   | Includefileasmodule (f, m) ->
     (* Inclue a file as a module: *)
     (* Extract the module name from the file name. *)
-    (* TODO fix invalid names *)
+    (* //TODO fix invalid names *)
     let modulename = (match m with
         | Some m -> m
         | None -> Filename.remove_extension f |> Filename.basename |> String.capitalize_ascii) in
@@ -241,16 +233,20 @@ and eval_directive dir state dirscope =
     file position and not from the CWD *)
     let file_in_scope = if not (Filename.is_relative f) then f else
         Filename.concat (dirscope) f in
+    (* Get the command list *)
+    let cmdlist = (Parsedriver.read_file file_in_scope) in
+    (* Infer the purity *)
+    let resulting_state = Puritycheck.infer_command_list cmdlist {state with purityenv = []} in
     (* Evaluate the contents of the file with inside new environments
       and get the resulting state *)
-    let _, resulting_state = eval_command_list (Parsedriver.read_file file_in_scope)
-        { state with env = []; purityenv = [] } dirscope in
+    let _, resulting_state = eval_command_list cmdlist 
+        { resulting_state with env = [] } dirscope in
     (* Create a dictionary (module) from the resulting state's value environment *)
     let newmodule = EvtDict resulting_state.env in
     (* Return a new state by binding the resulting state environments to the module name *)
     (EvtUnit, {
       state with
-      env = (Dict.insert state.env modulename newmodule); 
+      env = (Dict.insert state.env modulename newmodule);
       purityenv = (Dict.insert state.purityenv modulename (PurityModule resulting_state.purityenv)) })
   | Includefile f ->
     let file_in_scope = if not (Filename.is_relative f) then f else

@@ -94,3 +94,23 @@ and infer_assignment_list assignments state : evalstate =
   | (islazy, name, value)::xs ->
     let newstate = infer_assignment state (islazy, name, value) in
     (infer_assignment_list xs newstate)
+
+and infer_command_list cmdlst state =
+  let mstate = ref state in
+  List.iter (fun x -> mstate := infer_command x !mstate) cmdlst;
+  !mstate
+
+and infer_command command state : evalstate = match command with
+  | Directive _ -> state
+  | Expr e ->
+    (* Infer the expression purity and evaluate if appropriate to the current state *)
+    let exprpurity = infer e state in
+    if (state.purity = Pure || state.purity = Numerical) && exprpurity = Impure then
+      iraises (PurityError ("This expression contains a " ^ (show_puret exprpurity) ^
+                            " expression but it is in " ^ (show_puret state.purity) ^ " state!")) state.stack else ();
+    if state.verbosity >= 1 then Printf.eprintf "Has purity: %s\n%!" (show_puret exprpurity) else ();
+    state
+  | Def dl ->
+    (* Infer the values purity and evaluate if appropriate to the current state *)
+    let new_purity_state = infer_assignment_list dl state in
+    new_purity_state

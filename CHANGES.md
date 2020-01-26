@@ -3,7 +3,7 @@
 - The REPL now has `readline` features by default (without the readline dependency) and more!
 - REPL tab completion and hints.
 - Optimized the primitive call abstraction
-- Separated list and dictionary primitives in their appropriate modules `Dict` and `List`
+- Separated primitives in their appropriate modules
 - Fixed size vectors and characters
 - A lot of improvements in the stdlib primitives.
 - A cute mascotte called gamel

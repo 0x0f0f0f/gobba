@@ -17,9 +17,9 @@ let myevt = Alcotest.testable pp_evt equal_evt
 let myexpr = Alcotest.testable pp_expr equal_expr
 let mypurity = Alcotest.testable pp_puret equal_puret
 
-
-
-let eval_one e state = fst (Gobba.Eval.eval_command (Expr e) state Filename.current_dir_name)
+let eval_one e state =
+  let state = Puritycheck.infer_command (Expr e) state in
+  fst (Gobba.Eval.eval_command (Expr e) state Filename.current_dir_name)
 
 let quickcase (descr, case) = A.test_case descr `Quick case
 

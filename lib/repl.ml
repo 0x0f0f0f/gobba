@@ -58,6 +58,7 @@ let rec repl_loop state maxdepth internalst =
       varnames := StringSet.add_seq (gen_keywords_from_env !state.env |> List.to_seq) !varnames ;
       tree := Completion.Trie.insert_many_strings !tree @@ StringSet.elements !varnames;
       let cmd = List.hd (read_toplevel ()) in
+      state := Puritycheck.infer_command cmd !state;
       state := snd (Eval.eval_command cmd !state (Filename.current_dir_name));
     with
     | End_of_file -> raise End_of_file
@@ -87,7 +88,9 @@ let repl state maxstackdepth internalst =
 
 let run_file fn state maxstackdepth internalst =
   try
-    Eval.eval_command_list (Parsedriver.read_file fn) state (Filename.dirname fn)
+    let cmdlist = (Parsedriver.read_file fn) in
+    let state = Puritycheck.infer_command_list cmdlist state in
+    Eval.eval_command_list cmdlist state (Filename.dirname fn)
   with
   | InternalError err ->
     if internalst then Printexc.print_backtrace stderr;
