@@ -97,11 +97,11 @@ directive:
   { match s with
     | "#include" -> Includefile a
     | "#module" -> Includefileasmodule (a, None)
-    | _ -> failwith "unknown directive" }
+    | _ -> failwith "malformed directive" }
   | s = DIRECTIVE i = INTEGER
   { match s with
     | "#verbose" -> Setverbose i
-    | _ -> failwith "unknown directive" }
+    | _ -> failwith "malformed directive" }
   | s = DIRECTIVE UNIT
   { match s with
     | "#pure"   -> Setpurity Pure
@@ -109,7 +109,11 @@ directive:
     | "#uncertain" -> Setpurity Uncertain
     | "#dumpenv" -> Dumpenv
     | "#dumppurityenv" -> Dumppurityenv
-    | _ -> failwith "unknown directive" }
+    | _ -> failwith "malformed directive" }
+  | s = DIRECTIVE m = SYMBOL 
+  { match s with 
+    | "#open" -> Openmodule m
+    | _ -> failwith "malformed directive" }
 
 
 ast_expr:
@@ -153,6 +157,8 @@ ast_expr:
   { Binop(Mult, e1, e2) }
   | e1 = ast_expr; DIV; e2 = ast_expr
   { Binop(Div, e1, e2) }
+  | e1 = ast_expr; TOPOWER; e2 = ast_expr
+  { Binop(Topow, e1, e2) }
   /* Other recursive cases */
   | IF g = ast_expr; THEN b = ast_expr; ELSE e = ast_expr
   { IfThenElse (g, b, e)}

@@ -15,6 +15,8 @@ build: [
   ["sh" "-c" "GOBBA_EXAMPLES=$(realpath ./examples/) dune runtest -p %{name}% -j %{jobs}%"] {with-test}
 ]
 
+conflicts: "gobba" {!= "transition"}
+
 depends: [
     "dune" {>= "2.0"}
     "ocaml" {>= "4.05.0"}

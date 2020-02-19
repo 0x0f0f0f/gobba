@@ -90,6 +90,8 @@ let test_comparisons () =
 
 let test_pipe () =
   check ("((let fib = " ^ fib ^ " in fib) >=> (fun x -> x + 1)) 10")
+    (EvtInt 56);
+  check ("((fun x -> x + 1) <=< (let fib = " ^ fib ^ " in fib)) 10")
     (EvtInt 56)
 
 let test_sequence () =

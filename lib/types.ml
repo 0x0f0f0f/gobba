@@ -58,8 +58,8 @@ type primitiveinfo = (ide * string array * puret) [@@deriving show { with_path =
 type binop =
   | Getkey
   | Eq | Gt | Lt | Ge | Le | And | Or
-  | MakeComplex 
-  | Plus | Sub | Div | Mult
+  | MakeComplex
+  | Plus | Sub | Div | Mult | Topow
   | Cons | Concat | Compose  [@@deriving show { with_path = false }, eq, ord]
 
 (** The type representing Abstract Syntax Tree expressions *)
@@ -99,6 +99,7 @@ type directive =
   | Includefileasmodule of string * ide option
   | Setpurity of puret
   | Setverbose of int
+  | Openmodule of string
 [@@deriving show { with_path = false },eq,ord]
 
 

@@ -17,6 +17,6 @@ let tolower args =
 
 let table = [
   ("toupper", Primitive (toupper, ("toupper", [|"char"|], Pure)));
-  ("tolower", Primitive (toupper, ("tolower", [|"char"|], Pure)));
+  ("tolower", Primitive (tolower, ("tolower", [|"char"|], Pure)));
 ]
 

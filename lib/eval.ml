@@ -131,6 +131,7 @@ and eval_binop (k: binop) (x: expr) (y: expr) state =
   | Sub  ->   Numericalp.sub [|ev1; (eval y state)|]
   | Div  ->   Numericalp.div [|ev1; (eval y state)|]
   | Mult  ->  Numericalp.mult [|ev1; (eval y state)|]
+  | Topow ->  Numericalp.float_binop Owl_base_maths.pow [|ev1; (eval y state)|]
   | And  -> bool_binop (ev1, (eval y state)) ( && )
   | Or -> bool_binop (ev1, (eval y state)) ( || )
   | Eq -> EvtBool (compare_evt ev1 (eval y state) = 0)
@@ -258,3 +259,7 @@ and eval_directive dir state dirscope =
       Printf.eprintf "%s%!" (show_puret state.purity) else ();
     (EvtUnit, { state with purity = p })
   | Setverbose v -> (EvtUnit, { state with verbosity = v})
+  | Openmodule m -> 
+    match lookup m state with 
+    | EvtDict d -> (EvtUnit, { state with env = d @ state.env})
+    | _ -> traise "Cannot open a value that is not a module"

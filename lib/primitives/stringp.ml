@@ -37,10 +37,20 @@ fun f str -> let expl = String:explode str in
   String:implode mapped
 |}
 
-let lambda_table = [
-  ("map", (lambda_of_string "map" mapstr))
-]
+let toupperstr = {|
+fun str -> String:map Char:toupper str
+|}
 
+let tolowerstr = {|
+fun str -> String:map Char:tolower str
+|}
+
+
+let lambda_table = [
+  ("map", (lambda_of_string "map" mapstr));
+  ("toupper", (lambda_of_string "toupper" toupperstr));
+  ("tolower", (lambda_of_string "tolower" tolowerstr))
+]
 
 let table = [
   ("concat", Primitive (concat, ("concat", [|"a"; "b"|], Pure)));
