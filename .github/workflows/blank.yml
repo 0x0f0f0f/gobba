@@ -1,0 +1,29 @@
+name: Build Gobba and run unit tests
+on: [push]
+jobs:
+  osx:
+    name: Build and test (OS X)
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        ocaml-version: [ '4.09.0', '4.08.1' ]
+    steps:
+    - uses: actions/checkout@master
+    - uses: avsm/setup-ocaml@master
+      with:
+        ocaml-version: ${{ matrix.ocaml-version }}
+    - run: brew install pkg-config openblas
+    - run: opam install owl
+    - run: opam install -t . --deps-only
+    - run: opam list
+    - run: GOBBA_EXAMPLES=$(realpath ./examples/) opam exec dune runtest
+  linux:
+    name: Build and test (Linux)
+    runs-on: ubuntu-latest
+    container: sykhro/gobba-deps:latest
+    steps:
+    - run: source /root/.bash_profile
+    - uses: actions/checkout@master
+    - run: opam install --yes -t . --deps-only
+    - run: opam list
+    - run: GOBBA_EXAMPLES=$(realpath ./examples/) opam exec dune runtest
