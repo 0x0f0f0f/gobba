@@ -7,7 +7,6 @@ let plus_one = (Lambda("n", Binop(Plus,Symbol "n", NumInt 1)))
 
 let fib = "fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2))"
 
-
 let test_constants () =
   check "32" (EvtInt 32);
   check "true" (EvtBool true);

@@ -42,4 +42,4 @@ let checkpurity exp expected = A.(check mypurity) exp expected (Puritycheck.infe
 
 let examples_path = Sys.getenv "GOBBA_EXAMPLES"
 
-let checkprogram fn expected = A.(check myevt) fn expected (fst (Repl.run_file (Filename.concat examples_path fn) state 20 true))
+let checkprogram fn expected = A.(check myevt) fn expected (fst3 (Repl.run_file (Filename.concat examples_path fn) state 20 true))

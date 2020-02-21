@@ -1,0 +1,3 @@
+(rule
+ (alias  runtest)
+ (action (run ../../bin/main.exe example.gob)))

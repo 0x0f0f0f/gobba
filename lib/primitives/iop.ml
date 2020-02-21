@@ -15,7 +15,14 @@ let pprint args =
   | _ -> iraise WrongPrimitiveArgs) in
   Printf.printf "%s%!" x; EvtUnit
 
+let exitp args =
+  let code = match args with
+  | [|EvtInt x|] -> x
+  | _ -> iraise WrongPrimitiveArgs in
+  exit code
+
 let table = [
+  ("exit",         Primitive (exitp, ("exit", [|"code"|], Pure)));
   ("print",         Primitive (pprint, ("print", [|"anything"|], Impure)));
   ("print_endline", Primitive (pprint_endline, ("print_endline", [|"anything"|], Impure)));
 ]

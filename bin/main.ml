@@ -4,10 +4,11 @@ open Cmdliner
 
 let run_gobba verbose program printresult maxstackdepth ist =
   Printexc.record_backtrace true; 
-  let state = {default_evalstate with verbosity = verbose; printresult = printresult }in
+  let state = {default_evalstate with verbosity = verbose; printresult = printresult } in
   match program with
   | None -> Repl.repl {state with printresult = true} maxstackdepth ist
-  | Some name -> let _ = Repl.run_file name state maxstackdepth ist in ()
+  | Some name ->
+    let _, _, ecode = Repl.run_file name state maxstackdepth ist in exit ecode
 
 let verbose =
   let doc = "If 1, Print AST to stderr after expressions " ^

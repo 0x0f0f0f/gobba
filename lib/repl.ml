@@ -86,22 +86,25 @@ let repl state maxstackdepth internalst =
   with End_of_file -> prerr_endline "Goodbye!"; ()
 
 
+(** Runs a file, returning the eventual value
+  @return The resulting value, state and exit code *)
 let run_file fn state maxstackdepth internalst =
   try
     let cmdlist = (Parsedriver.read_file fn) in
     let state = Puritycheck.infer_command_list cmdlist state in
-    Eval.eval_command_list cmdlist state (Filename.dirname fn)
+    let value, state = Eval.eval_command_list cmdlist state (Filename.dirname fn) in
+    (value, state, 0)
   with
   | InternalError err ->
     if internalst then Printexc.print_backtrace stderr;
     print_error err;
     print_stacktrace err maxstackdepth;
-    (EvtBool false, state)
+    (EvtBool false, state, 1)
   | Sys.Break ->
     if internalst then Printexc.print_backtrace stderr;
     prerr_endline "Interrupted.";
-    (EvtBool false, state)
+    (EvtBool false, state, 130)
   | e ->
     if internalst then Printexc.print_backtrace stderr;
     print_error (Nowhere, Fatal (Printexc.to_string e), state.stack);
-    (EvtBool false, state)
+    (EvtBool false, state, 2)

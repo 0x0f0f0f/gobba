@@ -1,0 +1,21 @@
+#impure ();
+#open Test;
+#open IO;
+let p = print_endline;
+let u = unit_assert;
+
+let fib = fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2));
+let lazy fibl = fun n -> if n < 2 then n else (fib (n - 1)) + (fib (n - 2));
+let add_one = fun n -> n + 1;
+
+let suite = [
+    u "numerical" 32 32,
+    u "bool" true true,
+    u "unit" () (),
+    u "simple application" (add_one 1) 2,
+    u "recursive application" (fib 10) 55,
+    u "recursive lazy application" (fibl 10) 55
+];
+
+let success = List:foldl (fun x y -> x && y) true suite in
+if success then exit 0 else exit 1

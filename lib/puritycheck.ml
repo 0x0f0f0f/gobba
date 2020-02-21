@@ -101,6 +101,7 @@ and infer_command_list cmdlst state =
   !mstate
 
 and infer_command command state : evalstate = match command with
+  | Directive (Setpurity p) -> {state with purity = p}
   | Directive _ -> state
   | Expr e ->
     (* Infer the expression purity and evaluate if appropriate to the current state *)

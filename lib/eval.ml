@@ -240,7 +240,7 @@ and eval_directive dir state dirscope =
     let resulting_state = Puritycheck.infer_command_list cmdlist {state with purityenv = []} in
     (* Evaluate the contents of the file with inside new environments
       and get the resulting state *)
-    let _, resulting_state = eval_command_list cmdlist 
+    let _, resulting_state = eval_command_list cmdlist
         { resulting_state with env = [] } dirscope in
     (* Create a dictionary (module) from the resulting state's value environment *)
     let newmodule = EvtDict resulting_state.env in

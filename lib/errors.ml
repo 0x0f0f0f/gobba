@@ -32,7 +32,6 @@ exception InternalError of (location * internalerrort * stackframe)
 let sraises l msg s = raise (InternalError ((location_of_lex l), SyntaxError msg, s))
 let sraise l msg = raise (InternalError ((location_of_lex l), SyntaxError msg, EmptyStack))
 
-
 (** Utility function to raise an internal error without a location*)
 let iraises e s = raise (InternalError (Nowhere, e, s))
 let iraise e = raise (InternalError (Nowhere, e, EmptyStack))
