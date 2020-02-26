@@ -24,7 +24,7 @@ jobs:
     - run: opam install owl
     - run: opam install -t . --deps-only
     - run: opam list
-    - run: GOBBA_EXAMPLES=$(realpath ./examples/) opam exec dune runtest
+    - run: GOBBA_EXAMPLES=$(realpath ./examples/) opam exec dune runtest --verbose
   linux:
     name: Linux
     runs-on: ubuntu-latest
@@ -36,4 +36,4 @@ jobs:
     - run: opam install --yes owl
     - run: opam install --yes -t . --deps-only
     - run: opam list
-    - run: GOBBA_EXAMPLES=$(realpath ./examples/) opam exec dune runtest
+    - run: GOBBA_EXAMPLES=$(realpath ./examples/) opam exec dune runtest --verbose
