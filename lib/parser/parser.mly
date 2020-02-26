@@ -19,7 +19,7 @@
 %token MINUS
 %token TIMES
 %token TOPOWER
-%token DIV
+%token DIV MODULO
 %token EQUAL DIFFER GREATER GREATEREQUAL LESS LESSEQUAL
 %token IF THEN ELSE
 %token SEMI
@@ -55,7 +55,7 @@
 %left PLUS MINUS
 %left TIMES
 %left TOPOWER
-%left DIV
+%left DIV MODULO
 
 %start toplevel
 %type <Types.command list> toplevel
@@ -159,6 +159,8 @@ ast_expr:
   { Binop(Div, e1, e2) }
   | e1 = ast_expr; TOPOWER; e2 = ast_expr
   { Binop(Topow, e1, e2) }
+  | e1 = ast_expr; MODULO; e2 = ast_expr
+  { Binop(Modulo, e1, e2) }
   /* Other recursive cases */
   | IF g = ast_expr; THEN b = ast_expr; ELSE e = ast_expr
   { IfThenElse (g, b, e)}

@@ -131,6 +131,7 @@ and eval_binop (k: binop) (x: expr) (y: expr) state =
   | Sub  ->   Numericalp.sub [|ev1; (eval y state)|]
   | Div  ->   Numericalp.div [|ev1; (eval y state)|]
   | Mult  ->  Numericalp.mult [|ev1; (eval y state)|]
+  | Modulo -> Numericalp.modp [|ev1; (eval y state)|]
   | Topow ->  Numericalp.float_binop Owl_base_maths.pow [|ev1; (eval y state)|]
   | And  -> bool_binop (ev1, (eval y state)) ( && )
   | Or -> bool_binop (ev1, (eval y state)) ( || )

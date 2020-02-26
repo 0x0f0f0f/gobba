@@ -37,10 +37,14 @@ let dynamic_binop
   | TComplex -> EvtComplex (opcomplex (unpack_complex x) (unpack_complex y))
   | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_typeinfo t ))
 
+let complexmodulo _ =
+  iraise @@ InternalFailure "Complex number modulo has not yet been implemented"
+
 
 let add args = dynamic_binop (+) (+.) Complex.add args
 let mult args = dynamic_binop ( * ) ( *. ) Complex.mul args 
 let sub args = dynamic_binop (-) (-.) Complex.sub args
+let modp args = dynamic_binop (mod) (fmod) complexmodulo args
 
 let div args =
   let t, x, y = first_two_numbers args in
@@ -52,6 +56,7 @@ let div args =
   | TFloat -> EvtFloat (unpack_float x /. unpack_float y)
   | TComplex -> EvtComplex (Complex.div (unpack_complex x) (unpack_complex y))
   | _ -> traise ("expected a value of type: number, found a value of type: " ^ (show_typeinfo t ))
+
 
 let makecomplex args =
   let _, x, y = first_two_numbers args in

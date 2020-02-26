@@ -1,3 +1,3 @@
 (rule
  (alias  runtest)
- (action (run ../../bin/main.exe ./example.gob)))
+ (action (run ../../bin/main.exe ../../../../test/gob/example.gob)))

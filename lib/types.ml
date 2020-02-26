@@ -59,7 +59,7 @@ type binop =
   | Getkey
   | Eq | Gt | Lt | Ge | Le | And | Or
   | MakeComplex
-  | Plus | Sub | Div | Mult | Topow
+  | Plus | Sub | Div | Mult | Topow | Modulo
   | Cons | Concat | Compose  [@@deriving show { with_path = false }, eq, ord]
 
 (** The type representing Abstract Syntax Tree expressions *)
