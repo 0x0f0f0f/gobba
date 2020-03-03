@@ -1,8 +1,8 @@
 
 # <p align="center"><img alt="gobba" src="assets/gobba.png" width = 25% /></p>
 
-[![Actions Status](https://github.com/0x0f0f0f/gobba/workflows/Build and test/badge.svg)](https://github.com/{owner}/{repo}/actions)
- [![Coverage Status](https://coveralls.io/repos/github/0x0f0f0f/gobba/badge.svg?branch=)](https://coveralls.io/github/0x0f0f0f/gobba?branch=)
+[![Actions Status](https://github.com/0x0f0f0f/gobba/workflows/Build%20and%20test/badge.svg)](https://github.com/0x0f0f0f/gobba/actions)
+[![Coverage Status](https://coveralls.io/repos/github/0x0f0f0f/gobba/badge.svg?branch=)](https://coveralls.io/github/0x0f0f0f/gobba?branch=)
 
 # gobba
 
