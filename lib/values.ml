@@ -3,7 +3,7 @@ open Types
 let rec show_evt_fancy e = match e with
   | EvtUnit -> "()"
   | EvtInt v -> string_of_int v
-  | EvtFloat v -> Printf.sprintf "%f" v
+  | EvtFloat v -> Printf.sprintf "%F" v
   | EvtComplex n -> show_complext n
   | EvtBool v -> string_of_bool v
   | EvtChar c -> "'" ^ String.make 1 c ^ "'"

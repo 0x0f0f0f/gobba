@@ -119,5 +119,6 @@ let table = [
 let constants = [
   ("e", EvtFloat(exp 1.));
   ("pi", EvtFloat(3.1415926535897932384626433));
+  ("epsilon", EvtFloat(epsilon_float));
   ("nan", EvtFloat(nan))
 ]
