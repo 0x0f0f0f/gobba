@@ -14,7 +14,7 @@
 let digit = ['0'-'9']
 let frac = '.' digit*
 let exp = ['e' 'E'] ['-' '+']? digit+
-let float = digit* frac? exp?
+let float = '-'? digit* frac? exp?
 let alpha = ['a'-'z' 'A'-'Z']
 let symbol = alpha (alpha|digit|'_')*
 let int = '-'? ['0'-'9'] ['0'-'9']*
