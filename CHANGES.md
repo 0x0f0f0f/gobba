@@ -1,5 +1,6 @@
-## 0.4.2 2020-01-??
+## 0.4.2 2020-11-28
 ### Added
+- Updated libraries. Minor fixes.
 - The REPL now has `readline` features by default (without the readline dependency) and more!
 - REPL tab completion and hints.
 - Optimized the primitive call abstraction
