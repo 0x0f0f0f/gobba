@@ -153,7 +153,7 @@ and lookup (ident : ide) (state : evalstate) : evt =
   | Some e -> e
 
 and applyfun (closure : evt) (arg : evt) (state : evalstate) : evt =
-  (* Evaluate the argument and unpack the evt encapsuled in them *)
+  (* Evaluate the argument and unpack the evt encapsuled in it *)
   match closure with
   | Closure (name, param, body, decenv) ->
     (* Create a recursion environment if the function is recursive *)
