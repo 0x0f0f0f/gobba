@@ -3,10 +3,11 @@ on: [push, pull_request]
 jobs:
   osx:
     name: OS X
-    runs-on: macos-latest
     strategy:
       matrix:
         ocaml-version: [ '4.11.0', '4.10.0' ]
+        runs-on: [macos-10.15, macos-11.0]
+    runs-on: ${{ matrix.runs-on }}
     steps:
     - uses: actions/checkout@master
     - uses: avsm/setup-ocaml@master
@@ -27,14 +28,11 @@ jobs:
     - run: GOBBA_EXAMPLES=$(realpath ./examples/) opam exec dune runtest --verbose
   linux:
     name: Linux
-    runs-on: ubuntu-latest
-    container: sykhro/gobba-deps:latest
+    runs-on: ubuntu-20.04
+    container:
+      image: sykhro/gobba-deps:latest
     steps:
-    - run: source /root/.bash_profile
     - uses: actions/checkout@master
-    - run: dnf install zlib-devel -y
-    - run: opam init --yes --disable-sandboxing
-    - run: opam install --yes owl
-    - run: opam install --yes -t . --deps-only
+    - run: opam install -yvt . --deps-only
     - run: opam list
     - run: GOBBA_EXAMPLES=$(realpath ./examples/) opam exec dune runtest --verbose
